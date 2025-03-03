@@ -3,6 +3,8 @@ import { Box, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActio
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
+import BarcodeScanner from './BarcodeScanner';
 
 const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, coupons = [] }) => {
   // Extract unique retailer names for autocomplete suggestions
@@ -17,6 +19,7 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
   };
 
   const [formData, setFormData] = useState(initialFormState);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   useEffect(() => {
     if (coupon) {
@@ -38,25 +41,25 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
         // If currentValue exceeds initialValue, set it to initialValue
         setFormData(prev => ({
           ...prev,
-          currentValue: formData.initialValue
+          currentValue: String(initialVal)
         }));
       } else {
         setFormData(prev => ({
           ...prev,
-          currentValue: value
+          currentValue: String(value)
         }));
       }
     } else {
       setFormData(prev => ({
         ...prev,
-        [name]: value
+        [name]: name === 'initialValue' ? String(value) : value
       }));
 
       // When adding a new coupon and initialValue changes, update currentValue to match
       if (!coupon && name === 'initialValue') {
         setFormData(prev => ({
           ...prev,
-          currentValue: value
+          currentValue: String(value)
         }));
       }
     }
@@ -87,6 +90,19 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
       activationCode: '',
       pin: ''
     });
+  };
+
+  const handleScanSuccess = (scannedData) => {
+    // Update form with scanned data
+    setFormData(prev => ({
+      ...prev,
+      retailer: scannedData.retailer || prev.retailer,
+      initialValue: scannedData.initialValue || prev.initialValue,
+      currentValue: scannedData.initialValue || prev.currentValue, // Set current value to initial value for new coupons
+      expirationDate: scannedData.expirationDate ? new Date(scannedData.expirationDate) : prev.expirationDate,
+      activationCode: scannedData.activationCode || prev.activationCode,
+      pin: scannedData.pin || prev.pin
+    }));
   };
 
   return (
@@ -169,11 +185,27 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
       </Box>
       </DialogContent>
       <DialogActions>
+        {!coupon && (
+          <Button 
+            startIcon={<QrCodeScannerIcon />} 
+            onClick={() => setScannerOpen(true)}
+            color="secondary"
+          >
+            Scan QR Code
+          </Button>
+        )}
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSubmit} variant="contained" color="primary">
           {coupon ? 'Update' : 'Add'} Coupon
         </Button>
       </DialogActions>
+      
+      {/* Barcode Scanner Dialog */}
+      <BarcodeScanner 
+        open={scannerOpen} 
+        onClose={() => setScannerOpen(false)} 
+        onScanSuccess={handleScanSuccess} 
+      />
     </Dialog>
   );
 };

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { 
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton,
-  TextField, Box, MenuItem, TableSortLabel, Button, Autocomplete, Typography, Card,
-  CardContent, Grid, useMediaQuery, useTheme, Chip, Tooltip, Badge, FormControlLabel, Checkbox
+  TextField, Box, TableSortLabel, Button, Autocomplete, Typography, Card,
+  CardContent, Grid, useMediaQuery, useTheme, Chip, Tooltip, FormControlLabel, Checkbox,
+  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MoneyOffIcon from '@mui/icons-material/MoneyOff';
+import PaymentIcon from '@mui/icons-material/Payment';
 import { format } from 'date-fns';
 
 const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, setRetailerFilter, defaultSort }) => {
@@ -21,6 +24,9 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
   const [orderBy, setOrderBy] = useState(defaultSort?.field || 'retailer');
   const [order, setOrder] = useState(defaultSort?.order || 'asc');
   const [copiedText, setCopiedText] = useState('');
+  const [partialUseDialogOpen, setPartialUseDialogOpen] = useState(false);
+  const [selectedCouponId, setSelectedCouponId] = useState(null);
+  const [partialUseAmount, setPartialUseAmount] = useState('');
   
   // Function to check if a coupon is expired
   const isExpired = (expirationDate) => {
@@ -77,6 +83,34 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
 
   const handleShowExpiredChange = (event) => {
     setShowExpired(event.target.checked);
+  };
+
+  const handlePartialUseOpen = (couponId) => {
+    setSelectedCouponId(couponId);
+    setPartialUseAmount('');
+    setPartialUseDialogOpen(true);
+  };
+
+  const handlePartialUseClose = () => {
+    setPartialUseDialogOpen(false);
+    setSelectedCouponId(null);
+    setPartialUseAmount('');
+  };
+
+  const handlePartialUseSubmit = () => {
+    if (!selectedCouponId || !partialUseAmount) return;
+    
+    const coupon = coupons.find(c => c.id === selectedCouponId);
+    if (!coupon) return;
+    
+    const currentValueNum = parseFloat(coupon.currentValue);
+    const partialUseAmountNum = parseFloat(partialUseAmount);
+    
+    if (partialUseAmountNum <= 0 || partialUseAmountNum > currentValueNum) return;
+    
+    const newValue = (currentValueNum - partialUseAmountNum).toFixed(2);
+    onMarkAsUsed(selectedCouponId, newValue);
+    handlePartialUseClose();
   };
 
   // Filter coupons based on user filters
@@ -199,132 +233,169 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
         </Box>
       </Box>
 
-      {isMobile ? (
+      {groupedCoupons.length === 0 ? (
+        <Box sx={{ textAlign: 'center', my: 4 }}>
+          <Typography variant="body1">
+            No coupons found matching your filters.
+          </Typography>
+        </Box>
+      ) : isMobile ? (
         // Card view for mobile devices
-        <Box>
-          {groupedCoupons.length === 0 ? (
-            <Typography variant="body1" sx={{ textAlign: 'center', my: 4 }}>
-              No coupons found matching your filters.
-            </Typography>
-          ) : (
-            <Grid container spacing={2}>
-              {groupedCoupons.map((coupon) => (
-                <Grid item xs={12} key={coupon.id}>
-                  <Card variant="outlined" sx={{ 
-                    mb: 1, 
-                    bgcolor: isExpired(coupon.expirationDate) ? 'rgba(211, 47, 47, 0.08)' : 
-                            isUsed(coupon.currentValue) ? 'rgba(158, 158, 158, 0.15)' : 'inherit',
-                    borderColor: isExpired(coupon.expirationDate) ? 'error.main' : 
-                                isUsed(coupon.currentValue) ? 'text.disabled' : 'inherit'
-                  }}>
-                    <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="h6" component="div">
-                          {coupon.retailer}
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                          {isExpired(coupon.expirationDate) && (
-                            <Chip label="Expired" color="error" size="small" />
-                          )}
-                          {isUsed(coupon.currentValue) && (
-                            <Chip label="Used" color="default" size="small" />
-                          )}
+        <Box sx={{ width: '100%' }}>
+          <Grid container spacing={2}>
+            {groupedCoupons.map((coupon) => (
+              <Grid item xs={12} key={coupon.id}>
+                <Card variant="outlined" sx={{ 
+                  mb: 1, 
+                  bgcolor: isExpired(coupon.expirationDate) ? 'rgba(211, 47, 47, 0.08)' : 
+                          isUsed(coupon.currentValue) ? 'rgba(158, 158, 158, 0.15)' : 'inherit'
+                }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="h6" component="div">
+                        {coupon.retailer}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        {isExpired(coupon.expirationDate) && (
                           <Chip 
-                            label={`$${coupon.currentValue}`} 
-                            color={isUsed(coupon.currentValue) ? "default" : "primary"} 
+                            label="Expired" 
                             size="small" 
+                            color="error" 
+                            sx={{ height: 24 }}
                           />
-                        </Box>
+                        )}
+                        {isUsed(coupon.currentValue) && (
+                          <Chip 
+                            label="Used" 
+                            size="small" 
+                            color="default" 
+                            sx={{ height: 24 }}
+                          />
+                        )}
                       </Box>
-                      
-                      <Typography 
-                        variant="body2" 
-                        color={isExpired(coupon.expirationDate) ? "error.main" : "text.secondary"} 
-                        sx={{ mb: 1 }}
-                      >
-                        Expires: {formatDate(coupon.expirationDate)}
-                      </Typography>
-                      
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        Initial Value: ${coupon.initialValue} | Current Value: ${coupon.currentValue}
-                      </Typography>
-                      
-                      <Grid container spacing={1}>
-                        <Grid item xs={6}>
-                          <Typography variant="caption" display="block" color="text.secondary">
-                            Activation Code
+                    </Box>
+                    
+                    <Grid container spacing={1}>
+                      <Grid item xs={6}>
+                        <Typography variant="body2" color="text.secondary">
+                          Initial Value:
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Typography variant="body1">
+                            ${coupon.initialValue}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography variant="body2" sx={{ mr: 1 }}>
-                              {coupon.activationCode || 'N/A'}
-                            </Typography>
-                            {coupon.activationCode && (
-                              <Tooltip title={copiedText === coupon.activationCode ? "Copied!" : "Copy to clipboard"}>
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => handleCopyToClipboard(coupon.activationCode)}
-                                  color={copiedText === coupon.activationCode ? "success" : "default"}
-                                >
-                                  <ContentCopyIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Typography variant="caption" display="block" color="text.secondary">
-                            PIN
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography variant="body2" sx={{ mr: 1 }}>
-                              {coupon.pin || 'N/A'}
-                            </Typography>
-                            {coupon.pin && (
-                              <Tooltip title={copiedText === coupon.pin ? "Copied!" : "Copy to clipboard"}>
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => handleCopyToClipboard(coupon.pin)}
-                                  color={copiedText === coupon.pin ? "success" : "default"}
-                                >
-                                  <ContentCopyIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                          </Box>
-                        </Grid>
+                        </Box>
                       </Grid>
-                      
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, gap: 1 }}>
-                        <Button
-                          startIcon={<EditIcon />}
-                          size="small"
-                          onClick={() => onUpdateCoupon(coupon)}
-                        >
-                          Edit
-                        </Button>
-                        {!isUsed(coupon.currentValue) && (
+                      <Grid item xs={6}>
+                        <Typography variant="body2" color="text.secondary">
+                          Current Value:
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Typography variant="body1" sx={{ 
+                            color: isUsed(coupon.currentValue) ? 'text.disabled' : 'text.primary'
+                          }}>
+                            ${coupon.currentValue}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Typography variant="body2" color="text.secondary">
+                          Expires:
+                        </Typography>
+                        <Typography variant="body1" sx={{ 
+                          color: isExpired(coupon.expirationDate) ? 'error.main' : 'text.primary'
+                        }}>
+                          {formatDate(coupon.expirationDate)}
+                        </Typography>
+                      </Grid>
+                      {coupon.activationCode && (
+                        <Grid item xs={12}>
+                          <Typography variant="body2" color="text.secondary">
+                            Activation Code:
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body1">
+                              {coupon.activationCode}
+                            </Typography>
+                            <IconButton 
+                              size="small" 
+                              onClick={() => handleCopyToClipboard(coupon.activationCode)}
+                              color={copiedText === coupon.activationCode ? 'primary' : 'default'}
+                              title="Copy to clipboard"
+                            >
+                              <ContentCopyIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </Grid>
+                      )}
+                      {coupon.pin && (
+                        <Grid item xs={12}>
+                          <Typography variant="body2" color="text.secondary">
+                            PIN:
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="body1">
+                              {coupon.pin}
+                            </Typography>
+                            <IconButton 
+                              size="small" 
+                              onClick={() => handleCopyToClipboard(coupon.pin)}
+                              color={copiedText === coupon.pin ? 'primary' : 'default'}
+                              title="Copy to clipboard"
+                            >
+                              <ContentCopyIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </Grid>
+                      )}
+                    </Grid>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, gap: 1 }}>
+                      <Button
+                        startIcon={<EditIcon />}
+                        size="small" 
+                        onClick={() => onUpdateCoupon(coupon)}
+                        disabled={isUsed(coupon.currentValue)}
+                        title="Edit"
+                      >
+                        Edit
+                      </Button>
+                      {!isUsed(coupon.currentValue) && (
+                        <>
+                          <Button
+                            startIcon={<PaymentIcon />}
+                            size="small"
+                            color="primary"
+                            onClick={() => handlePartialUseOpen(coupon.id)}
+                            disabled={isUsed(coupon.currentValue)}
+                            title="Partial Use"
+                          >
+                            Partial Use
+                          </Button>
                           <Button
                             startIcon={<MoneyOffIcon />}
                             size="small"
                             color="secondary"
                             onClick={() => onMarkAsUsed(coupon.id)}
+                            disabled={isUsed(coupon.currentValue)}
+                            title="Mark as Used"
                           >
                             Mark as Used
                           </Button>
-                        )}
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          )}
+                        </>
+                      )}
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         </Box>
       ) : (
         // Table view for larger screens
-        <TableContainer component={Paper} sx={{ overflow: 'auto' }}>
-          <Table stickyHeader sx={{ minWidth: { sm: 650, md: 800 } }}>
-            <TableHead sx={{ position: 'sticky', top: 0, zIndex: 10, bgcolor: 'background.paper' }}>
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead>
               <TableRow>
                 <TableCell>
                   <TableSortLabel
@@ -344,107 +415,132 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
                     Current Value
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>Initial Value</TableCell>
                 <TableCell>
                   <TableSortLabel
                     active={orderBy === 'expirationDate'}
                     direction={orderBy === 'expirationDate' ? order : 'asc'}
                     onClick={() => handleRequestSort('expirationDate')}
                   >
-                    Expiration Date
+                    Expires
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>Activation Code</TableCell>
                 <TableCell>PIN</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {groupedCoupons.map((coupon) => (
                 <TableRow 
-                  key={coupon.id} 
+                  key={coupon.id}
                   sx={{ 
                     bgcolor: isExpired(coupon.expirationDate) ? 'rgba(211, 47, 47, 0.08)' : 
-                            isUsed(coupon.currentValue) ? 'rgba(158, 158, 158, 0.15)' : 'inherit',
-                    '& .MuiTableCell-root': {
-                      borderColor: isExpired(coupon.expirationDate) ? 'error.main' : 
-                                  isUsed(coupon.currentValue) ? 'text.disabled' : 'inherit'
-                    }
+                            isUsed(coupon.currentValue) ? 'rgba(158, 158, 158, 0.15)' : 'inherit'
                   }}
                 >
-                  <TableCell>{coupon.retailer}</TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      ${coupon.currentValue}
-                      {isUsed(coupon.currentValue) && (
-                        <Chip label="Used" color="default" size="small" />
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell>${coupon.initialValue}</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography color={isExpired(coupon.expirationDate) ? "error.main" : "inherit"}>
-                        {formatDate(coupon.expirationDate)}
-                      </Typography>
+                      {coupon.retailer}
                       {isExpired(coupon.expirationDate) && (
-                        <Chip label="Expired" color="error" size="small" />
+                        <Chip label="Expired" size="small" color="error" />
+                      )}
+                      {isUsed(coupon.currentValue) && (
+                        <Chip label="Used" size="small" color="default" />
                       )}
                     </Box>
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography sx={{ mr: 1 }}>{coupon.activationCode || 'N/A'}</Typography>
-                      {coupon.activationCode && (
-                        <Tooltip title={copiedText === coupon.activationCode ? "Copied!" : "Copy to clipboard"}>
-                          <IconButton 
-                            size="small" 
-                            onClick={() => handleCopyToClipboard(coupon.activationCode)}
-                            color={copiedText === coupon.activationCode ? "success" : "default"}
-                          >
-                            <ContentCopyIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
+                      <Tooltip title={`Initial value: $${coupon.initialValue}`} arrow>
+                        <Typography
+                          variant="body2"
+                          sx={{ 
+                            color: isUsed(coupon.currentValue) ? 'text.disabled' : 'text.primary'
+                          }}
+                        >
+                          ${coupon.currentValue}
+                        </Typography>
+                      </Tooltip>
                     </Box>
                   </TableCell>
                   <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography sx={{ mr: 1 }}>{coupon.pin || 'N/A'}</Typography>
-                      {coupon.pin && (
-                        <Tooltip title={copiedText === coupon.pin ? "Copied!" : "Copy to clipboard"}>
-                          <IconButton 
-                            size="small" 
-                            onClick={() => handleCopyToClipboard(coupon.pin)}
-                            color={copiedText === coupon.pin ? "success" : "default"}
-                          >
-                            <ContentCopyIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Box>
+                    <Typography
+                      variant="body2"
+                      sx={{ 
+                        color: isExpired(coupon.expirationDate) ? 'error.main' : 'text.primary'
+                      }}
+                    >
+                      {formatDate(coupon.expirationDate)}
+                    </Typography>
                   </TableCell>
                   <TableCell>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton
-                        onClick={() => onUpdateCoupon(coupon)}
-                        color="primary"
-                        size="small"
-                        title="Edit"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      {!isUsed(coupon.currentValue) && (
-                        <IconButton
-                          onClick={() => onMarkAsUsed(coupon.id)}
-                          color="secondary"
+                    {coupon.activationCode ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        {coupon.activationCode}
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleCopyToClipboard(coupon.activationCode)}
+                          color={copiedText === coupon.activationCode ? 'primary' : 'default'}
+                          title="Copy to clipboard"
+                        >
+                          <ContentCopyIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    ) : (
+                      'N/A'
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {coupon.pin ? (
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        {coupon.pin}
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleCopyToClipboard(coupon.pin)}
+                          color={copiedText === coupon.pin ? 'primary' : 'default'}
+                          title="Copy to clipboard"
+                        >
+                          <ContentCopyIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    ) : (
+                      'N/A'
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
+                    <Button
+                      startIcon={<EditIcon />}
+                      size="small" 
+                      onClick={() => onUpdateCoupon(coupon)}
+                      disabled={isUsed(coupon.currentValue)}
+                      title="Edit"
+                    >
+                      Edit
+                    </Button>
+                    {!isUsed(coupon.currentValue) && (
+                      <>
+                        <Button
+                          startIcon={<PaymentIcon />}
                           size="small"
+                          color="primary"
+                          onClick={() => handlePartialUseOpen(coupon.id)}
+                          disabled={isUsed(coupon.currentValue)}
+                          title="Partial Use"
+                        >
+                          Partial Use
+                        </Button>
+                        <Button
+                          startIcon={<MoneyOffIcon />}
+                          size="small"
+                          color="secondary"
+                          onClick={() => onMarkAsUsed(coupon.id)}
+                          disabled={isUsed(coupon.currentValue)}
                           title="Mark as Used"
                         >
-                          <MoneyOffIcon />
-                        </IconButton>
-                      )}
-                    </Box>
+                          Mark as Used
+                        </Button>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -452,8 +548,60 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
           </Table>
         </TableContainer>
       )}
+      {/* Partial Use Dialog */}
+      <Dialog open={partialUseDialogOpen} onClose={handlePartialUseClose}>
+        <DialogTitle>Partial Use</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Enter amount to use:
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Amount to Use"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={partialUseAmount}
+            onChange={(e) => setPartialUseAmount(e.target.value)}
+            inputProps={{ 
+              min: 0.01,
+              max: selectedCouponId ? coupons.find(c => c.id === selectedCouponId)?.currentValue : 0,
+              step: 0.01
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handlePartialUseClose}>Cancel</Button>
+          <Button onClick={handlePartialUseSubmit} color="primary" variant="contained">
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
-  );
+  )
+};
+
+CouponList.propTypes = {
+  coupons: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      retailer: PropTypes.string.isRequired,
+      initialValue: PropTypes.string.isRequired,
+      currentValue: PropTypes.string.isRequired,
+      expirationDate: PropTypes.string.isRequired,
+      activationCode: PropTypes.string,
+      pin: PropTypes.string
+    })
+  ).isRequired,
+  onUpdateCoupon: PropTypes.func.isRequired,
+  onMarkAsUsed: PropTypes.func.isRequired,
+  retailerFilter: PropTypes.string,
+  setRetailerFilter: PropTypes.func.isRequired,
+  defaultSort: PropTypes.shape({
+    field: PropTypes.string,
+    order: PropTypes.oneOf(['asc', 'desc'])
+  })
 };
 
 export default CouponList;

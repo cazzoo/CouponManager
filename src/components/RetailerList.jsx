@@ -156,25 +156,31 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {retailers.map((retailer) => (
-                <TableRow key={retailer.name}>
-                  <TableCell>
-                    <Link
-                      component="button"
-                      onClick={() => handleRetailerClick(retailer.name)}
-                      sx={{ cursor: 'pointer' }}
-                    >
-                      {retailer.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{retailer.couponCount}</TableCell>
-                  <TableCell>${retailer.totalValue.toFixed(2)}</TableCell>
-                  <TableCell>{retailer.activeCouponCount}</TableCell>
-                  <TableCell sx={{ color: 'success.main' }}>${retailer.activeTotalValue.toFixed(2)}</TableCell>
-                  <TableCell>{retailer.expiredCouponCount}</TableCell>
-                  <TableCell sx={{ color: 'error.main' }}>${retailer.expiredTotalValue.toFixed(2)}</TableCell>
+              {retailers.length > 0 ? (
+                retailers.map((retailer) => (
+                  <TableRow key={retailer.name}>
+                    <TableCell>
+                      <Link
+                        component="button"
+                        onClick={() => handleRetailerClick(retailer.name)}
+                        sx={{ cursor: 'pointer' }}
+                      >
+                        {retailer.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{retailer.couponCount}</TableCell>
+                    <TableCell>${retailer.totalValue.toFixed(2)}</TableCell>
+                    <TableCell>{retailer.activeCouponCount}</TableCell>
+                    <TableCell sx={{ color: 'success.main' }}>${retailer.activeTotalValue.toFixed(2)}</TableCell>
+                    <TableCell>{retailer.expiredCouponCount}</TableCell>
+                    <TableCell sx={{ color: 'error.main' }}>${retailer.expiredTotalValue.toFixed(2)}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">No retailers found</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>
