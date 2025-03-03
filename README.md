@@ -61,6 +61,38 @@ The application is fully functional with a robust test suite. Components have be
 
 ## Development
 
+### Prerequisites
+
+- Node.js v18 or higher
+- pnpm package manager
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/CouponManager.git
+cd CouponManager
+
+# Install dependencies
+pnpm install
+
+# Start the development server
+pnpm dev
+```
+
+### Testing
+
+```bash
+# Run tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Generate test coverage reports
+pnpm test:coverage
+```
+
 ### Running Tests
 
 The project has a comprehensive test suite that can be run using:
@@ -131,6 +163,31 @@ CouponManager/
 └── vite.config.js    # Vite configuration
 ```
 
+## Documentation
+
+The project includes comprehensive documentation to help with development, architecture understanding, and project status tracking:
+
+- [Product Requirements Document (PRD)](docs/prd.md) - Detailed product requirements and specifications
+- [Architecture Documentation](docs/architecture.md) - Technical architecture, data models, and component design
+- [Diagrams Guide](docs/diagrams.md) - Guide for working with and generating Mermaid diagrams
+- [Project Status Documentation](docs/project-status/README.md) - System for tracking project status, including:
+  - [Status Board](docs/project-status/status-board.md) - High-level project status overview
+  - [Detailed Status](docs/project-status/status.md) - Comprehensive status reporting
+  - [Todo List](docs/project-status/todo.md) - Task tracking and planning
+  - [Blockers](docs/project-status/blockers.md) - Issue tracking and resolution
+  - [Help Requests](docs/project-status/help-requests.md) - Team assistance tracking
+
+### Development Workflow
+
+In the development workflow, remember to generate diagram images after updating any documentation containing Mermaid diagrams:
+
+```bash
+# Generate PNG images from Mermaid diagrams in documentation
+pnpm generate-diagrams
+```
+
+This will create static PNG images for all Mermaid diagrams in the documentation, which is useful for environments that don't support Mermaid rendering.
+
 ## Future Enhancements
 
 - Integrate with supabase
@@ -144,6 +201,7 @@ CouponManager/
 - Implement coupon categories and tags for better organization
 - Add advanced search capabilities
 - Provide usage history tracking for coupons
+- Switch runtime to bun?
 
 ## License
 
