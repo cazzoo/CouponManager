@@ -24,7 +24,7 @@ const BarcodeScanner = ({ open, onClose, onScanSuccess }) => {
             
             // Validate that we have the required fields
             if (!parsedData.retailer || !parsedData.initialValue) {
-              setError('Invalid QR code format: missing required fields');
+              setError(t('errors.invalid_qr_format'));
               return;
             }
             
@@ -38,19 +38,19 @@ const BarcodeScanner = ({ open, onClose, onScanSuccess }) => {
           // Close the dialog
           onClose();
         } catch (err) {
-          setError('Invalid code format: could not process data');
+          setError(t('errors.invalid_qr_format'));
         }
       }
     }
   };
 
   const handleError = (err) => {
-    setError(`${t('error_accessing_camera')}: ${err}`);
+    setError(`${t('errors.error_accessing_camera')}: ${err}`);
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('scan_barcode')}</DialogTitle>
+      <DialogTitle>{t('actions.scan_barcode')}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
           {error && (
@@ -59,7 +59,7 @@ const BarcodeScanner = ({ open, onClose, onScanSuccess }) => {
             </Alert>
           )}
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, textAlign: 'center' }}>
-            Position the barcode within the scanner frame to automatically capture coupon details.
+            {t('dialog.barcode_scanning_instruction')}
           </Typography>
           <Box sx={{ width: '100%', maxWidth: 400, mx: 'auto' }}>
             <QrReader
@@ -73,7 +73,7 @@ const BarcodeScanner = ({ open, onClose, onScanSuccess }) => {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>{t('cancel')}</Button>
+        <Button onClick={onClose}>{t('actions.cancel')}</Button>
       </DialogActions>
     </Dialog>
   );

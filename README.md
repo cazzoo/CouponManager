@@ -2,75 +2,31 @@
 
 A modern web application for managing vouchers and coupons with an intuitive user interface.
 
-## Description
+## Overview
 
-Coupon Manager is a React-based web application that helps users track and manage their gift cards, vouchers, and coupons. It provides a clean, responsive interface with both light and dark themes for managing coupon details including retailer information, values, expiration dates, and usage status.
+Coupon Manager helps users track and manage their gift cards, vouchers, and coupons. It provides a clean, responsive interface for managing coupon details including retailer information, values, expiration dates, and usage status.
 
-## Features
+## Key Features
 
-- **Coupon Management**: Add, edit, and track coupons with detailed information
-- **Retailer Statistics**: View aggregated statistics by retailer including active and expired coupon counts and values
-- **Filtering & Sorting**: Filter coupons by retailer, amount range, and expiration status
-- **Responsive Design**: Optimized for both desktop and mobile devices
-- **Dark/Light Theme**: Toggle between dark and light themes for comfortable viewing
-- **Copy to Clipboard**: Easily copy activation codes and PINs with a single click
-- **Mark as Used**: Track which coupons have been fully redeemed
-- **Partial Use**: Record partial usage of coupons while maintaining remaining value
-- **Barcode Scanning**: Scan barcodes to quickly input coupon information
+- Add, edit, and track coupons with detailed information
+- View aggregated statistics by retailer
+- Filter by retailer, amount range, and expiration status
+- Dark/light theme support
+- Barcode scanning for quick coupon entry
+- Internationalization (i18n) support
 
-## Current State
-
-The application is fully functional with a robust test suite. Components have been thoroughly tested for both desktop and mobile views. Recent updates include:
-
-- Fixed issue with button labels for improved usability
-- Enhanced mobile view with proper text labels for accessibility
-- Added support for partial coupon usage
-- Fixed test failures to ensure proper functionality
-- Implemented barcode scanning capability for coupon entry
-
-## Installation
-
-### Prerequisites
-
-- Node.js (v14 or newer)
-- pnpm (recommended) or npm
-
-### Setup
-
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/CouponManager.git
-   cd CouponManager
-   ```
-
-2. Install dependencies:
-   ```
-   pnpm install
-   # or if using npm
-   npm install
-   ```
-
-3. Start the development server:
-   ```
-   pnpm dev
-   # or
-   npm run dev
-   ```
-
-4. Open your browser and navigate to `http://localhost:3000`
-
-## Development
+## Getting Started
 
 ### Prerequisites
 
 - Node.js v18 or higher
-- pnpm package manager
+- pnpm (recommended) or npm
 
-### Installation
+### Quick Start
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/CouponManager.git
+git clone https://github.com/yourusername/CouponManager.git
 cd CouponManager
 
 # Install dependencies
@@ -80,128 +36,30 @@ pnpm install
 pnpm dev
 ```
 
+Open your browser and navigate to `http://localhost:3000`
+
 ### Testing
 
 ```bash
 # Run tests
 pnpm test
 
-# Run tests in watch mode
-pnpm test:watch
-
 # Generate test coverage reports
 pnpm test:coverage
 ```
 
-### Running Tests
-
-The project has a comprehensive test suite that can be run using:
-
-```
-pnpm test
-# or
-npm test
-```
-
-All components have dedicated test files for both desktop and mobile views to ensure consistent functionality across different devices.
-
-## Usage
-
-### Adding a New Coupon
-
-1. Click the "Add Coupon" button
-2. Fill in the required fields:
-   - Retailer name
-   - Initial value
-   - Expiration date
-3. Optionally add activation code and PIN
-4. Click "Add Coupon" to save
-
-### Managing Coupons
-
-- **Edit**: Click the edit icon to modify coupon details
-- **Mark as Used**: Click the "Mark as Used" button to set a coupon's current value to $0
-- **Partial Use**: Click the "Partial Use" button to deduct a specific amount from the coupon's value
-- **Filter**: Use the filter controls to find specific coupons by retailer, value range, or expiration status
-- **Sort**: Click column headers to sort by retailer, amount, or expiration date
-- **Copy Codes**: Use the copy button next to activation codes and PINs for easy copying
-
-### Retailer View
-
-Click on a retailer name in the Retailers tab to view all coupons from that specific retailer.
-
-## Technology Stack
-
-- **Frontend Framework**: React 18
-- **UI Components**: Material-UI (MUI) v5
-- **Build Tool**: Vite
-- **Testing Framework**: Vitest with React Testing Library
-- **Date Handling**: date-fns
-- **State Management**: React Hooks
-
-## Project Structure
-
-```
-CouponManager/
-├── public/           # Static assets
-├── src/
-│   ├── components/   # React components
-│   │   ├── AddCouponForm.jsx     # Form for adding/editing coupons
-│   │   ├── BarcodeScanner.jsx    # Component for scanning coupon barcodes
-│   │   ├── CouponList.jsx        # Main coupon display component
-│   │   └── RetailerList.jsx      # Retailer statistics component
-│   ├── services/     # Service layer for data management
-│   │   └── CouponService.js      # Business logic for coupon operations
-│   ├── test/         # Test files
-│   │   ├── components/           # Component tests
-│   │   └── services/             # Service tests
-│   ├── App.jsx       # Main application component
-│   └── index.jsx     # Application entry point
-├── index.html        # HTML template
-├── package.json      # Project dependencies and scripts
-├── pnpm-lock.yaml    # Lock file for dependencies
-└── vite.config.js    # Vite configuration
-```
-
 ## Documentation
 
-The project includes comprehensive documentation to help with development, architecture understanding, and project status tracking:
+For detailed information about the project, please refer to the documentation:
 
-- [Product Requirements Document (PRD)](docs/prd.md) - Detailed product requirements and specifications
-- [Architecture Documentation](docs/architecture.md) - Technical architecture, data models, and component design
-- [Diagrams Guide](docs/diagrams.md) - Guide for working with and generating Mermaid diagrams
-- [Project Status Documentation](docs/project-status/README.md) - System for tracking project status, including:
-  - [Status Board](docs/project-status/status-board.md) - High-level project status overview
-  - [Detailed Status](docs/project-status/status.md) - Comprehensive status reporting
-  - [Todo List](docs/project-status/todo.md) - Task tracking and planning
-  - [Blockers](docs/project-status/blockers.md) - Issue tracking and resolution
-  - [Help Requests](docs/project-status/help-requests.md) - Team assistance tracking
-
-### Development Workflow
-
-In the development workflow, remember to generate diagram images after updating any documentation containing Mermaid diagrams:
-
-```bash
-# Generate PNG images from Mermaid diagrams in documentation
-pnpm generate-diagrams
-```
-
-This will create static PNG images for all Mermaid diagrams in the documentation, which is useful for environments that don't support Mermaid rendering.
-
-## Future Enhancements
-
-- Integrate with supabase
-- Data persistence with local storage or backend integration
-- User accounts and authentication
-- Export/import functionality
-- Notifications for expiring coupons
-- Expose services via REST API
-- Make the app as a browser extension (or compatible with a browser extension)
-- Implement a language selector for content translation
-- Implement coupon categories and tags for better organization
-- Add advanced search capabilities
-- Provide usage history tracking for coupons
-- Switch runtime to bun?
+- [Product Requirements (PRD)](docs/prd.md)
+- [Architecture Documentation](docs/architecture.md) 
+- [Internationalization System](docs/i18n-system.md)
+- [Code Style Guidelines](docs/code-style.md)
+- [Contributing Guidelines](docs/contributing.md)
+- [Testing Standards](docs/testing-standards.md)
+- [Current Project Status](docs/project-status/status.md)
+- [Future Development Plans](docs/project-status/todo.md)
 
 ## License
 

@@ -1,0 +1,72 @@
+{
+  "app": {
+    "coupon_manager": "Coupon Manager",
+    "add_coupon": "Add Coupon",
+    "coupons": "Coupons",
+    "retailers": "Retailers"
+  },
+  "form": {
+    "retailer": "Retailer",
+    "initial_value": "Initial Value",
+    "current_value": "Current Value",
+    "expiration_date": "Expiration Date",
+    "activation_code": "Activation Code",
+    "pin": "PIN"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "mark_as_used": "Mark as Used",
+    "partial_use": "Partial Use",
+    "scan_barcode": "Scan Barcode",
+    "copy_to_clipboard": "Copy to clipboard"
+  },
+  "filter": {
+    "filter": "Filter",
+    "filter_by_retailer": "Filter by Retailer",
+    "filter_by_amount": "Filter by Amount",
+    "filter_by_status": "Filter by Status",
+    "clear_filters": "Clear Filters",
+    "min_amount": "Min Amount",
+    "max_amount": "Max Amount"
+  },
+  "status": {
+    "active": "Active",
+    "expired": "Expired",
+    "used": "Used"
+  },
+  "general": {
+    "total_value": "Total Value",
+    "active_coupons": "Active Coupons", 
+    "expired_coupons": "Expired Coupons",
+    "language": "Language",
+    "not_applicable": "N/A",
+    "invalid_date": "Invalid Date"
+  },
+  "tables": {
+    "expires": "Expires",
+    "actions": "Actions",
+    "total_coupons": "Total Coupons",
+    "active_value": "Active Value",
+    "expired_value": "Expired Value"
+  },
+  "errors": {
+    "error_accessing_camera": "Error accessing camera",
+    "invalid_qr_format": "Invalid QR code format",
+    "missing_required_fields": "Missing required fields"
+  },
+  "dialog": {
+    "enter_amount_to_use": "Enter amount to use",
+    "amount_to_use": "Amount to Use",
+    "barcode_scanning_instruction": "Position the barcode within the scanner frame to automatically capture coupon details."
+  },
+  "messages": {
+    "no_retailers_found": "No retailers found.",
+    "no_coupons_found": "No coupons found matching your filters."
+  },
+  "notifications": {
+    "copied_to_clipboard": "Copied to clipboard!"
+  }
+} 

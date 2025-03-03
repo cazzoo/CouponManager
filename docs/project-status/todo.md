@@ -1,33 +1,39 @@
 # CouponManager Todo List
 
-Last Updated: 2023-03-03 by @project-lead
+Last Updated: 2023-09-01
 
-## High Priority
+## Short-term Tasks (Next 1-2 months)
 
-- [ ] Optimize rendering performance for coupon list on mobile devices (#45) @frontend-dev [Due: 2023-03-10] #performance #mobile
-- [ ] Fix intermittent connection error with barcode scanner on Android (#52) @mobile-dev [Due: 2023-03-12] #bug #critical
+- [ ] Optimize rendering performance for coupon list on mobile devices
+- [ ] Fix connection issues with barcode scanner on certain Android devices
+- [ ] Add notification system for expiring coupons
+- [ ] Implement data visualization for retailer statistics
 
-## Medium Priority
+## Medium-term Tasks (Next 3-6 months)
 
-- [ ] Add notification system for expiring coupons (#38) @frontend-dev [Due: 2023-03-20] #feature
-- [ ] Implement data visualization for retailer statistics (#40) @ui-designer [Due: 2023-03-25] #enhancement
-- [ ] Create user onboarding guide for first-time users (#43) @ux-designer [Due: 2023-03-28] #documentation
-- [ ] Add keyboard shortcuts for common actions (#47) @frontend-dev [Due: 2023-04-05] #accessibility
-- [ ] Implement dark mode for barcode scanner overlay (#49) @mobile-dev [Due: 2023-04-08] #enhancement
+- [ ] Integrate with supabase for data persistence
+- [ ] Add user accounts and authentication
+- [ ] Implement export/import functionality for coupon data
+- [ ] Add notifications for expiring coupons
+- [ ] Create advanced search capabilities
+- [ ] Implement coupon categories and tags for better organization
 
-## Low Priority
+## Long-term Tasks (Future Development)
 
-- [ ] Refactor language service for better code organization (#41) @backend-dev [Due: 2023-04-10] #refactoring
-- [ ] Create advanced search options for coupons (#44) @frontend-dev [Due: 2023-04-15] #feature
-- [ ] Add animation for coupon status transitions (#46) @ui-designer [Due: 2023-04-18] #enhancement
-- [ ] Implement bulk actions for coupon management (#48) @frontend-dev [Due: 2023-04-22] #feature
-- [ ] Add print functionality for coupons (#50) @frontend-dev [Due: 2023-04-25] #feature
+- [ ] Expose services via REST API
+- [ ] Make the app compatible with browser extensions
+- [ ] Provide usage history tracking for coupons
+- [ ] Consider switching runtime to bun
+- [ ] Implement reporting features for usage statistics
+- [ ] Add print functionality for coupons
 
-## Completed (Last 2 Weeks)
+## Recently Completed
 
-- [x] Implement barcode scanning functionality (#32) @mobile-dev [Completed: 2023-02-28] #feature
-- [x] Fix responsive layout issues on mobile devices (#35) @frontend-dev [Completed: 2023-02-25] #bug
-- [x] Optimize database queries for large coupon collections (#36) @backend-dev [Completed: 2023-02-22] #performance
+- [x] Implement barcode scanning functionality
+- [x] Fix responsive layout issues on mobile devices
+- [x] Implement internationalization with i18next
+- [x] Optimize coupon list UI with icon-only buttons and tooltips
+- [x] Add support for partial coupon usage
 
 ## Backlog Grooming Notes
 
@@ -36,33 +42,3 @@ Last Updated: 2023-03-03 by @project-lead
 - Implementing user accounts and cloud synchronization
 - Adding export functionality for coupon data
 - Creating a reporting feature for usage statistics
-
-### Dependencies
-
-- Notification system (#38) depends on completion of the language service refactoring (#41)
-- Advanced search (#44) should be implemented after optimizing the coupon list performance (#45)
-
-### Task Allocation Summary
-
-```mermaid
-pie title Task Allocation by Team Member
-    "@frontend-dev" : 6
-    "@mobile-dev" : 2
-    "@backend-dev" : 1
-    "@ui-designer" : 2
-    "@ux-designer" : 1
-    "@project-lead" : 0
-```
-
-### Upcoming Work Distribution
-
-| Week | High Priority | Medium Priority | Low Priority | Total |
-|------|--------------|----------------|-------------|-------|
-| Mar 6-12 | 2 | 0 | 0 | 2 |
-| Mar 13-19 | 0 | 1 | 0 | 1 |
-| Mar 20-26 | 0 | 2 | 0 | 2 |
-| Mar 27-Apr 2 | 0 | 1 | 0 | 1 |
-| Apr 3-9 | 0 | 1 | 1 | 2 |
-| Apr 10-16 | 0 | 0 | 2 | 2 |
-| Apr 17-23 | 0 | 0 | 2 | 2 |
-| Apr 24-30 | 0 | 0 | 1 | 1 | 

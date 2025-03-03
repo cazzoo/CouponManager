@@ -1,44 +1,29 @@
-# Cursor Workflow Rules
+# Project Workflow Rules
 
-This project has been updated to use the auto rule generator from [cursor-auto-rules-agile-workflow](https://github.com/bmadcode/cursor-auto-rules-agile-workflow).
-
-> **Note**: This script can be safely re-run at any time to update the template rules to their latest versions. It will not impact or overwrite any custom rules you've created.
+This project uses a simplified approach to documentation and project management without agile methodologies.
 
 ## Core Features
 
-- Automated rule generation
 - Standardized documentation formats
-- AI behavior control and optimization
-- Flexible workflow integration options
+- Simplified project status tracking
+- Focused task management
+- Clear documentation standards
 
-## Workflow Integration Options
+## Documentation Standards
 
-### 1. Automatic Rule Application (Recommended)
-The core workflow rules are automatically installed in `.cursor/rules/`:
-- `901-prd.mdc` - Product Requirements Document standards
-- `902-arch.mdc` - Architecture documentation standards
-- `903-story.mdc` - User story standards
-- `801-workflow-agile.mdc` - Complete Agile workflow (optional)
+### 1. Standard Documentation
+The core documentation standards are applied to:
+- `docs/prd.md` - Product Requirements Document
+- `docs/architecture.md` - Architecture documentation
+- `docs/i18n-system.md` - Internationalization system documentation
 
-These rules are automatically applied when working with corresponding file types.
-
-### 2. Notepad-Based Workflow
-For a more flexible approach, use the templates in `xnotes/`:
-1. Enable Notepads in Cursor options
-2. Create a new notepad (e.g., "agile")
-3. Copy contents from `xnotes/workflow-agile.md`
-4. Use \`@notepad-name\` in conversations
-
-> 💡 **Tip:** The Notepad approach is ideal for:
-> - Initial project setup
-> - Story implementation
-> - Focused development sessions
-> - Reducing context overhead
+### 2. Project Status Documentation
+The simplified project status tracking uses two main files:
+- `docs/project-status/status.md` - Current project status
+- `docs/project-status/todo.md` - Short-term, medium-term, and long-term tasks
 
 ## Getting Started
 
-1. Review the templates in \`xnotes/\`
-2. Choose your preferred workflow approach
-3. Start using the AI with confidence!
-
-For demos and tutorials, visit: [BMad Code Videos](https://youtube.com/bmadcode)
+1. Review the documentation in the `docs/` directory
+2. Check `docs/project-status/` for current status and todo items
+3. Follow the established documentation standards when creating or updating documents

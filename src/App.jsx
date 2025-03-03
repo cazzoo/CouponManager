@@ -60,7 +60,7 @@ function App({ isDarkMode, onThemeChange }) {
       <AppBar position="static" sx={{ backgroundColor: "#2e7d32" }}>
         <Toolbar sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {t('coupon_manager')}
+            {t('app.coupon_manager')}
           </Typography>
           <LanguageSelector />
           <IconButton
@@ -89,8 +89,8 @@ function App({ isDarkMode, onThemeChange }) {
             },
           }}
         >
-          <Tab label={t('coupons')} />
-          <Tab label={t('retailers')} />
+          <Tab label={t('app.coupons')} />
+          <Tab label={t('app.retailers')} />
         </Tabs>
       </AppBar>
       <Container maxWidth="lg" sx={{ mt: 4, px: { xs: 2, sm: 3, md: 4 } }}>
@@ -112,7 +112,7 @@ function App({ isDarkMode, onThemeChange }) {
                   setDialogOpen(true);
                 }}
               >
-                {t('add_coupon')}
+                {t('app.add_coupon')}
               </Button>
             </Box>
             <AddCouponForm

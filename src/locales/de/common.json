@@ -1,0 +1,72 @@
+{
+  "app": {
+    "coupon_manager": "Gutschein-Manager",
+    "add_coupon": "Gutschein Hinzufügen",
+    "coupons": "Gutscheine",
+    "retailers": "Händler"
+  },
+  "form": {
+    "retailer": "Händler",
+    "initial_value": "Anfangswert",
+    "current_value": "Aktueller Wert",
+    "expiration_date": "Ablaufdatum",
+    "activation_code": "Aktivierungscode",
+    "pin": "PIN"
+  },
+  "actions": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "mark_as_used": "Als Benutzt Markieren",
+    "partial_use": "Teilweise Verwendung",
+    "scan_barcode": "Barcode Scannen",
+    "copy_to_clipboard": "In die Zwischenablage kopieren"
+  },
+  "filter": {
+    "filter": "Filter",
+    "filter_by_retailer": "Nach Händler Filtern",
+    "filter_by_amount": "Nach Betrag Filtern",
+    "filter_by_status": "Nach Status Filtern",
+    "clear_filters": "Filter Löschen",
+    "min_amount": "Mindestbetrag",
+    "max_amount": "Höchstbetrag"
+  },
+  "status": {
+    "active": "Aktiv",
+    "expired": "Abgelaufen",
+    "used": "Benutzt"
+  },
+  "general": {
+    "total_value": "Gesamtwert",
+    "active_coupons": "Aktive Gutscheine",
+    "expired_coupons": "Abgelaufene Gutscheine",
+    "language": "Sprache",
+    "not_applicable": "N/V",
+    "invalid_date": "Ungültiges Datum"
+  },
+  "tables": {
+    "expires": "Läuft ab am",
+    "actions": "Aktionen",
+    "total_coupons": "Gesamte Gutscheine",
+    "active_value": "Aktiver Wert",
+    "expired_value": "Abgelaufener Wert"
+  },
+  "errors": {
+    "error_accessing_camera": "Fehler beim Zugriff auf die Kamera",
+    "invalid_qr_format": "Ungültiges QR-Code-Format",
+    "missing_required_fields": "Erforderliche Felder fehlen"
+  },
+  "dialog": {
+    "enter_amount_to_use": "Geben Sie den zu verwendenden Betrag ein",
+    "amount_to_use": "Zu verwendender Betrag",
+    "barcode_scanning_instruction": "Positionieren Sie den Barcode im Scanner-Rahmen, um automatisch die Gutscheindetails zu erfassen."
+  },
+  "messages": {
+    "no_retailers_found": "Keine Händler gefunden.",
+    "no_coupons_found": "Keine Gutscheine gefunden, die Ihren Filtern entsprechen."
+  },
+  "notifications": {
+    "copied_to_clipboard": "In die Zwischenablage kopiert!"
+  }
+} 

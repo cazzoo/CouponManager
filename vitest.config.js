@@ -12,6 +12,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html', 'lcov'],
       exclude: ['node_modules/', 'src/test/setup.js'],
       include: ['src/**/*.{js,jsx}'],
+      reportsDirectory: './coverage',
       all: true,
       branches: 80,
       functions: 80,

@@ -1,8 +1,8 @@
 ---
 description: FOLLOW TypeScript commenting standards WHEN writing or editing TypeScript files TO ensure code clarity, maintainability, and AI-friendly documentation
 globs: **/*.ts
+alwaysApply: false
 ---
-
 # TypeScript Commenting Standards
 
 <version>1.0.0</version>

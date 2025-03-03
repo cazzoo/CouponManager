@@ -1,0 +1,72 @@
+{
+  "app": {
+    "coupon_manager": "Gestionnaire de Coupons",
+    "add_coupon": "Ajouter un Coupon",
+    "coupons": "Coupons",
+    "retailers": "Commerçants"
+  },
+  "form": {
+    "retailer": "Commerçant",
+    "initial_value": "Valeur Initiale",
+    "current_value": "Valeur Actuelle",
+    "expiration_date": "Date d'Expiration",
+    "activation_code": "Code d'Activation",
+    "pin": "Code PIN"
+  },
+  "actions": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "mark_as_used": "Marquer comme Utilisé",
+    "partial_use": "Utilisation Partielle",
+    "scan_barcode": "Scanner le Code-barre",
+    "copy_to_clipboard": "Copier dans le presse-papiers"
+  },
+  "filter": {
+    "filter": "Filtrer",
+    "filter_by_retailer": "Filtrer par Commerçant",
+    "filter_by_amount": "Filtrer par Montant",
+    "filter_by_status": "Filtrer par Statut",
+    "clear_filters": "Effacer les Filtres",
+    "min_amount": "Montant Minimum",
+    "max_amount": "Montant Maximum"
+  },
+  "status": {
+    "active": "Actif",
+    "expired": "Expiré",
+    "used": "Utilisé"
+  },
+  "general": {
+    "total_value": "Valeur Totale",
+    "active_coupons": "Coupons Actifs",
+    "expired_coupons": "Coupons Expirés",
+    "language": "Langue",
+    "not_applicable": "N/A",
+    "invalid_date": "Date Invalide"
+  },
+  "tables": {
+    "expires": "Expire le",
+    "actions": "Actions",
+    "total_coupons": "Total des Coupons",
+    "active_value": "Valeur Active",
+    "expired_value": "Valeur Expirée"
+  },
+  "errors": {
+    "error_accessing_camera": "Erreur d'accès à la caméra",
+    "invalid_qr_format": "Format de code QR invalide",
+    "missing_required_fields": "Champs obligatoires manquants"
+  },
+  "dialog": {
+    "enter_amount_to_use": "Entrez le montant à utiliser",
+    "amount_to_use": "Montant à Utiliser",
+    "barcode_scanning_instruction": "Positionnez le code-barres dans le cadre du scanner pour capturer automatiquement les détails du coupon."
+  },
+  "messages": {
+    "no_retailers_found": "Aucun commerçant trouvé.",
+    "no_coupons_found": "Aucun coupon correspondant à vos filtres n'a été trouvé."
+  },
+  "notifications": {
+    "copied_to_clipboard": "Copié dans le presse-papiers !"
+  }
+} 

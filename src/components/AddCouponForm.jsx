@@ -6,9 +6,17 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import BarcodeScanner from './BarcodeScanner';
 import { useLanguage } from '../services/LanguageContext';
+import { enUS, es, fr, de } from 'date-fns/locale';
+
+const localeMap = {
+  en: enUS,
+  es: es,
+  fr: fr,
+  de: de
+};
 
 const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, coupons = [] }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   // Extract unique retailer names for autocomplete suggestions
   const retailerOptions = coupons.length > 0 ? [...new Set(coupons.map(c => c.retailer))] : [];
   const initialFormState = {
@@ -101,7 +109,7 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
     <>
       <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
         <DialogTitle>
-          {coupon ? t('edit') : t('add_coupon')}
+          {coupon ? t('actions.edit') : t('app.add_coupon')}
         </DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
@@ -125,7 +133,7 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
                   required
                   fullWidth
                   id="retailer"
-                  label={t('retailer')}
+                  label={t('form.retailer')}
                   name="retailer"
                 />
               )}
@@ -135,7 +143,7 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
               required
               fullWidth
               id="initialValue"
-              label={t('initial_value')}
+              label={t('form.initial_value')}
               name="initialValue"
               value={formData.initialValue}
               onChange={handleChange}
@@ -146,20 +154,23 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
               required
               fullWidth
               id="currentValue"
-              label={t('current_value')}
+              label={t('form.current_value')}
               name="currentValue"
               value={formData.currentValue || formData.initialValue}
               onChange={handleChange}
               inputProps={{ inputMode: 'decimal' }}
             />
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={localeMap[language] || enUS}>
               <DatePicker
-                label={t('expiration_date')}
+                label={t('form.expiration_date')}
                 value={formData.expirationDate}
                 onChange={handleDateChange}
-                renderInput={(params) => (
-                  <TextField {...params} margin="normal" fullWidth />
-                )}
+                slotProps={{
+                  textField: {
+                    margin: "normal",
+                    fullWidth: true
+                  }
+                }}
               />
             </LocalizationProvider>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -167,7 +178,7 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
                 margin="normal"
                 fullWidth
                 id="activationCode"
-                label={t('activation_code')}
+                label={t('form.activation_code')}
                 name="activationCode"
                 value={formData.activationCode}
                 onChange={handleChange}
@@ -176,6 +187,7 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
                 variant="outlined" 
                 sx={{ mt: 1, minWidth: 'auto', height: 56 }}
                 onClick={toggleScanner}
+                aria-label={t('actions.scan_barcode')}
               >
                 <QrCodeScannerIcon />
               </Button>
@@ -184,7 +196,7 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
               margin="normal"
               fullWidth
               id="pin"
-              label={t('pin')}
+              label={t('form.pin')}
               name="pin"
               value={formData.pin}
               onChange={handleChange}
@@ -193,14 +205,14 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="primary">
-            {t('cancel')}
+            {t('actions.cancel')}
           </Button>
           <Button 
             onClick={handleSubmit} 
             color="primary" 
             disabled={!validateForm()}
           >
-            {coupon ? t('save') : t('add_coupon')}
+            {coupon ? t('actions.save') : t('app.add_coupon')}
           </Button>
         </DialogActions>
       </Dialog>

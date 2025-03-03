@@ -5,6 +5,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import App from './App';
 import { LanguageProvider } from './services/LanguageContext';
 
+// Import i18n configuration
+import './i18n';
+
 const darkTheme = createTheme({
   palette: {
     mode: 'dark',

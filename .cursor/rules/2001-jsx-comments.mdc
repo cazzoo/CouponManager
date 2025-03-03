@@ -1,13 +1,8 @@
 ---
-description: 
-globs: 
-alwaysApply: false
----
----
 description: FOLLOW JSX commenting standards WHEN writing or editing React components (JSX and TSX) TO ensure component clarity, maintainability, and AI-friendly documentation
 globs: **/*.{jsx,tsx}
+alwaysApply: false
 ---
-
 # JSX Commenting Standards
 
 <version>1.0.0</version>

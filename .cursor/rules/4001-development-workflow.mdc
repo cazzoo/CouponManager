@@ -1,13 +1,8 @@
 ---
-description: 
-globs: 
-alwaysApply: false
----
----
 description: FOLLOW development workflow standards WHEN implementing features or running tests TO ensure consistent tooling and test-driven development practices
 globs: **/*.{js,jsx,ts,tsx}
+alwaysApply: false
 ---
-
 # Development Workflow Standards
 
 <version>1.0.0</version>

@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Link, 
-         Card, CardContent, Typography, Box, Grid, useMediaQuery, useTheme, Divider, Chip } from '@mui/material';
+         Card, CardContent, Typography, Box, Grid, useMediaQuery, useTheme, Divider, Chip, TableSortLabel } from '@mui/material';
+import { useLanguage } from '../services/LanguageContext';
 
 const RetailerList = ({ coupons, onRetailerClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { t } = useLanguage();
+  const [orderBy, setOrderBy] = useState('name');
+  const [order, setOrder] = useState('asc');
+
   const handleRetailerClick = (retailer) => {
     onRetailerClick(retailer, { field: 'expirationDate', order: 'asc' });
+  };
+
+  const handleRequestSort = (property) => {
+    const isAsc = order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
   };
 
   // Function to check if a coupon is expired
@@ -59,20 +70,41 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
     return acc;
   }, {});
 
-  const retailers = Object.values(retailerStats);
+  // Sort retailers based on orderBy and order
+  const sortedRetailers = Object.values(retailerStats).sort((a, b) => {
+    const isAsc = order === 'asc';
+    switch (orderBy) {
+      case 'name':
+        return isAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+      case 'couponCount':
+        return isAsc ? a.couponCount - b.couponCount : b.couponCount - a.couponCount;
+      case 'totalValue':
+        return isAsc ? a.totalValue - b.totalValue : b.totalValue - a.totalValue;
+      case 'activeCouponCount':
+        return isAsc ? a.activeCouponCount - b.activeCouponCount : b.activeCouponCount - a.activeCouponCount;
+      case 'activeTotalValue':
+        return isAsc ? a.activeTotalValue - b.activeTotalValue : b.activeTotalValue - a.activeTotalValue;
+      case 'expiredCouponCount':
+        return isAsc ? a.expiredCouponCount - b.expiredCouponCount : b.expiredCouponCount - a.expiredCouponCount;
+      case 'expiredTotalValue':
+        return isAsc ? a.expiredTotalValue - b.expiredTotalValue : b.expiredTotalValue - a.expiredTotalValue;
+      default:
+        return 0;
+    }
+  });
 
   return (
     <>
       {isMobile ? (
         // Card view for mobile devices
         <Box>
-          {retailers.length === 0 ? (
+          {sortedRetailers.length === 0 ? (
             <Typography variant="body1" sx={{ textAlign: 'center', my: 4 }}>
-              No retailers found.
+              {t('messages.no_retailers_found')}
             </Typography>
           ) : (
             <Grid container spacing={2}>
-              {retailers.map((retailer) => (
+              {sortedRetailers.map((retailer) => (
                 <Grid item xs={12} key={retailer.name}>
                   <Card variant="outlined" sx={{ mb: 1 }}>
                     <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
@@ -87,10 +119,10 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
                         <Grid container spacing={2}>
                           <Grid item xs={12}>
                             <Typography variant="caption" display="block" color="text.secondary">
-                              Total Coupons: {retailer.couponCount}
+                              {t('tables.total_coupons')}: {retailer.couponCount}
                             </Typography>
                             <Typography variant="body1" fontWeight="medium">
-                              Total Value: ${retailer.totalValue.toFixed(2)}
+                              {t('general.total_value')}: ${retailer.totalValue.toFixed(2)}
                             </Typography>
                           </Grid>
                           
@@ -101,7 +133,7 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
                           <Grid item xs={6}>
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                               <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-                                Active:
+                                {t('status.active')}:
                               </Typography>
                               <Chip 
                                 label={retailer.activeCouponCount} 
@@ -118,7 +150,7 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
                           <Grid item xs={6}>
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                               <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-                                Expired:
+                                {t('status.expired')}:
                               </Typography>
                               <Chip 
                                 label={retailer.expiredCouponCount} 
@@ -142,23 +174,79 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
         </Box>
       ) : (
         // Table view for larger screens
-        <TableContainer component={Paper} sx={{ overflow: 'auto' }}>
-          <Table stickyHeader sx={{ minWidth: { xs: 400, sm: 650 } }}>
-            <TableHead sx={{ position: 'sticky', top: 0, zIndex: 10, bgcolor: 'background.paper' }}>
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead>
               <TableRow>
-                <TableCell>Retailer</TableCell>
-                <TableCell>Total Coupons</TableCell>
-                <TableCell>Total Value</TableCell>
-                <TableCell>Active Coupons</TableCell>
-                <TableCell>Active Value</TableCell>
-                <TableCell>Expired Coupons</TableCell>
-                <TableCell>Expired Value</TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'name'}
+                    direction={orderBy === 'name' ? order : 'asc'}
+                    onClick={() => handleRequestSort('name')}
+                  >
+                    {t('form.retailer')}
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'couponCount'}
+                    direction={orderBy === 'couponCount' ? order : 'asc'}
+                    onClick={() => handleRequestSort('couponCount')}
+                  >
+                    {t('tables.total_coupons')}
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'totalValue'}
+                    direction={orderBy === 'totalValue' ? order : 'asc'}
+                    onClick={() => handleRequestSort('totalValue')}
+                  >
+                    {t('general.total_value')}
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'activeCouponCount'}
+                    direction={orderBy === 'activeCouponCount' ? order : 'asc'}
+                    onClick={() => handleRequestSort('activeCouponCount')}
+                  >
+                    {t('general.active_coupons')}
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'activeTotalValue'}
+                    direction={orderBy === 'activeTotalValue' ? order : 'asc'}
+                    onClick={() => handleRequestSort('activeTotalValue')}
+                  >
+                    {t('tables.active_value')}
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'expiredCouponCount'}
+                    direction={orderBy === 'expiredCouponCount' ? order : 'asc'}
+                    onClick={() => handleRequestSort('expiredCouponCount')}
+                  >
+                    {t('general.expired_coupons')}
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={orderBy === 'expiredTotalValue'}
+                    direction={orderBy === 'expiredTotalValue' ? order : 'asc'}
+                    onClick={() => handleRequestSort('expiredTotalValue')}
+                  >
+                    {t('tables.expired_value')}
+                  </TableSortLabel>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {retailers.length > 0 ? (
-                retailers.map((retailer) => (
-                  <TableRow key={retailer.name}>
+              {sortedRetailers.length > 0 ? (
+                sortedRetailers.map((retailer) => (
+                  <TableRow key={retailer.name} hover>
                     <TableCell>
                       <Link
                         component="button"
@@ -178,7 +266,7 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">No retailers found</TableCell>
+                  <TableCell colSpan={7} align="center">{t('messages.no_retailers_found')}</TableCell>
                 </TableRow>
               )}
             </TableBody>

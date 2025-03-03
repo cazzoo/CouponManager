@@ -1,0 +1,72 @@
+{
+  "app": {
+    "coupon_manager": "Gestor de Cupones",
+    "add_coupon": "Añadir Cupón",
+    "coupons": "Cupones",
+    "retailers": "Comerciantes"
+  },
+  "form": {
+    "retailer": "Comerciante",
+    "initial_value": "Valor Inicial",
+    "current_value": "Valor Actual",
+    "expiration_date": "Fecha de Vencimiento",
+    "activation_code": "Código de Activación",
+    "pin": "PIN"
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "mark_as_used": "Marcar como Usado",
+    "partial_use": "Uso Parcial",
+    "scan_barcode": "Escanear Código",
+    "copy_to_clipboard": "Copiar al portapapeles"
+  },
+  "filter": {
+    "filter": "Filtrar",
+    "filter_by_retailer": "Filtrar por Comerciante",
+    "filter_by_amount": "Filtrar por Cantidad",
+    "filter_by_status": "Filtrar por Estado",
+    "clear_filters": "Limpiar Filtros",
+    "min_amount": "Monto Mínimo",
+    "max_amount": "Monto Máximo"
+  },
+  "status": {
+    "active": "Activo",
+    "expired": "Expirado",
+    "used": "Usado"
+  },
+  "general": {
+    "total_value": "Valor Total",
+    "active_coupons": "Cupones Activos",
+    "expired_coupons": "Cupones Expirados",
+    "language": "Idioma",
+    "not_applicable": "N/A",
+    "invalid_date": "Fecha Inválida"
+  },
+  "tables": {
+    "expires": "Vence",
+    "actions": "Acciones",
+    "total_coupons": "Total de Cupones",
+    "active_value": "Valor Activo",
+    "expired_value": "Valor Expirado"
+  },
+  "errors": {
+    "error_accessing_camera": "Error al acceder a la cámara",
+    "invalid_qr_format": "Formato de código QR inválido",
+    "missing_required_fields": "Faltan campos obligatorios"
+  },
+  "dialog": {
+    "enter_amount_to_use": "Ingrese cantidad a usar",
+    "amount_to_use": "Cantidad a Usar",
+    "barcode_scanning_instruction": "Coloque el código de barras dentro del marco del escáner para capturar automáticamente los detalles del cupón."
+  },
+  "messages": {
+    "no_retailers_found": "No se encontraron comerciantes.",
+    "no_coupons_found": "No se encontraron cupones que coincidan con tus filtros."
+  },
+  "notifications": {
+    "copied_to_clipboard": "¡Copiado al portapapeles!"
+  }
+} 

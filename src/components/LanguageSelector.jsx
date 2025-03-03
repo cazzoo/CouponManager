@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   FormControl,
   Select,
@@ -11,20 +11,16 @@ import {
 } from '@mui/material';
 import LanguageIcon from '@mui/icons-material/Language';
 import { useTheme } from '@mui/material/styles';
-import { getSupportedLanguages } from '../services/LanguageService';
 import { useLanguage } from '../services/LanguageContext';
 
 const LanguageSelector = () => {
-  const { language, changeLanguage, t } = useLanguage();
+  const { language, changeLanguage, t, getSupportedLanguages } = useLanguage();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [anchorEl, setAnchorEl] = useState(null);
-  const [languages, setLanguages] = useState([]);
   const open = Boolean(anchorEl);
   
-  useEffect(() => {
-    setLanguages(getSupportedLanguages());
-  }, []);
+  const languages = getSupportedLanguages();
   
   const handleChange = (event) => {
     changeLanguage(event.target.value);
@@ -53,7 +49,7 @@ const LanguageSelector = () => {
           onClick={handleMobileClick}
           color="inherit"
           size="small"
-          aria-label={t('language')}
+          aria-label={t('general.language')}
           data-testid="language-icon"
         >
           <LanguageIcon />
@@ -80,13 +76,13 @@ const LanguageSelector = () => {
   return (
     <Box sx={{ minWidth: 120, marginLeft: 2 }}>
       <FormControl variant="outlined" size="small" sx={{ m: 1, minWidth: 120 }}>
-        <InputLabel id="language-select-label">{t('language')}</InputLabel>
+        <InputLabel id="language-select-label">{t('general.language')}</InputLabel>
         <Select
           labelId="language-select-label"
           id="language-select"
           value={language}
           onChange={handleChange}
-          label={t('language')}
+          label={t('general.language')}
         >
           {languages.map((lang) => (
             <MenuItem key={lang.code} value={lang.code}>

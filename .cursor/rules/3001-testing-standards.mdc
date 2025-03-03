@@ -1,13 +1,8 @@
 ---
-description: 
-globs: 
-alwaysApply: false
----
----
 description: FOLLOW testing standards WHEN writing or editing test files TO ensure code quality, reliability, and maintainability
 globs: **/*.test.{js,jsx,ts,tsx}
+alwaysApply: false
 ---
-
 # Testing Standards
 
 <version>1.0.0</version>
