@@ -36,3 +36,6 @@ pnpm-debug.log*
 
 # Vite specific
 /.vite/
+
+# Private individual user cursor rules
+.cursor/rules/_*.mdc

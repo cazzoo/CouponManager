@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import App from './App';
+import { LanguageProvider } from './services/LanguageContext';
 
 const darkTheme = createTheme({
   palette: {
@@ -36,7 +37,9 @@ function Root() {
   return (
     <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
       <CssBaseline />
-      <App isDarkMode={isDarkMode} onThemeChange={setIsDarkMode} />
+      <LanguageProvider>
+        <App isDarkMode={isDarkMode} onThemeChange={setIsDarkMode} />
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

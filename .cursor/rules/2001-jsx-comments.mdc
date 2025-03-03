@@ -1,0 +1,245 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: FOLLOW JSX commenting standards WHEN writing or editing React components (JSX and TSX) TO ensure component clarity, maintainability, and AI-friendly documentation
+globs: **/*.{jsx,tsx}
+---
+
+# JSX Commenting Standards
+
+<version>1.0.0</version>
+
+## Context
+- Apply when writing or modifying React components in JSX or TSX
+- Focus on documenting component structure, props, and behavior
+- Prioritize comments that improve component reusability and troubleshooting
+- For TSX files, follow both these standards and general TypeScript type documentation practices
+
+## Requirements
+
+### Component Documentation
+- Document every component with a JSDoc comment explaining its purpose and usage
+- Include examples of component usage for complex or widely-used components
+- Document component lifecycle behaviors when using side effects
+- Note any performance considerations or optimization techniques
+- Document component composition patterns and intended hierarchy
+
+### Props Documentation
+- Document all props with JSDoc, especially in TypeScript/PropTypes components
+- Specify whether props are required or optional
+- Document default values and expected data formats
+- Include prop validation information or constraints
+- Group related props with clear section headers in comments
+
+```jsx
+/**
+ * Button component that supports various styles and states
+ * 
+ * Used throughout the application for user interactions. Handles
+ * accessibility concerns including keyboard navigation and screen readers.
+ * 
+ * @param {Object} props - Component props
+ * @param {string} props.label - Button text content
+ * @param {Function} props.onClick - Click handler function
+ * @param {'primary'|'secondary'|'danger'} [props.variant='primary'] - Visual style variant
+ * @param {boolean} [props.disabled=false] - Whether the button is disabled
+ * @param {React.ReactNode} [props.icon] - Optional icon to display
+ */
+```
+
+### State and Effects Documentation
+- Document component state with clear explanations of each state variable
+- Document dependencies in useEffect hooks and why each dependency is needed
+- Explain complex state transitions or conditional rendering logic
+- Document any state that persists beyond the component (context, global state)
+- Note any imperative code that manipulates the DOM directly
+
+### JSX Structure Comments
+- Add comments for complex JSX structures to explain the layout strategy
+- Document conditional rendering with clear explanations of conditions
+- Use comments to separate major sections within large components
+- Comment on CSS/styling approach when it affects component behavior
+- Document accessibility considerations (ARIA roles, keyboard interactions)
+
+### Event Handler Documentation
+- Document event handlers with clear explanations of their purpose
+- Note any event propagation behavior (stopping, bubbling)
+- Document debouncing, throttling, or other performance techniques
+- Explain complex event handling patterns or custom event systems
+- Document any browser compatibility considerations
+
+### Context and Hooks
+- Document custom hooks thoroughly with usage examples
+- Document context providers with explanations of provided values
+- Document consumers with example usage patterns
+- Explain memoization strategies with useMemo and useCallback
+- Document any performance implications of context usage
+
+### Rendering Optimization
+- Document component memoization strategies
+- Explain why certain props or callbacks are memoized
+- Document batching or virtualization techniques
+- Note any intentional re-rendering patterns or optimizations
+- Document lazy loading or code-splitting approaches
+
+### AI-Friendly Documentation
+- Include component hierarchy information to help AI understand structure
+- Document component patterns and design system integration
+- Provide clear separation between presentation and logic in comments
+- Use consistent terminology across component documentation
+- Document business domain concepts where relevant to component purpose
+
+## Examples
+
+<example>
+/**
+ * UserProfile displays user information and account options
+ * 
+ * Handles data fetching and optimistically updates UI during account changes.
+ * Implements responsive layout with different information density based on screen size.
+ * 
+ * @param {Object} props - Component props
+ * @param {User} props.user - User data object
+ * @param {boolean} [props.editable=false] - Whether profile is in edit mode
+ * @param {Function} [props.onUpdate] - Called when user updates profile
+ */
+function UserProfile({ user, editable = false, onUpdate }) {
+  // Track form state separately from user data to support cancel operations
+  const [formData, setFormData] = useState(user);
+  
+  // Handle server-side validation errors
+  const [errors, setErrors] = useState({});
+  
+  // Form submission handler
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    // Implementation
+  };
+  
+  return (
+    <div className="user-profile">
+      {/* Profile header with avatar and basic info */}
+      <header className="profile-header">
+        <Avatar src={user.avatarUrl} size="large" />
+        <h2>{user.displayName}</h2>
+      </header>
+      
+      {/* Edit form renders conditionally based on editable prop */}
+      {editable ? (
+        <UserProfileForm 
+          initialData={user}
+          onSubmit={handleSubmit}
+          errors={errors}
+        />
+      ) : (
+        <UserProfileDetails user={user} />
+      )}
+    </div>
+  );
+}
+</example>
+
+<example>
+/**
+ * Custom hook for managing paginated data fetching
+ * 
+ * Handles loading states, error handling, and pagination controls.
+ * Implements cursor-based pagination for efficient data loading.
+ * 
+ * @param {string} endpoint - API endpoint to fetch data from
+ * @param {Object} [options] - Configuration options
+ * @param {number} [options.pageSize=20] - Items per page
+ * @param {boolean} [options.initialFetch=true] - Whether to fetch on mount
+ * @returns {Object} Pagination state and controls
+ */
+function usePagination(endpoint, { pageSize = 20, initialFetch = true } = {}) {
+  // Track pagination state
+  const [page, setPage] = useState(1);
+  const [data, setData] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Fetch data function - extracted for reusability and readability
+  const fetchData = useCallback(async (pageNum) => {
+    // Implementation
+  }, [endpoint, pageSize]);
+  
+  // Effect for initial and page change data fetching
+  useEffect(() => {
+    if (initialFetch || page > 1) {
+      fetchData(page);
+    }
+  }, [fetchData, initialFetch, page]);
+  
+  return {
+    data,
+    isLoading,
+    error,
+    hasMore,
+    nextPage: () => setPage(p => p + 1),
+    reset: () => {
+      setPage(1);
+      setData([]);
+      setHasMore(true);
+    }
+  };
+}
+</example>
+
+<example type="invalid">
+/**
+ * This component shows a user
+ */
+function UserCard(props) {
+  return (
+    <div>
+      <h2>{props.name}</h2>
+      <p>{props.email}</p>
+    </div>
+  );
+}
+</example>
+
+<example type="invalid">
+// This is a form component
+const Form = ({ onSubmit }) => {
+  // State for the form
+  const [value, setValue] = useState('');
+  
+  // Handle submit
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(value);
+  };
+  
+  // Return the JSX
+  return (
+    <form onSubmit={handleSubmit}>
+      <input value={value} onChange={e => setValue(e.target.value)} />
+      <button type="submit">Submit</button>
+    </form>
+  );
+};
+</example>
+
+<example type="invalid">
+/**
+ * This is a hook for fetching data
+ */
+function useFetchData() {
+  const [data, setData] = useState(null);
+  
+  useEffect(() => {
+    // Get the data
+    fetch('/api/data')
+      .then(res => res.json())
+      .then(data => setData(data));
+  }, []);
+  
+  return data;
+}
+</example> 

@@ -1,0 +1,145 @@
+---
+description: FOLLOW TypeScript commenting standards WHEN writing or editing TypeScript files TO ensure code clarity, maintainability, and AI-friendly documentation
+globs: **/*.ts
+---
+
+# TypeScript Commenting Standards
+
+<version>1.0.0</version>
+
+## Context
+- Apply when writing or modifying TypeScript code
+- Focus on optimal balance between documentation clarity and conciseness
+- Prioritize comments that improve maintainability and troubleshooting
+
+## Requirements
+
+### General Principles
+- Write comments that explain WHY, not WHAT (code should be self-explanatory for the what)
+- Use JSDoc style comments with `/**` and `*/` for documentation that should be exposed to tooling
+- Use `//` for implementation notes, TODOs, and inline commentary
+- Comments should provide value beyond what the code itself expresses
+- Keep JSDoc summaries concise - first paragraph should clearly state purpose
+
+### File and Class Documentation
+- Every file should have a top-level JSDoc comment explaining its purpose
+- Document all exported classes, interfaces, types, and functions
+- Include `@module` tag when appropriate for module documentation
+- Include author and creation date for significant components using `@author` and `@date`
+
+### Function Documentation
+- Document all public methods and functions with JSDoc format
+- Use `@param` tags for all parameters, with types and descriptions
+- Use `@returns` tag to document return values and types
+- Use `@throws` to document exceptions that might be thrown
+- For complex functions, explain the algorithm or approach used
+
+### Type Documentation
+- Document interfaces and type definitions with clear purposes and examples
+- Use `@property` tags to document individual properties of interfaces/types
+- For enums, document each value to explain its meaning and usage
+
+### Code Block Documentation
+- Add explanatory comments before complex code blocks or algorithms
+- Use inline comments sparingly and only when they add significant value
+- Document workarounds, hacks, or non-obvious solutions with clear explanations
+
+### AI-Friendly Documentation
+- Include context and rationale for complex design decisions
+- Document edge cases and expected behavior for error conditions
+- Group related documentation together for better context retention
+- Use consistent terminology throughout comments and code
+- Explain business domain concepts where relevant
+ 
+### Format and Style
+- Use Markdown formatting in JSDoc comments for better readability
+- Keep single-line comments under 80-100 characters
+- For multi-line comments, break after punctuation when possible
+- Use proper spelling, grammar, and punctuation
+- Maintain a consistent tone and voice throughout the codebase
+
+### Comment Maintenance
+- Update comments when the corresponding code changes
+- Remove commented-out code; use version control to track history
+- Validate examples in comments to ensure they remain accurate
+- Make TODO comments actionable with specific details
+
+## Examples
+
+<example>
+/**
+ * Processes user authentication request and generates access tokens
+ * 
+ * Validates credentials against stored user data, handling rate limiting
+ * and security checks before token generation. Failed attempts are logged
+ * for security monitoring.
+ *
+ * @param credentials - User login credentials
+ * @param options - Authentication options including MFA preferences
+ * @returns Authentication result containing tokens or error information
+ * @throws AuthenticationError when credentials are invalid or rate limited
+ */
+async function authenticateUser(
+  credentials: UserCredentials, 
+  options?: AuthOptions
+): Promise<AuthResult> {
+  // Implementation
+}
+</example>
+
+<example>
+/**
+ * User account state including personal information and preferences
+ * 
+ * Central data model used across authentication, profile management,
+ * and user settings features.
+ */
+interface UserAccount {
+  /** Unique identifier for the user */
+  id: string;
+  
+  /** User's display name, visible to other users */
+  displayName: string;
+  
+  /** 
+   * User's verified email address
+   * @remarks Used for account recovery and notifications
+   */
+  email: string;
+  
+  /** User preferences controlling application behavior */
+  preferences: UserPreferences;
+}
+</example>
+
+<example>
+// Calculate the weighted average based on user engagement metrics
+// This approach prioritizes recent activity and normalizes outliers
+function calculateUserScore(metrics: UserMetrics): number {
+  // Normalize values to account for sporadic usage patterns
+  const normalizedValues = normalizeMetrics(metrics);
+  
+  // Apply exponential weighting to prioritize recent activity
+  return applyWeighting(normalizedValues);
+}
+</example>
+
+<example type="invalid">
+/**
+ * This function gets the user
+ */
+function getUser(id: string): User {
+  // Code here
+}
+</example>
+
+<example type="invalid">
+// This creates a new user
+const user = new User();
+</example>
+
+<example type="invalid">
+/**
+ * verrrry long comment that goes on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and does not break lines properly making it hard to read
+ */
+</example>

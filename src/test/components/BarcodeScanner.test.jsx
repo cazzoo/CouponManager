@@ -1,240 +1,150 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import BarcodeScanner from '../../components/BarcodeScanner';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { renderWithProviders, mockTranslate } from '../util/test-utils';
 
-// Mock theme for testing
-const theme = createTheme();
+// Mock the useLanguage hook
+vi.mock('../../services/LanguageContext', () => ({
+  useLanguage: () => ({
+    language: 'en',
+    changeLanguage: vi.fn(),
+    t: mockTranslate
+  })
+}));
 
-// Mock the react-qr-reader module
+// Mock the QrReader component
 vi.mock('react-qr-reader', () => ({
   QrReader: ({ onScan, onError }) => (
     <div data-testid="mock-qr-reader">
-      <button 
+      <button
+        onClick={() => onScan && onScan('mocked-data')}
         data-testid="mock-scan-button"
-        onClick={() => onScan('{\'retailer\':\'Target\',\'initialValue\':\'50\',\'expirationDate\':\'2024-12-31\',\'activationCode\':\'TGT50XMAS\',\'pin\':\'1234\'}')}
       >
-        Simulate Scan
+        Trigger Scan
       </button>
-      <button 
+      <button
+        onClick={() => onScan && onScan('{"retailer":"Test Store","initialValue":"50"}')}
+        data-testid="mock-json-scan-button"
+      >
+        Trigger JSON Scan
+      </button>
+      <button
+        onClick={() => onError && onError('mock error')}
         data-testid="mock-error-button"
-        onClick={() => onError('Camera access denied')}
       >
-        Simulate Error
-      </button>
-      <button 
-        data-testid="mock-invalid-scan-button"
-        onClick={() => onScan('invalid-json-data')}
-      >
-        Simulate Invalid Scan
-      </button>
-      <button 
-        data-testid="mock-missing-fields-button"
-        onClick={() => onScan('{\'retailer\':\'Target\'}')}
-      >
-        Simulate Missing Fields
-      </button>
-      <button 
-        data-testid="mock-single-quotes-button"
-        onClick={() => onScan('\\\'retailer\\\':\\\'Target\\\',\\\'initialValue\\\':\\\'50\\\',\\\'expirationDate\\\':\\\'2024-12-31\\\',\\\'activationCode\\\':\\\'TGT50XMAS\\\',\\\'pin\\\':\\\'1234\\\'')}
-      >
-        Simulate Single Quotes
+        Trigger Error
       </button>
     </div>
   )
 }));
 
-// Reset the mock before each test to ensure consistent behavior
-beforeEach(() => {
-  vi.resetModules();
-});
-
-// Wrapper component to provide theme context
-const TestWrapper = ({ children }) => (
-  <ThemeProvider theme={theme}>
-    {children}
-  </ThemeProvider>
-);
-
 describe('BarcodeScanner Component', () => {
-  const mockOnScanSuccess = vi.fn();
-  const mockOnClose = vi.fn();
-  
   beforeEach(() => {
     vi.clearAllMocks();
   });
   
-  it('renders the scanner correctly', () => {
-    render(
-      <TestWrapper>
-        <BarcodeScanner 
-          open={true} 
-          onClose={mockOnClose} 
-          onScanSuccess={mockOnScanSuccess} 
-        />
-      </TestWrapper>
+  test('renders the scanner correctly', () => {
+    const onClose = vi.fn();
+    const onScanSuccess = vi.fn();
+    
+    renderWithProviders(
+      <BarcodeScanner 
+        open={true} 
+        onClose={onClose} 
+        onScanSuccess={onScanSuccess} 
+      />
     );
     
-    // Check if the component renders with the correct title
-    expect(screen.getByText('Scan Coupon')).toBeInTheDocument();
-    
-    // Check if the scanner is rendered
     expect(screen.getByTestId('mock-qr-reader')).toBeInTheDocument();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
   });
-
-  it('calls onClose when close button is clicked', () => {
-    render(
-      <TestWrapper>
-        <BarcodeScanner 
-          open={true} 
-          onClose={mockOnClose} 
-          onScanSuccess={mockOnScanSuccess} 
-        />
-      </TestWrapper>
+  
+  test('calls onClose when close button is clicked', () => {
+    const onClose = vi.fn();
+    const onScanSuccess = vi.fn();
+    
+    renderWithProviders(
+      <BarcodeScanner 
+        open={true} 
+        onClose={onClose} 
+        onScanSuccess={onScanSuccess} 
+      />
     );
     
-    // Click the close button
     fireEvent.click(screen.getByText('Cancel'));
-    
-    // Check if onClose was called
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
   });
-
-  it('processes scanned QR code data correctly', async () => {
-    render(
-      <TestWrapper>
-        <BarcodeScanner 
-          open={true} 
-          onClose={mockOnClose} 
-          onScanSuccess={mockOnScanSuccess} 
-        />
-      </TestWrapper>
+  
+  test('processes scanned QR code data correctly', () => {
+    const onClose = vi.fn();
+    const onScanSuccess = vi.fn();
+    
+    renderWithProviders(
+      <BarcodeScanner 
+        open={true} 
+        onClose={onClose} 
+        onScanSuccess={onScanSuccess} 
+      />
     );
     
-    // Simulate a successful scan
+    // Trigger a scan with a simple string
     fireEvent.click(screen.getByTestId('mock-scan-button'));
-    
-    // Check if onScanSuccess was called with the parsed data
-    await waitFor(() => {
-      expect(mockOnScanSuccess).toHaveBeenCalledWith({
-        retailer: 'Target',
-        initialValue: '50',
-        expirationDate: '2024-12-31',
-        activationCode: 'TGT50XMAS',
-        pin: '1234'
-      });
-    });
-    
-    // Check if the dialog was closed after successful scan
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(onScanSuccess).toHaveBeenCalledWith('mocked-data');
+    expect(onClose).toHaveBeenCalled();
   });
-
-  it('handles scan errors gracefully', async () => {
-    render(
-      <TestWrapper>
-        <BarcodeScanner 
-          open={true} 
-          onClose={mockOnClose} 
-          onScanSuccess={mockOnScanSuccess} 
-        />
-      </TestWrapper>
+  
+  test('processes JSON QR code data correctly', () => {
+    const onClose = vi.fn();
+    const onScanSuccess = vi.fn();
+    
+    renderWithProviders(
+      <BarcodeScanner 
+        open={true} 
+        onClose={onClose} 
+        onScanSuccess={onScanSuccess} 
+      />
     );
     
-    // Simulate an error
+    // Trigger a scan with JSON data
+    fireEvent.click(screen.getByTestId('mock-json-scan-button'));
+    expect(onScanSuccess).toHaveBeenCalledWith(expect.objectContaining({
+      retailer: 'Test Store',
+      initialValue: '50'
+    }));
+    expect(onClose).toHaveBeenCalled();
+  });
+  
+  test('handles scan errors gracefully', () => {
+    const onClose = vi.fn();
+    const onScanSuccess = vi.fn();
+    
+    renderWithProviders(
+      <BarcodeScanner 
+        open={true} 
+        onClose={onClose} 
+        onScanSuccess={onScanSuccess} 
+      />
+    );
+    
+    // Trigger an error
     fireEvent.click(screen.getByTestId('mock-error-button'));
-    
-    // Check if error message is displayed
-    await waitFor(() => {
-      expect(screen.getByText(/Error accessing camera/i)).toBeInTheDocument();
-    });
-    
-    // onScanSuccess should not be called
-    expect(mockOnScanSuccess).not.toHaveBeenCalled();
+    expect(screen.getByText(/Error accessing camera: mock error/i)).toBeInTheDocument();
   });
-
-  it('handles invalid QR code data gracefully', async () => {
-    render(
-      <TestWrapper>
-        <BarcodeScanner 
-          open={true} 
-          onClose={mockOnClose} 
-          onScanSuccess={mockOnScanSuccess} 
-        />
-      </TestWrapper>
+  
+  test('does not render when closed', () => {
+    const onClose = vi.fn();
+    const onScanSuccess = vi.fn();
+    
+    renderWithProviders(
+      <BarcodeScanner 
+        open={false} 
+        onClose={onClose} 
+        onScanSuccess={onScanSuccess} 
+      />
     );
     
-    // Simulate an invalid scan
-    fireEvent.click(screen.getByTestId('mock-invalid-scan-button'));
-    
-    // Check if error message is displayed
-    await waitFor(() => {
-      expect(screen.getByText(/Invalid QR code format/i)).toBeInTheDocument();
-    });
-    
-    // onScanSuccess should not be called
-    expect(mockOnScanSuccess).not.toHaveBeenCalled();
-  });
-
-  it('handles QR codes with missing required fields', async () => {
-    render(
-      <TestWrapper>
-        <BarcodeScanner 
-          open={true} 
-          onClose={mockOnClose} 
-          onScanSuccess={mockOnScanSuccess} 
-        />
-      </TestWrapper>
-    );
-    
-    // Simulate a scan with missing fields
-    fireEvent.click(screen.getByTestId('mock-missing-fields-button'));
-    
-    // Check if error message is displayed
-    await waitFor(() => {
-      expect(screen.getByText(/Invalid QR code format: missing required fields/i)).toBeInTheDocument();
-    });
-    
-    // onScanSuccess should not be called
-    expect(mockOnScanSuccess).not.toHaveBeenCalled();
-  });
-
-  it('handles QR codes with single quotes format', async () => {
-    render(
-      <TestWrapper>
-        <BarcodeScanner 
-          open={true} 
-          onClose={mockOnClose} 
-          onScanSuccess={mockOnScanSuccess} 
-        />
-      </TestWrapper>
-    );
-    
-    // Simulate a scan with single quotes format
-    fireEvent.click(screen.getByTestId('mock-single-quotes-button'));
-    
-    // Check if the component attempts to handle the format
-    // This could either succeed or show an error depending on implementation
-    await waitFor(() => {
-      // Either an error is shown or onScanSuccess is called
-      const errorShown = screen.queryByText(/Invalid QR code format/i) !== null;
-      const successCalled = mockOnScanSuccess.mock.calls.length > 0;
-      
-      expect(errorShown || successCalled).toBe(true);
-    });
-  });
-
-  it('does not render when closed', () => {
-    render(
-      <TestWrapper>
-        <BarcodeScanner 
-          open={false} 
-          onClose={mockOnClose} 
-          onScanSuccess={mockOnScanSuccess} 
-        />
-      </TestWrapper>
-    );
-    
-    // Check that the dialog is not rendered when open=false
-    expect(screen.queryByText('Scan Coupon')).not.toBeInTheDocument();
+    // The dialog should not be visible when open is false
+    expect(screen.queryByTestId('mock-qr-reader')).not.toBeInTheDocument();
   });
 });

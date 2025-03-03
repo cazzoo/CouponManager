@@ -16,9 +16,12 @@ import Brightness7Icon from "@mui/icons-material/Brightness7";
 import CouponList from "./components/CouponList";
 import RetailerList from "./components/RetailerList";
 import AddCouponForm from "./components/AddCouponForm";
+import LanguageSelector from "./components/LanguageSelector";
 import { couponService } from "./services/CouponService";
+import { useLanguage } from "./services/LanguageContext";
 
 function App({ isDarkMode, onThemeChange }) {
+  const { t } = useLanguage();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [coupons, setCoupons] = useState([]);
@@ -57,8 +60,9 @@ function App({ isDarkMode, onThemeChange }) {
       <AppBar position="static" sx={{ backgroundColor: "#2e7d32" }}>
         <Toolbar sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Coupon Manager
+            {t('coupon_manager')}
           </Typography>
+          <LanguageSelector />
           <IconButton
             sx={{ ml: 1 }}
             onClick={() => onThemeChange(!isDarkMode)}
@@ -85,8 +89,8 @@ function App({ isDarkMode, onThemeChange }) {
             },
           }}
         >
-          <Tab label="Coupons" />
-          <Tab label="Retailers" />
+          <Tab label={t('coupons')} />
+          <Tab label={t('retailers')} />
         </Tabs>
       </AppBar>
       <Container maxWidth="lg" sx={{ mt: 4, px: { xs: 2, sm: 3, md: 4 } }}>
@@ -108,7 +112,7 @@ function App({ isDarkMode, onThemeChange }) {
                   setDialogOpen(true);
                 }}
               >
-                Add Coupon
+                {t('add_coupon')}
               </Button>
             </Box>
             <AddCouponForm

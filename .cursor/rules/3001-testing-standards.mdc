@@ -1,0 +1,42 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: FOLLOW testing standards WHEN writing or editing test files TO ensure code quality, reliability, and maintainability
+globs: **/*.test.{js,jsx,ts,tsx}
+---
+
+# Testing Standards
+
+<version>1.0.0</version>
+
+## Context
+- Apply when writing or modifying test files
+- Focus on maintaining code quality through comprehensive testing
+- Prioritize clear, maintainable, and meaningful tests
+- Ensure test coverage meets minimum requirements
+- All tests should be run using pnpm commands from the project root
+
+## Requirements
+
+### Test Execution
+- Run tests using pnpm commands from the project root directory:
+  - `pnpm test` - Run all tests
+  - `pnpm test:watch` - Run tests in watch mode during development
+  - `pnpm test:coverage` - Generate coverage reports
+- Never prepend commands with directory changes (e.g., use `pnpm test` not `cd path/to/project && pnpm test`)
+- Regularly run tests during development to catch issues early
+
+### Coverage Requirements
+- Maintain a minimum of 80% code coverage across the codebase
+- Coverage requirements apply to:
+  - 80% statement coverage
+  - 80% branch coverage
+  - 80% function coverage
+  - 80% line coverage
+- Run coverage reports regularly with `pnpm test:coverage`
+- Address any coverage drops in pull requests
+
+// Rest of the file remains unchanged

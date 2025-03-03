@@ -1,0 +1,114 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: FOLLOW development workflow standards WHEN implementing features or running tests TO ensure consistent tooling and test-driven development practices
+globs: **/*.{js,jsx,ts,tsx}
+---
+
+# Development Workflow Standards
+
+<version>1.0.0</version>
+
+## Context
+- Apply when implementing new features or modifying existing code
+- Ensure consistent tooling and package management across the project
+- Enforce Test-Driven Development (TDD) as the primary development methodology
+- Maintain high code quality through disciplined development practices
+- All commands should be run from the root directory of the project - no need to `cd` into the project directory before each command
+
+## Requirements
+
+### Command Execution Environment
+- Always assume commands are being run from the project root directory
+- Never prepend commands with `cd /path/to/project &&` as this is redundant
+- Use relative paths from the project root when referencing files in commands
+- When running terminal commands, execute them directly (e.g., `pnpm test` not `cd /c/Work/github/CouponManager && pnpm test`)
+
+### Package Management with pnpm
+- Always use pnpm for all package management operations
+- Run tests exclusively with pnpm commands, not npm or yarn
+- Use the following standardized test commands:
+  - `pnpm test` - Run all tests
+  - `pnpm test:watch` - Run tests in watch mode for development
+  - `pnpm test:coverage` - Generate coverage reports
+- Install dependencies using `pnpm add` (or `pnpm add -D` for dev dependencies)
+- Maintain up-to-date pnpm-lock.yaml file in version control
+
+### Test-Driven Development (TDD) Workflow
+- Always follow the TDD cycle for all feature development:
+  1. **RED**: Write failing tests first that define expected behavior
+  2. **GREEN**: Implement minimal code to make tests pass
+  3. **REFACTOR**: Clean up code while keeping tests passing
+- Do not implement features without first writing corresponding tests
+- Ensure tests are meaningful and verify actual behavior, not implementation details
+- Commit code in small, incremental changes that align with TDD cycles
+
+### Feature Implementation Process
+- Break down features into small, testable units of work
+- Document acceptance criteria before starting implementation
+- Write unit tests that verify acceptance criteria
+- Implement the minimal code needed to satisfy tests
+- Refactor only after tests are passing
+- Add integration or end-to-end tests when appropriate
+- Document any design decisions or trade-offs made during implementation
+
+## Examples
+
+<example>
+// Example of proper command execution
+// Good: Running directly from the project root
+pnpm test
+
+// Bad: Unnecessarily changing directory first
+cd /c/Work/github/CouponManager && pnpm test
+</example>
+
+<example>
+// Example of proper TDD workflow for implementing a new feature
+
+/**
+ * Step 1: Write failing test first (RED phase)
+ */
+describe('ValidationService', () => {
+  describe('validateEmail', () => {
+    it('should return true for valid email addresses', () => {
+      // Arrange
+      const validService = new ValidationService();
+      const validEmails = ['user@example.com', 'name.surname@domain.co.uk'];
+      
+      // Act & Assert
+      validEmails.forEach(email => {
+        expect(validService.validateEmail(email)).toBe(true);
+      });
+    });
+  });
+});
+
+/**
+ * Step 2: Implement minimal code to make tests pass (GREEN phase)
+ */
+export class ValidationService {
+  validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+}
+
+/**
+ * Step 3: Refactor while keeping tests passing (REFACTOR phase)
+ */
+export class ValidationService {
+  /**
+   * Validates an email address format
+   * @param {string} email - The email address to validate
+   * @returns {boolean} True if email format is valid, false otherwise
+   */
+  validateEmail(email) {
+    if (!email || typeof email !== 'string') return false;
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+    return emailRegex.test(email);
+  }
+}
