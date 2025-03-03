@@ -1,0 +1,246 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Status Documentation Standards
+
+<version>1.0.0</version>
+
+## Requirements
+
+- Maintain up-to-date project status information
+- Document blockers and challenges clearly
+- Track todo items in a centralized location
+- Standardize format for requesting assistance
+- Update status documents on a regular cadence
+
+## Structure
+
+The project status documentation should be maintained in `docs/project-status/` with the following files:
+
+### Required Files
+
+#### 1. `status.md`
+
+Central file documenting the overall project status with the following sections:
+
+- **Project Status**: Current state (On Track, At Risk, Blocked)
+- **Summary**: Brief paragraph describing current status
+- **Recent Accomplishments**: Bulleted list of recently completed work
+- **Current Focus**: What the team is actively working on
+- **Upcoming Milestones**: Key dates and deliverables
+- **Health Metrics**: Test coverage, open issues, PR velocity
+- **Last Updated**: Date timestamp with responsible team member
+
+#### 2. `todo.md`
+
+Organized list of pending work items:
+
+- **High Priority**: Must be addressed immediately
+- **Medium Priority**: Important but not urgent
+- **Low Priority**: Nice-to-have improvements
+- **Completed**: Recently finished items (kept for 2 weeks)
+
+Each todo item must include:
+- Clear, action-oriented description
+- Assigned owner (or "Unassigned")
+- Target completion date
+- Related issue/PR links (if applicable)
+- Tags for categorization
+
+#### 3. `blockers.md`
+
+Documentation of obstacles impeding progress:
+
+- **Active Blockers**: Currently impacting development
+- **Monitoring**: Potential issues that could become blockers
+- **Resolved**: Previously resolved blockers with resolution notes
+
+Each blocker must include:
+- Description of the issue
+- Impact assessment (Critical, High, Medium, Low)
+- Owner responsible for resolution
+- Action plan for addressing
+- Target resolution date
+- Dependencies
+
+#### 4. `help-requests.md`
+
+Formalized requests for assistance:
+
+- **Urgent Requests**: Blocking team progress
+- **Standard Requests**: Normal priority assistance needs
+- **Knowledge Sharing**: Requests for information/training
+
+Each help request must include:
+- Clear description of assistance needed
+- Required expertise
+- Requesting team member
+- Business justification
+- Target response date
+- Current status (Open, In Progress, Resolved)
+
+### Updating Cadence
+
+- `status.md` updated weekly (every Monday)
+- `todo.md` updated as tasks are completed or added (minimum weekly)
+- `blockers.md` updated immediately when blockers arise or are resolved
+- `help-requests.md` updated as requests are made or fulfilled
+
+## Status Board
+
+A consolidated `status-board.md` file should be maintained with a dashboard view containing:
+
+```markdown
+# Project Status Board
+Last Updated: YYYY-MM-DD
+
+## Overall Status: [ON TRACK | AT RISK | BLOCKED]
+
+## Active Blockers: N
+- [Critical] Brief blocker description (#issue)
+- [High] Brief blocker description (#issue)
+
+## Todo Items: N/M completed
+- [High] N remaining
+- [Medium] N remaining
+- [Low] N remaining
+
+## Help Requests: N open
+- [Urgent] Brief request description (@assignee)
+- [Standard] Brief request description (@assignee)
+
+## Recent Achievements
+- Achievement one (completed YYYY-MM-DD)
+- Achievement two (completed YYYY-MM-DD)
+
+## Next Milestone: Milestone Name (YYYY-MM-DD)
+```
+
+## Markdown Format Guidelines
+
+- Use `h1` for file titles
+- Use `h2` for main sections
+- Use `h3` for subsections
+- Use checkboxes (`- [ ]`) for incomplete todo items
+- Use checked boxes (`- [x]`) for completed items
+- Use labels with square brackets for priority/status markers
+- Include timestamps in ISO format (YYYY-MM-DD)
+- Use GitHub-style issue/PR references (#123)
+- Use GitHub-style user references (@username)
+- Use tables for complex data relationships
+- Include mermaid diagrams for timeline visualization
+
+## Integration with Diagrams
+
+Status documents should utilize mermaid timeline diagrams for visualizing project progress:
+
+```markdown
+```mermaid
+gantt
+    title Project Timeline
+    dateFormat  YYYY-MM-DD
+    section Phase 1
+    Task A      :done,    a1, 2023-01-01, 10d
+    Task B      :active,  a2, after a1, 5d
+    section Phase 2
+    Task C      :         a3, after a2, 15d
+    Task D      :         a4, after a3, 10d
+```
+```
+
+## Examples
+
+<example type="valid">
+# Project Status
+
+Last Updated: 2023-03-15 by @project-lead
+
+## Current Status: AT RISK
+
+### Summary
+The project is currently at risk due to integration issues with the third-party payment gateway. The team is actively working with the vendor to resolve these issues, but this may impact our release timeline by 1-2 weeks.
+
+### Recent Accomplishments
+- Completed UI redesign for mobile view
+- Fixed 12 high-priority bugs identified during QA
+- Improved test coverage from 72% to 85%
+- Deployed staging environment with latest features
+
+### Current Focus
+The team is focused on resolving the payment gateway integration issues and completing the remaining user stories for the Beta release.
+
+### Upcoming Milestones
+- Beta Release: 2023-04-01 (at risk)
+- Performance Testing: 2023-04-15
+- Production Release: 2023-05-01
+
+### Health Metrics
+- Test Coverage: 85% (+13%)
+- Open Issues: 24 (-7)
+- PR Velocity: 3.5 PRs/day
+- Build Status: Passing
+
+```mermaid
+gantt
+    title Q1 2023 Timeline
+    dateFormat  YYYY-MM-DD
+    section Development
+    Alpha Release      :done,    alpha, 2023-01-15, 20d
+    Beta Development   :active,  beta, 2023-02-05, 45d
+    Beta Release       :milestone, m1, 2023-04-01, 0d
+    section Testing
+    Integration Testing:done, test1, 2023-02-01, 15d
+    Performance Testing:         test2, 2023-04-15, 10d
+    section Deployment
+    Staging            :done,  deploy1, 2023-02-20, 5d
+    Production         :       deploy2, 2023-05-01, 5d
+```
+</example>
+
+<example type="valid">
+# Todo List
+
+Last Updated: 2023-03-15
+
+## High Priority
+- [ ] Fix payment gateway timeout issue (#123) @dev-lead [Due: 2023-03-20] #bug #blocking
+- [ ] Complete API documentation for partner integration (#145) @docs-writer [Due: 2023-03-22] #documentation
+- [ ] Implement retry logic for failed transactions (#156) @backend-dev [Due: 2023-03-25] #enhancement
+
+## Medium Priority
+- [ ] Optimize image loading on product detail page (#134) @frontend-dev [Due: 2023-03-28] #performance
+- [ ] Add unit tests for cart calculation edge cases (#140) @qa-engineer [Due: 2023-03-30] #testing
+
+## Low Priority
+- [ ] Refactor CSS using BEM methodology (#138) @frontend-dev [Due: 2023-04-10] #refactoring
+- [ ] Create user onboarding tutorial (#142) @ux-designer [Due: 2023-04-15] #enhancement
+
+## Completed
+- [x] Fix mobile navigation menu alignment (#120) @frontend-dev [Completed: 2023-03-10] #bug
+- [x] Add customer feedback form (#125) @frontend-dev [Completed: 2023-03-12] #feature
+- [x] Optimize database queries for product search (#130) @backend-dev [Completed: 2023-03-14] #performance
+</example>
+
+<example type="invalid">
+Status update:
+Things are going ok but we have some problems with the API.
+John is working on it.
+Hopefully done by next week.
+</example>
+
+## Integration with Existing Documentation
+
+When referencing project status in other documentation:
+
+- Link directly to the specific status document
+- Include only high-level summary information
+- Reference the last-updated date of the status
+- Direct readers to the status documents for details
+
+Project status documentation should be reviewed during:
+- Sprint planning sessions
+- Daily standups
+- Retrospectives
+- Status update meetings with stakeholders

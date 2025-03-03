@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "generate-diagrams": "node scripts/generate-diagrams.js",
+    "docs": "pnpm generate-diagrams"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
@@ -24,6 +26,7 @@
     "react-qr-reader": "3.0.0-beta-1"
   },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.4.2",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
