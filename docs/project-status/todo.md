@@ -11,7 +11,6 @@ Last Updated: 2023-03-04
 
 ## Medium-term Tasks (Next 3-6 months)
 
-- [ ] Integrate with supabase for data persistence
 - [ ] Add user accounts and authentication
 - [ ] Implement export/import functionality for coupon data
 - [ ] Create advanced search capabilities
@@ -28,6 +27,7 @@ Last Updated: 2023-03-04
 
 ## Recently Completed
 
+- [x] Integrate with Supabase for data persistence
 - [x] Implement barcode scanning functionality
 - [x] Fix responsive layout issues on mobile devices
 - [x] Implement internationalization with i18next

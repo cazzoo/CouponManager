@@ -44,9 +44,14 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
   // Function to check if a coupon is expired
   const isExpired = (expirationDate) => {
     if (!expirationDate) return false;
+    
+    // Add debugging
+    const expDate = new Date(expirationDate);
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to beginning of day for accurate comparison
-    return new Date(expirationDate) < today;
+    const isExp = expDate < today;
+    console.log(`Expiration check - Date: ${expirationDate}, Parsed: ${expDate}, Today: ${today}, IsExpired: ${isExp}`);
+    
+    return isExp;
   };
   
   // Function to check if a coupon is used (current value is 0)
@@ -151,10 +156,21 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
       return matchesRetailer && matchesMinAmount && matchesMaxAmount && matchesExpiration;
     });
   
+  // Add debugging to see original coupons and filtered coupons
+  console.log('CouponList - Original coupons:', coupons);
+  console.log('CouponList - Original coupons length:', coupons.length);
+  console.log('CouponList - Filtered coupons:', filteredCoupons);
+  console.log('CouponList - Filtered coupons length:', filteredCoupons.length);
+  
   // Group coupons by expiration and usage status
   const nonExpiredActiveCoupons = filteredCoupons.filter(coupon => !isExpired(coupon.expirationDate) && !isUsed(coupon.currentValue));
   const nonExpiredUsedCoupons = filteredCoupons.filter(coupon => !isExpired(coupon.expirationDate) && isUsed(coupon.currentValue));
   const expiredCoupons = filteredCoupons.filter(coupon => isExpired(coupon.expirationDate));
+  
+  // Log grouped coupons for debugging
+  console.log('CouponList - Non-expired active coupons:', nonExpiredActiveCoupons.length);
+  console.log('CouponList - Non-expired used coupons:', nonExpiredUsedCoupons.length);
+  console.log('CouponList - Expired coupons:', expiredCoupons.length);
   
   // Sort each group separately
   const sortCoupons = (coupons) => {

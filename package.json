@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "generate-diagrams": "node scripts/generate-diagrams.js",
-    "docs": "pnpm generate-diagrams"
+    "docs": "pnpm generate-diagrams",
+    "migrate:supabase": "node scripts/migrate-to-supabase.js",
+    "test:supabase": "node scripts/test-supabase.js"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
@@ -19,7 +21,9 @@
     "@mui/icons-material": "^5.15.0",
     "@mui/material": "^5.15.0",
     "@mui/x-date-pickers": "^6.19.0",
+    "@supabase/supabase-js": "^2.49.1",
     "date-fns": "^2.30.0",
+    "dotenv": "^16.4.7",
     "i18next": "^24.2.2",
     "i18next-browser-languagedetector": "^8.0.4",
     "prop-types": "^15.8.1",

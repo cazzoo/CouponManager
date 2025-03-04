@@ -9,6 +9,7 @@ import {
   Tabs,
   Tab,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -17,7 +18,7 @@ import CouponList from "./components/CouponList";
 import RetailerList from "./components/RetailerList";
 import AddCouponForm from "./components/AddCouponForm";
 import LanguageSelector from "./components/LanguageSelector";
-import { couponService } from "./services/CouponService";
+import couponService from "./services/CouponServiceFactory";
 import { useLanguage } from "./services/LanguageContext";
 
 function App({ isDarkMode, onThemeChange }) {
@@ -27,32 +28,109 @@ function App({ isDarkMode, onThemeChange }) {
   const [coupons, setCoupons] = useState([]);
   const [currentTab, setCurrentTab] = useState(0);
   const [retailerFilter, setRetailerFilter] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Load coupons when component mounts
   useEffect(() => {
-    setCoupons(couponService.getAllCoupons());
+    const fetchCoupons = async () => {
+      try {
+        setLoading(true);
+        const allCoupons = await couponService.getAllCoupons();
+        console.log('Coupons loaded:', allCoupons); // Debug log
+        console.log('Number of coupons:', allCoupons.length); // Check length
+        console.log('First coupon (if any):', allCoupons.length > 0 ? allCoupons[0] : 'No coupons'); // Check first item
+        setCoupons(allCoupons);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading coupons:', err);
+        setError('Failed to load coupons. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCoupons();
   }, []);
 
-  const handleAddCoupon = (newCoupon) => {
-    setCoupons([...coupons, { ...newCoupon, id: Date.now() }]);
-    setDialogOpen(false);
+  const handleAddCoupon = async (newCoupon) => {
+    try {
+      setLoading(true);
+      const addedCoupon = await couponService.addCoupon(newCoupon);
+      
+      if (addedCoupon) {
+        setCoupons(prevCoupons => [...prevCoupons, addedCoupon]);
+        setDialogOpen(false);
+      } else {
+        setError('Failed to add coupon. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error adding coupon:', err);
+      setError('Failed to add coupon. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleUpdateCoupon = (updatedCoupon) => {
-    setCoupons(
-      coupons.map((coupon) =>
-        coupon.id === updatedCoupon.id ? updatedCoupon : coupon
-      )
-    );
-    setDialogOpen(false);
-    setSelectedCoupon(null);
+  const handleUpdateCoupon = async (updatedCoupon) => {
+    try {
+      setLoading(true);
+      const result = await couponService.updateCoupon(updatedCoupon);
+      
+      if (result) {
+        setCoupons(prevCoupons => 
+          prevCoupons.map(coupon => 
+            coupon.id === updatedCoupon.id ? result : coupon
+          )
+        );
+        setDialogOpen(false);
+        setSelectedCoupon(null);
+      } else {
+        setError('Failed to update coupon. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error updating coupon:', err);
+      setError('Failed to update coupon. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleMarkAsUsed = (couponId, newValue = "0") => {
-    setCoupons(
-      coupons.map((coupon) =>
-        coupon.id === couponId ? { ...coupon, currentValue: newValue } : coupon
-      )
-    );
+  const handleMarkAsUsed = async (couponId, newValue = "0") => {
+    try {
+      setLoading(true);
+      let result;
+      
+      if (newValue === "0") {
+        // Fully used
+        result = await couponService.markCouponAsUsed(couponId);
+        if (result) {
+          // Update local state by fetching all coupons again to ensure sync
+          const allCoupons = await couponService.getAllCoupons();
+          setCoupons(allCoupons);
+        }
+      } else {
+        // Partially used
+        const amount = parseFloat(coupons.find(c => c.id === couponId).currentValue) - parseFloat(newValue);
+        result = await couponService.partiallyUseCoupon(couponId, amount.toString());
+        if (result) {
+          setCoupons(prevCoupons => 
+            prevCoupons.map(coupon => 
+              coupon.id === couponId ? result : coupon
+            )
+          );
+        }
+      }
+      
+      if (!result) {
+        setError('Failed to mark coupon as used. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error marking coupon as used:', err);
+      setError('Failed to mark coupon as used. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -94,7 +172,19 @@ function App({ isDarkMode, onThemeChange }) {
         </Tabs>
       </AppBar>
       <Container maxWidth="lg" sx={{ mt: 4, px: { xs: 2, sm: 3, md: 4 } }}>
-        {currentTab === 0 ? (
+        {error && (
+          <Box sx={{ my: 2 }}>
+            <Typography color="error">{error}</Typography>
+          </Box>
+        )}
+        
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+        
+        {!loading && currentTab === 0 ? (
           <>
             <Box
               sx={{
@@ -140,7 +230,7 @@ function App({ isDarkMode, onThemeChange }) {
               />
             </Box>
           </>
-        ) : (
+        ) : !loading && currentTab === 1 ? (
           <Box sx={{ mt: 2 }}>
             <RetailerList
               coupons={coupons}
@@ -150,7 +240,7 @@ function App({ isDarkMode, onThemeChange }) {
               }}
             />
           </Box>
-        )}
+        ) : null}
       </Container>
     </Box>
   );
