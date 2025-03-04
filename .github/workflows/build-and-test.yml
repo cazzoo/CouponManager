@@ -6,9 +6,25 @@ on:
   pull_request:
     branches: [main]
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  pull-requests: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}coverage-report/
 
     steps:
       - name: Checkout code
@@ -54,14 +70,58 @@ jobs:
           json-summary-path: './coverage/coverage-summary.json'
           json-final-path: './coverage/coverage-final.json'
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Extract coverage metrics for PR comment
+      - name: Extract Coverage Metrics
+        if: github.event_name == 'pull_request'
+        id: coverage
+        run: |
+          STATEMENTS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('./coverage/coverage-summary.json')).total.statements.pct)")
+          LINES=$(node -e "console.log(JSON.parse(require('fs').readFileSync('./coverage/coverage-summary.json')).total.lines.pct)")
+          FUNCTIONS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('./coverage/coverage-summary.json')).total.functions.pct)")
+          BRANCHES=$(node -e "console.log(JSON.parse(require('fs').readFileSync('./coverage/coverage-summary.json')).total.branches.pct)")
           
-      - name: Upload Coverage Reports
-        uses: codecov/codecov-action@v3
+          echo "STATEMENTS_COVERAGE=$STATEMENTS" >> $GITHUB_ENV
+          echo "LINES_COVERAGE=$LINES" >> $GITHUB_ENV
+          echo "FUNCTIONS_COVERAGE=$FUNCTIONS" >> $GITHUB_ENV
+          echo "BRANCHES_COVERAGE=$BRANCHES" >> $GITHUB_ENV
+
+      # Add coverage comment to PRs
+      - name: Create Coverage Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
         with:
-          directory: ./coverage/
-          files: ./coverage/lcov.info
-          fail_ci_if_error: true
-          verbose: true
+          header: coverage
+          message: |
+            ## Coverage Report
+            
+            | Metric | Coverage |
+            | ------ | -------- |
+            | Statements | ${{ env.STATEMENTS_COVERAGE }}% |
+            | Lines | ${{ env.LINES_COVERAGE }}% |
+            | Functions | ${{ env.FUNCTIONS_COVERAGE }}% |
+            | Branches | ${{ env.BRANCHES_COVERAGE }}% |
+            
+            Full report will be available after merge at:
+            ${{ github.event.repository.html_url }}/coverage-report/
+          
+      # Configure Pages for deployment
+      - name: Setup Pages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v3
+      
+      # Upload HTML coverage report as artifact
+      - name: Upload artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: './coverage/html'
+      
+      # Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        id: deployment
+        uses: actions/deploy-pages@v2
           
       - name: Preview Coverage Badge
         uses: wjervis7/vitest-badge-action@v1.0.0
