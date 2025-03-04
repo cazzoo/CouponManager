@@ -47,19 +47,56 @@ jobs:
       - name: Run tests with coverage
         run: pnpm test:coverage
         
-      - name: Generate Coverage Badge
+      # Generate Statements Coverage Badge
+      - name: Generate Statements Coverage Badge
         uses: wjervis7/vitest-badge-action@v1.0.0
         if: success() || failure() # Run whether tests succeed or not
         with:
-          result-type: statements # Can be 'lines', 'statements', 'functions', or 'branches'
+          result-type: statements
           vitest-config-path: './vitest.config.js'
           summary-path: './coverage/coverage-summary.json'
-          badge-text: 'Coverage'
-          badge-path: './badges/coverage/coverage-badge.svg'
+          badge-text: 'Statements'
+          badge-path: './badges/coverage/statements-badge.svg'
+          upload-badge: false # We'll commit it directly to the repo
+      
+      # Generate Lines Coverage Badge
+      - name: Generate Lines Coverage Badge
+        uses: wjervis7/vitest-badge-action@v1.0.0
+        if: success() || failure() # Run whether tests succeed or not
+        with:
+          result-type: lines
+          vitest-config-path: './vitest.config.js'
+          summary-path: './coverage/coverage-summary.json'
+          badge-text: 'Lines'
+          badge-path: './badges/coverage/lines-badge.svg'
+          upload-badge: false # We'll commit it directly to the repo
+      
+      # Generate Functions Coverage Badge
+      - name: Generate Functions Coverage Badge
+        uses: wjervis7/vitest-badge-action@v1.0.0
+        if: success() || failure() # Run whether tests succeed or not
+        with:
+          result-type: functions
+          vitest-config-path: './vitest.config.js'
+          summary-path: './coverage/coverage-summary.json'
+          badge-text: 'Functions'
+          badge-path: './badges/coverage/functions-badge.svg'
+          upload-badge: false # We'll commit it directly to the repo
+      
+      # Generate Branches Coverage Badge
+      - name: Generate Branches Coverage Badge
+        uses: wjervis7/vitest-badge-action@v1.0.0
+        if: success() || failure() # Run whether tests succeed or not
+        with:
+          result-type: branches
+          vitest-config-path: './vitest.config.js'
+          summary-path: './coverage/coverage-summary.json'
+          badge-text: 'Branches'
+          badge-path: './badges/coverage/branches-badge.svg'
           upload-badge: false # We'll commit it directly to the repo
           
       - name: Commit and push badges
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: 'docs: update coverage badges [skip ci]'
-          file_pattern: './badges/coverage/coverage-badge.svg' 
+          file_pattern: './badges/coverage/*.svg' 
