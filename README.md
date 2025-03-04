@@ -2,7 +2,7 @@
 
 A modern web application for managing vouchers and coupons with an intuitive user interface.
 
-[![Build and Test](https://github.com/yourusername/CouponManager/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/yourusername/CouponManager/actions/workflows/build-and-test.yml)
+[![Build and Test](https://github.com/cazzoo/CouponManager/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/cazzoo/CouponManager/actions/workflows/build-and-test.yml)
 [![Statements](./badges/coverage/statements-badge.svg)](./badges/coverage/statements-badge.svg)
 [![Lines](./badges/coverage/lines-badge.svg)](./badges/coverage/lines-badge.svg)
 [![Functions](./badges/coverage/functions-badge.svg)](./badges/coverage/functions-badge.svg)
@@ -37,7 +37,7 @@ Coupon Manager helps users track and manage their gift cards, vouchers, and coup
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/CouponManager.git
+git clone https://github.com/cazzoo/CouponManager.git
 cd CouponManager
 
 # Install dependencies
