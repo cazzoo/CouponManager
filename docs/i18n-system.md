@@ -177,12 +177,12 @@ const { t, language } = useLanguage();
     label={t('form.expiration_date')}
     value={date}
     onChange={handleDateChange}
-    slotProps={{
+    slotProps={% raw %}{{
       textField: {
         margin: "normal",
         fullWidth: true
       }
-    }}
+    }}{% endraw %}
   />
 </LocalizationProvider>
 ```

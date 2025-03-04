@@ -122,6 +122,9 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: './coverage'
+          exclude: |
+            '**/.git/**'
+            '**/xnotes/**'
       
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
