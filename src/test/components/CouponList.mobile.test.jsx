@@ -3,6 +3,16 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import CouponList from '../../components/CouponList';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
+// Mock the useLanguage hook to avoid "useLanguage must be used within a LanguageProvider" error
+vi.mock('../../services/LanguageContext', () => ({
+  useLanguage: () => ({
+    t: (key) => key,
+    language: 'en',
+    changeLanguage: vi.fn(),
+    getSupportedLanguages: () => ['en', 'es', 'fr', 'de']
+  })
+}));
+
 // Mock theme for testing with mobile breakpoint
 const theme = createTheme();
 
@@ -95,34 +105,34 @@ describe('CouponList Component (Mobile View)', () => {
   it('shows expired and used status chips in mobile view', () => {
     render(
       <TestWrapper>
-        <CouponList 
-          coupons={mockCoupons} 
-          onUpdateCoupon={mockOnUpdateCoupon} 
-          onMarkAsUsed={mockOnMarkAsUsed}
+        <CouponList
+          coupons={mockCoupons}
+          onUpdateCoupon={mockOnUpdateCoupon}
           setRetailerFilter={mockSetRetailerFilter}
-          defaultSort={{ field: 'retailer', order: 'asc' }}
         />
       </TestWrapper>
     );
     
     // Check for status chips - need to make sure the expired coupon is shown
-    const showExpiredCheckbox = screen.getByLabelText(/Show Expired/i);
+    // Instead of looking for the label, find the checkbox by its role and name
+    const showExpiredCheckbox = screen.getByRole('checkbox', { name: 'status.expired' });
     fireEvent.click(showExpiredCheckbox);
     
-    // Now check for status chips
-    const expiredChips = screen.getAllByText(/Expired/i);
+    // Check that expired chips are displayed
+    const expiredChips = screen.getAllByText('status.expired');
     expect(expiredChips.length).toBeGreaterThan(0);
     
-    const usedChips = screen.getAllByText(/Used/i);
+    // Check that used chips are displayed
+    const usedChips = screen.getAllByText('status.used');
     expect(usedChips.length).toBeGreaterThan(0);
   });
 
-  it('clears all filters when Clear Filters button is clicked', () => {
+  it('clears all filters when Clear Filters button is clicked', async () => {
     render(
       <TestWrapper>
-        <CouponList 
-          coupons={mockCoupons} 
-          onUpdateCoupon={mockOnUpdateCoupon} 
+        <CouponList
+          coupons={mockCoupons}
+          onUpdateCoupon={mockOnUpdateCoupon}
           onMarkAsUsed={mockOnMarkAsUsed}
           setRetailerFilter={mockSetRetailerFilter}
         />
@@ -130,65 +140,69 @@ describe('CouponList Component (Mobile View)', () => {
     );
     
     // Set some filters
-    const retailerFilter = screen.getByLabelText(/Filter by Retailer/i);
+    // Instead of looking for labels, find inputs by their role and name
+    const retailerFilter = screen.getByRole('combobox', { name: 'filter.filter_by_retailer' });
     fireEvent.change(retailerFilter, { target: { value: 'Amazon' } });
     
-    const minAmountFilter = screen.getByLabelText(/Min Amount/i);
+    const minAmountFilter = screen.getByRole('spinbutton', { name: 'filter.min_amount' });
     fireEvent.change(minAmountFilter, { target: { value: '40' } });
     
-    const maxAmountFilter = screen.getByLabelText(/Max Amount/i);
+    const maxAmountFilter = screen.getByRole('spinbutton', { name: 'filter.max_amount' });
     fireEvent.change(maxAmountFilter, { target: { value: '80' } });
     
-    const showExpiredCheckbox = screen.getByLabelText(/Show Expired/i);
+    const showExpiredCheckbox = screen.getByRole('checkbox', { name: 'status.expired' });
     fireEvent.click(showExpiredCheckbox);
     
     // Click clear filters button
-    const clearFiltersButton = screen.getByText(/Clear Filters/i);
+    const clearFiltersButton = screen.getByText('filter.clear_filters');
     fireEvent.click(clearFiltersButton);
     
-    // Instead of checking input values directly, verify that the filter state is reset
-    // by checking that all coupons are displayed again
-    expect(screen.getAllByText(/Amazon/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Target/i).length).toBeGreaterThan(0);
+    // Wait for the retailer filter to be cleared
+    expect(mockSetRetailerFilter).toHaveBeenCalledWith('');
     
-    // Check the checkbox is unchecked
-    expect(showExpiredCheckbox).not.toBeChecked();
+    // Verify that the filter inputs are reset
+    expect(retailerFilter.value).toBe('');
+    expect(minAmountFilter.value).toBe('');
+    expect(maxAmountFilter.value).toBe('');
+    expect(showExpiredCheckbox.checked).toBe(false);
   });
 
   it('displays no coupons message when filters match no coupons', () => {
     render(
       <TestWrapper>
-        <CouponList 
-          coupons={mockCoupons} 
-          onUpdateCoupon={mockOnUpdateCoupon} 
-          onMarkAsUsed={mockOnMarkAsUsed}
+        <CouponList
+          coupons={mockCoupons}
+          onUpdateCoupon={mockOnUpdateCoupon}
           setRetailerFilter={mockSetRetailerFilter}
         />
       </TestWrapper>
     );
     
     // Set filters that won't match any coupons
-    const retailerFilter = screen.getByLabelText(/Filter by Retailer/i);
+    const retailerFilter = screen.getByRole('combobox', { name: 'filter.filter_by_retailer' });
     fireEvent.change(retailerFilter, { target: { value: 'NonExistentRetailer' } });
     
-    // Check for no coupons message
-    expect(screen.getByText(/No coupons found matching your filters/i)).toBeInTheDocument();
+    // Check that the no coupons message is displayed
+    const noCouponsMessage = screen.getByText('messages.no_coupons_found');
+    expect(noCouponsMessage).toBeInTheDocument();
   });
 
   it('handles edit button click in mobile view', () => {
     render(
       <TestWrapper>
-        <CouponList 
-          coupons={mockCoupons} 
-          onUpdateCoupon={mockOnUpdateCoupon} 
-          onMarkAsUsed={mockOnMarkAsUsed}
+        <CouponList
+          coupons={mockCoupons}
+          onUpdateCoupon={mockOnUpdateCoupon}
           setRetailerFilter={mockSetRetailerFilter}
         />
       </TestWrapper>
     );
     
-    // Find and click the Edit button
-    const editButton = screen.getAllByText('Edit')[0];
+    // Find and click the Edit button by its role instead of text
+    // Look for buttons with the edit icon
+    const editButtons = screen.getAllByRole('button');
+    // Find the edit button (this is a simplification, in a real test you might need a more specific selector)
+    const editButton = editButtons.find(button => button.innerHTML.includes('Edit') || button.innerHTML.includes('edit'));
     fireEvent.click(editButton);
     
     // Check that onUpdateCoupon was called with the correct coupon

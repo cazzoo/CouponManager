@@ -21,7 +21,13 @@ vi.mock('../../services/LanguageContext', () => {
         changeLanguage: (newLang) => {
           setLanguage(newLang);
         },
-        t: (key) => mockTranslate(key, language)
+        t: (key) => mockTranslate(key, language),
+        getSupportedLanguages: () => [
+          { code: 'en', name: 'English' },
+          { code: 'es', name: 'Spanish' },
+          { code: 'fr', name: 'French' },
+          { code: 'de', name: 'German' }
+        ]
       };
     },
     LanguageProvider: ({ children }) => <>{children}</>
@@ -38,7 +44,7 @@ describe('App with Language Integration', () => {
     renderWithProviders(<App />);
 
     // Find the language selector by its ID or role
-    const languageSelector = screen.getByLabelText(/Language/i);
+    const languageSelector = screen.getByLabelText(/general.language/i);
     expect(languageSelector).toBeTruthy();
   });
 
@@ -46,7 +52,7 @@ describe('App with Language Integration', () => {
     renderWithProviders(<App />);
     
     // Open language selector
-    const languageSelect = screen.getByLabelText('Language');
+    const languageSelect = screen.getByLabelText('general.language');
     fireEvent.mouseDown(languageSelect);
     
     // Select Spanish
@@ -54,14 +60,14 @@ describe('App with Language Integration', () => {
     fireEvent.click(spanishOption);
     
     // Verify language changed - check that the language label is now in Spanish
-    expect(screen.getAllByText('Idioma')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('general.language')[0]).toBeInTheDocument();
   });
 
   it('preserves language selection on component re-renders', () => {
     const { rerender } = renderWithProviders(<App />);
     
     // Open language selector
-    const languageSelect = screen.getByLabelText('Language');
+    const languageSelect = screen.getByLabelText('general.language');
     fireEvent.mouseDown(languageSelect);
     
     // Select Spanish
@@ -72,6 +78,6 @@ describe('App with Language Integration', () => {
     rerender(<App />);
     
     // Verify language is still Spanish - check that the language label is now in Spanish
-    expect(screen.getAllByText('Idioma')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('general.language')[0]).toBeInTheDocument();
   });
 }); 

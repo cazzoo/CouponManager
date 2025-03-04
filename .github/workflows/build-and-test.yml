@@ -1,0 +1,75 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run tests with coverage
+        run: pnpm test:coverage
+
+      - name: Generate Coverage Report
+        uses: davelosert/vitest-coverage-report-action@v2.8.0
+        with:
+          json-summary-path: './coverage/coverage-summary.json'
+          json-final-path: './coverage/coverage-final.json'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Upload Coverage Reports
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./coverage/
+          files: ./coverage/lcov.info
+          fail_ci_if_error: true
+          verbose: true
+          
+      - name: Preview Coverage Badge
+        uses: wjervis7/vitest-badge-action@v1.0.0
+        if: github.event_name == 'pull_request' && (success() || failure())
+        with:
+          result-type: statements
+          vitest-config-path: './vitest.config.js'
+          summary-path: './coverage/coverage-summary.json'
+          badge-text: 'Coverage'
+          badge-path: './badges/coverage/preview-badge.svg'
+          upload-badge: false 

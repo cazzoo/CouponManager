@@ -1,0 +1,65 @@
+name: Coverage Badge
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  update-coverage-badge:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write # needed to commit the changes
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Run tests with coverage
+        run: pnpm test:coverage
+        
+      - name: Generate Coverage Badge
+        uses: wjervis7/vitest-badge-action@v1.0.0
+        if: success() || failure() # Run whether tests succeed or not
+        with:
+          result-type: statements # Can be 'lines', 'statements', 'functions', or 'branches'
+          vitest-config-path: './vitest.config.js'
+          summary-path: './coverage/coverage-summary.json'
+          badge-text: 'Coverage'
+          badge-path: './badges/coverage/coverage-badge.svg'
+          upload-badge: false # We'll commit it directly to the repo
+          
+      - name: Commit and push badges
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: 'docs: update coverage badges [skip ci]'
+          file_pattern: './badges/coverage/coverage-badge.svg' 

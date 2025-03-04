@@ -2,6 +2,9 @@
 
 A modern web application for managing vouchers and coupons with an intuitive user interface.
 
+[![Build and Test](https://github.com/yourusername/CouponManager/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/yourusername/CouponManager/actions/workflows/build-and-test.yml)
+[![Coverage](./badges/coverage/coverage-badge.svg)](./badges/coverage/coverage-badge.svg)
+
 ## Overview
 
 Coupon Manager helps users track and manage their gift cards, vouchers, and coupons. It provides a clean, responsive interface for managing coupon details including retailer information, values, expiration dates, and usage status.

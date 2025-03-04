@@ -11,7 +11,7 @@ const theme = createTheme({
 export const MockLanguageContext = createContext();
 
 // Instead of just returning the key, provide basic translations for the most common keys
-export const mockTranslate = (key, language = 'en') => {
+export const mockTranslate = (key, language = 'en', params = {}) => {
   const translations = {
     en: {
       'add_coupon.title': 'Add Coupon',
@@ -35,7 +35,25 @@ export const mockTranslate = (key, language = 'en') => {
       'coupon_manager': 'Coupon Manager',
       'add_coupon': 'Add Coupon',
       'coupons': 'Coupons',
-      'statistics': 'Statistics'
+      'statistics': 'Statistics',
+      'list.show_expired': 'Show Expired',
+      'list.min_amount': 'Min Amount',
+      'list.max_amount': 'Max Amount',
+      'list.retailer': 'Retailer',
+      'list.filter_coupons': 'Filter Coupons',
+      'list.value': 'Value',
+      'list.expiration': 'Expiration',
+      'list.actions': 'Actions',
+      'list.mark_used': 'Mark as Used',
+      'list.partial_use': 'Partial Use',
+      'list.edit': 'Edit',
+      'list.partial_use_dialog.title': 'Partial Use',
+      'list.partial_use_dialog.amount_label': 'Amount to Use',
+      'list.partial_use_dialog.amount_help': 'Enter amount to use:',
+      'list.partial_use_dialog.submit': 'Submit',
+      'list.partial_use_dialog.cancel': 'Cancel',
+      'list.no_coupons': 'No coupons found',
+      'list.no_coupons_hint': 'Try adjusting your filters or add a new coupon'
     },
     es: {
       'add_coupon.title': 'Añadir Cupón',
@@ -59,11 +77,39 @@ export const mockTranslate = (key, language = 'en') => {
       'coupon_manager': 'Gestor de Cupones',
       'add_coupon': 'Añadir Cupón',
       'coupons': 'Cupones',
-      'statistics': 'Estadísticas'
+      'statistics': 'Estadísticas',
+      'list.show_expired': 'Mostrar Vencidos',
+      'list.min_amount': 'Valor Mínimo',
+      'list.max_amount': 'Valor Máximo',
+      'list.retailer': 'Comerciante',
+      'list.filter_coupons': 'Filtrar Cupones',
+      'list.value': 'Valor',
+      'list.expiration': 'Vencimiento',
+      'list.actions': 'Acciones',
+      'list.mark_used': 'Marcar como Usado',
+      'list.partial_use': 'Uso Parcial',
+      'list.edit': 'Editar',
+      'list.partial_use_dialog.title': 'Uso Parcial',
+      'list.partial_use_dialog.amount_label': 'Cantidad a Usar',
+      'list.partial_use_dialog.amount_help': 'Ingrese la cantidad a usar:',
+      'list.partial_use_dialog.submit': 'Enviar',
+      'list.partial_use_dialog.cancel': 'Cancelar',
+      'list.no_coupons': 'No se encontraron cupones',
+      'list.no_coupons_hint': 'Ajuste los filtros o añada un nuevo cupón'
     }
   };
   
-  return (translations[language] && translations[language][key]) || key;
+  // Get the translation or fall back to the key
+  let result = (translations[language] && translations[language][key]) || key;
+  
+  // Replace any parameters in the translation
+  if (params && Object.keys(params).length > 0) {
+    Object.keys(params).forEach(paramKey => {
+      result = result.replace(`{{${paramKey}}}`, params[paramKey]);
+    });
+  }
+  
+  return result;
 };
 
 // Mock the original LanguageContext from the app
@@ -81,7 +127,7 @@ export const MockLanguageProvider = ({ children, initialLanguage = 'en' }) => {
   const value = {
     language,
     changeLanguage: (newLang) => setLanguage(newLang),
-    t: (key) => mockTranslate(key, language)
+    t: (key, params) => mockTranslate(key, language, params)
   };
   
   return (
@@ -113,5 +159,5 @@ export const renderWithProviders = (ui, options = {}) => {
 export const MockUseLanguage = () => ({
   language: 'en',
   changeLanguage: () => {},
-  t: mockTranslate
+  t: (key, params) => mockTranslate(key, 'en', params)
 }); 

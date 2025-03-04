@@ -1,0 +1,77 @@
+---
+description: FOLLOW package manager standards WHEN managing dependencies or running scripts TO ensure consistent tooling and improved performance
+globs: 
+alwaysApply: true
+---
+# Package Manager Standards
+
+<version>1.0.1</version>
+
+## Context
+- When installing dependencies, running scripts, or documenting package management commands
+- When creating or modifying project setup instructions
+- When executing package-related commands in terminal or CI/CD workflows
+- When running tests or generating test coverage reports
+
+## Requirements
+- Always use `pnpm` instead of `npm` for all package management operations
+- Use `pnpm install` instead of `npm install` for dependency installation
+- Use `pnpm run <script>` instead of `npm run <script>` for running scripts
+- Use `pnpm add <package>` instead of `npm install <package>` for adding dependencies
+- Use `pnpm add -D <package>` instead of `npm install --save-dev <package>` for adding dev dependencies
+- Document all project setup and build processes using pnpm syntax in README and related documentation
+- Keep `pnpm-lock.yaml` in version control, do not commit `package-lock.json`
+- Use `pnpm` for CI/CD workflows and deployment scripts
+- Always use `pnpm test` instead of `npm test` for running tests
+- Always use `pnpm test:watch` instead of `npm test:watch` for watch mode
+- Always use `pnpm test:coverage` instead of `npm test:coverage` for test coverage
+
+## Examples
+
+<example>
+# Good: Using pnpm for script execution
+pnpm run test:coverage
+
+# Good: Using pnpm for running tests
+pnpm test
+
+# Good: Using pnpm for running tests in watch mode
+pnpm test:watch
+
+# Good: Using pnpm for generating test coverage
+pnpm test:coverage
+
+# Good: Installing dependencies with pnpm
+pnpm install
+
+# Good: Adding a new dependency
+pnpm add express
+
+# Good: Adding a dev dependency
+pnpm add -D jest
+</example>
+
+<example type="invalid">
+# Invalid: Using npm for running tests
+npm test
+
+# Invalid: Using npm for generating coverage
+npm run test:coverage
+npm test:coverage
+
+# Invalid: Using npm for running tests in watch mode
+npm run test:watch
+npm test:watch
+
+# Invalid: Using npm for script execution
+npm run test:coverage
+
+# Invalid: Installing dependencies with npm
+npm install
+
+# Invalid: Adding a new dependency with npm
+npm install express
+
+# Invalid: Adding a dev dependency with npm
+npm install --save-dev jest
+</example>

@@ -251,6 +251,9 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
             onClick={() => {
               setFilters({ retailer: '', minAmount: '', maxAmount: '' });
               setShowExpired(false);
+              if (setRetailerFilter) {
+                setRetailerFilter('');
+              }
             }}
             size="small"
             sx={{ height: 40 }}

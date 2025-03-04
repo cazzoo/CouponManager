@@ -3,6 +3,16 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import RetailerList from '../../components/RetailerList';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
+// Mock the useLanguage hook to avoid "useLanguage must be used within a LanguageProvider" error
+vi.mock('../../services/LanguageContext', () => ({
+  useLanguage: () => ({
+    t: (key) => key,
+    language: 'en',
+    changeLanguage: vi.fn(),
+    getSupportedLanguages: () => ['en', 'es', 'fr', 'de']
+  })
+}));
+
 // Mock theme for testing
 const theme = createTheme();
 
@@ -135,7 +145,7 @@ describe('RetailerList Component', () => {
     );
     
     // Check that a message is displayed when there are no retailers
-    expect(screen.getByText(/No retailers found/i)).toBeInTheDocument();
+    expect(screen.getByText('messages.no_retailers_found')).toBeInTheDocument();
   });
 
   it('correctly calculates active vs expired coupon statistics', () => {

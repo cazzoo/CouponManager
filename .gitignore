@@ -9,6 +9,8 @@ node_modules
 
 # Testing
 /coverage
+!badges/
+!badges/coverage/
 
 # Environment variables
 .env
