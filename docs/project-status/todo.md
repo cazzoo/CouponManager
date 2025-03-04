@@ -1,6 +1,6 @@
 # CouponManager Todo List
 
-Last Updated: 2023-09-01
+Last Updated: 2023-03-04
 
 ## Short-term Tasks (Next 1-2 months)
 
@@ -14,7 +14,6 @@ Last Updated: 2023-09-01
 - [ ] Integrate with supabase for data persistence
 - [ ] Add user accounts and authentication
 - [ ] Implement export/import functionality for coupon data
-- [ ] Add notifications for expiring coupons
 - [ ] Create advanced search capabilities
 - [ ] Implement coupon categories and tags for better organization
 

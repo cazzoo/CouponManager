@@ -16,7 +16,10 @@ Coupon Manager helps users track and manage their gift cards, vouchers, and coup
 - Filter by retailer, amount range, and expiration status
 - Dark/light theme support
 - Barcode scanning for quick coupon entry
-- Internationalization (i18n) support
+- Support for partial coupon usage
+- Internationalization support (English, Spanish, French, and German)
+- Fully responsive design optimized for both desktop and mobile
+- Local storage for data persistence
 
 ## Getting Started
 
@@ -47,9 +50,21 @@ Open your browser and navigate to `http://localhost:3000`
 # Run tests
 pnpm test
 
+# Run tests in watch mode
+pnpm test:watch
+
 # Generate test coverage reports
 pnpm test:coverage
 ```
+
+## Current Status
+
+- All core features implemented and fully functional
+- 80% test coverage
+- Barcode scanning functionality implemented
+- Internationalization system in place with support for four languages
+- Fully responsive design for desktop and mobile
+- Some minor issues with barcode scanner on certain Android devices are being addressed
 
 ## Documentation
 
@@ -63,6 +78,14 @@ For detailed information about the project, please refer to the documentation:
 - [Testing Standards](docs/testing-standards.md)
 - [Current Project Status](docs/project-status/status.md)
 - [Future Development Plans](docs/project-status/todo.md)
+
+## Upcoming Features
+
+- Optimized rendering performance for coupon list on mobile devices
+- Notification system for expiring coupons
+- User accounts and cloud synchronization
+- Data export/import functionality
+- Advanced search capabilities with tags and categories
 
 ## License
 
