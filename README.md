@@ -8,7 +8,7 @@ A modern web application for managing vouchers and coupons with an intuitive use
 [![Functions](./badges/coverage/functions-badge.svg)](./badges/coverage/functions-badge.svg)
 [![Branches](./badges/coverage/branches-badge.svg)](./badges/coverage/branches-badge.svg)
 
-[View Detailed Coverage Report](https://cazzoo.github.io/CouponManager/coverage-report/)
+[View Detailed Coverage Report](https://cazzoo.github.io/CouponManager/)
 
 ## Overview
 

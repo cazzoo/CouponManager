@@ -24,7 +24,7 @@ jobs:
 
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}coverage-report/
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout code
@@ -63,6 +63,12 @@ jobs:
 
       - name: Run tests with coverage
         run: pnpm test:coverage
+        
+      # Debug step - list coverage directory contents
+      - name: List coverage directory
+        run: |
+          echo "Coverage directory contents:"
+          ls -la ./coverage/
 
       - name: Generate Coverage Report
         uses: davelosert/vitest-coverage-report-action@v2.8.0
@@ -103,7 +109,7 @@ jobs:
             | Branches | ${{ env.BRANCHES_COVERAGE }}% |
             
             Full report will be available after merge at:
-            ${{ github.event.repository.html_url }}/coverage-report/
+            ${{ github.event.repository.html_url }}/pages/
           
       # Configure Pages for deployment
       - name: Setup Pages
@@ -115,7 +121,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './coverage/html'
+          path: './coverage'
       
       # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
