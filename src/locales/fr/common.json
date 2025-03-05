@@ -3,7 +3,8 @@
     "coupon_manager": "Gestionnaire de Coupons",
     "add_coupon": "Ajouter un Coupon",
     "coupons": "Coupons",
-    "retailers": "Commerçants"
+    "retailers": "Commerçants",
+    "sign_out": "Déconnexion"
   },
   "form": {
     "retailer": "Commerçant",
@@ -68,5 +69,21 @@
   },
   "notifications": {
     "copied_to_clipboard": "Copié dans le presse-papiers !"
+  },
+  "login": {
+    "welcome_message": "Bienvenue dans le Gestionnaire de Coupons. Veuillez vous connecter pour voir et gérer vos coupons.",
+    "email_label": "Adresse Email",
+    "password_label": "Mot de Passe",
+    "sign_in": "Se Connecter",
+    "sign_up": "S'inscrire",
+    "need_account": "Besoin d'un compte ? Créez-en un",
+    "have_account": "Vous avez déjà un compte ? Connectez-vous",
+    "or_divider": "OU",
+    "continue_as_guest": "Continuer en tant qu'Invité",
+    "error_email_required": "L'adresse email est requise",
+    "error_email_invalid": "L'adresse email est invalide",
+    "error_password_required": "Le mot de passe est requis",
+    "error_password_too_short": "Le mot de passe doit contenir au moins 6 caractères",
+    "password_requirements": "Le mot de passe doit contenir au moins 6 caractères (8+ recommandé)"
   }
 } 

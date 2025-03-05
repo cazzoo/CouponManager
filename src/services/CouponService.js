@@ -427,4 +427,6 @@ class CouponService {
   }
 }
 
+// Export both the class and a singleton instance
+export { CouponService };
 export default new CouponService();

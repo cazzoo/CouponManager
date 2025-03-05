@@ -3,10 +3,11 @@
     "coupon_manager": "Gestor de Cupones",
     "add_coupon": "Añadir Cupón",
     "coupons": "Cupones",
-    "retailers": "Comerciantes"
+    "retailers": "Comercios",
+    "sign_out": "Cerrar Sesión"
   },
   "form": {
-    "retailer": "Comerciante",
+    "retailer": "Comercio",
     "initial_value": "Valor Inicial",
     "current_value": "Valor Actual",
     "expiration_date": "Fecha de Vencimiento",
@@ -20,37 +21,37 @@
     "delete": "Eliminar",
     "mark_as_used": "Marcar como Usado",
     "partial_use": "Uso Parcial",
-    "scan_barcode": "Escanear Código",
+    "scan_barcode": "Escanear Código de Barras",
     "copy_to_clipboard": "Copiar al portapapeles"
   },
   "filter": {
     "filter": "Filtrar",
-    "filter_by_retailer": "Filtrar por Comerciante",
-    "filter_by_amount": "Filtrar por Cantidad",
+    "filter_by_retailer": "Filtrar por Comercio",
+    "filter_by_amount": "Filtrar por Importe",
     "filter_by_status": "Filtrar por Estado",
     "clear_filters": "Limpiar Filtros",
-    "min_amount": "Monto Mínimo",
-    "max_amount": "Monto Máximo"
+    "min_amount": "Importe Mínimo",
+    "max_amount": "Importe Máximo"
   },
   "status": {
     "active": "Activo",
-    "expired": "Expirado",
+    "expired": "Vencido",
     "used": "Usado"
   },
   "general": {
     "total_value": "Valor Total",
     "active_coupons": "Cupones Activos",
-    "expired_coupons": "Cupones Expirados",
+    "expired_coupons": "Cupones Vencidos",
     "language": "Idioma",
     "not_applicable": "N/A",
     "invalid_date": "Fecha Inválida"
   },
   "tables": {
-    "expires": "Vence",
+    "expires": "Vence el",
     "actions": "Acciones",
     "total_coupons": "Total de Cupones",
     "active_value": "Valor Activo",
-    "expired_value": "Valor Expirado"
+    "expired_value": "Valor Vencido"
   },
   "errors": {
     "error_accessing_camera": "Error al acceder a la cámara",
@@ -58,15 +59,31 @@
     "missing_required_fields": "Faltan campos obligatorios"
   },
   "dialog": {
-    "enter_amount_to_use": "Ingrese cantidad a usar",
-    "amount_to_use": "Cantidad a Usar",
-    "barcode_scanning_instruction": "Coloque el código de barras dentro del marco del escáner para capturar automáticamente los detalles del cupón."
+    "enter_amount_to_use": "Ingrese el importe a utilizar",
+    "amount_to_use": "Importe a Utilizar",
+    "barcode_scanning_instruction": "Posicione el código de barras dentro del marco del escáner para capturar automáticamente los detalles del cupón."
   },
   "messages": {
-    "no_retailers_found": "No se encontraron comerciantes.",
-    "no_coupons_found": "No se encontraron cupones que coincidan con tus filtros."
+    "no_retailers_found": "No se encontraron comercios.",
+    "no_coupons_found": "No se encontraron cupones que coincidan con sus filtros."
   },
   "notifications": {
     "copied_to_clipboard": "¡Copiado al portapapeles!"
+  },
+  "login": {
+    "welcome_message": "Bienvenido al Gestor de Cupones. Por favor, inicie sesión para ver y gestionar sus cupones.",
+    "email_label": "Correo Electrónico",
+    "password_label": "Contraseña",
+    "sign_in": "Iniciar Sesión",
+    "sign_up": "Registrarse",
+    "need_account": "¿Necesita una cuenta? Cree una",
+    "have_account": "¿Ya tiene una cuenta? Inicie sesión",
+    "or_divider": "O",
+    "continue_as_guest": "Continuar como Invitado",
+    "error_email_required": "El correo electrónico es obligatorio",
+    "error_email_invalid": "El correo electrónico no es válido",
+    "error_password_required": "La contraseña es obligatoria",
+    "error_password_too_short": "La contraseña debe tener al menos 6 caracteres",
+    "password_requirements": "La contraseña debe tener al menos 6 caracteres (8+ recomendado)"
   }
 } 

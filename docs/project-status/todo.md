@@ -8,6 +8,7 @@ Last Updated: 2023-03-04
 - [ ] Fix connection issues with barcode scanner on certain Android devices
 - [ ] Add notification system for expiring coupons
 - [ ] Implement data visualization for retailer statistics
+- [ ] Use babel
 
 ## Medium-term Tasks (Next 3-6 months)
 

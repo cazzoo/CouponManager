@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { couponService } from '../../services/CouponService.js';
+import { CouponService } from '../../services/CouponService';
 
 describe('CouponService', () => {
   let service;
   
   beforeEach(() => {
-    // Use the exported service instance
-    service = couponService;
+    // Create a new instance of CouponService for testing
+    service = new CouponService();
     
     // Reset the coupons array for testing
     service.coupons = [
@@ -15,18 +15,18 @@ describe('CouponService', () => {
         retailer: 'Amazon',
         initialValue: '50',
         currentValue: '50',
-        expirationDate: new Date('2024-12-31'),
+        expirationDate: new Date('2025-12-31'),
         activationCode: 'AMZN2024',
         pin: '1234'
       },
       {
         id: 2,
-        retailer: 'Amazon',
-        initialValue: '25',
-        currentValue: '25',
-        expirationDate: new Date('2024-10-15'),
-        activationCode: 'AMZN1015',
-        pin: '5678'
+        retailer: 'Target',
+        initialValue: '75',
+        currentValue: '75',
+        expirationDate: new Date('2025-09-30'),
+        activationCode: 'TGT75FALL',
+        pin: '4321'
       }
     ];
   });

@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import App from './App';
 import { LanguageProvider } from './services/LanguageContext';
+import { AuthProvider } from './services/AuthContext';
 
 // Import i18n configuration
 import './i18n';
@@ -40,9 +41,11 @@ function Root() {
   return (
     <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
       <CssBaseline />
-      <LanguageProvider>
-        <App isDarkMode={isDarkMode} onThemeChange={setIsDarkMode} />
-      </LanguageProvider>
+      <AuthProvider>
+        <LanguageProvider>
+          <App isDarkMode={isDarkMode} onThemeChange={setIsDarkMode} />
+        </LanguageProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

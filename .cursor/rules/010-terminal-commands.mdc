@@ -1,0 +1,75 @@
+---
+description: ADAPT terminal commands WHEN executing across different OS environments TO ensure correct path handling and compatibility
+globs: *
+alwaysApply: true
+---
+# Cross-Platform Terminal Command Standards
+
+<version>1.0.0</version>
+
+## Context
+- When executing terminal commands in any environment
+- When working with file paths in commands
+- When scripting operations that may run on different operating systems
+- When suggesting commands that interact with the file system
+- When troubleshooting command execution failures related to paths
+
+## Requirements
+
+### OS Detection and Adaptation
+- Always check the user's OS before constructing path-dependent commands
+- Recognize Windows uses backslashes (`\`) while Unix-like systems use forward slashes (`/`)
+- Account for different root directory structures (e.g., `C:\` vs `/`)
+- Consider that Windows Git Bash interprets paths differently than standard Windows CMD
+- Use appropriate path separators based on the shell being used
+
+### Path Construction
+- Use relative paths whenever possible to maximize cross-platform compatibility
+- When absolute paths are necessary, format them according to the user's OS
+- On Windows with Git Bash, use forward slashes or escaped backslashes
+- Use environment variables for user home directories instead of hardcoded paths
+- When working with spaces in paths, properly quote or escape them according to the shell
+
+### Command Execution
+- Consider the default terminal before executing the command to identify the context
+- Check for the availability of commands before execution (some may not exist on all platforms)
+- Use cross-platform compatible commands when available (e.g., Node scripts)
+- For Windows Git Bash, ensure compatibility with Bash syntax while respecting Windows paths
+- Do not combine `cd` commands with other operations unless using proper shell syntax
+- For critical path operations, validate that paths exist before executing commands
+
+### Testing Commands
+- Verify command syntax is appropriate for the user's shell environment
+- For Windows Git Bash, use Unix-style paths but be aware of Windows drive letter limitations
+- Test commands with safe operations before suggesting destructive ones
+- Consider command exit codes and error messages specific to each platform
+
+## Examples
+
+<example>
+// Good: Cross-platform compatible relative path
+pnpm test
+
+// Good: OS-specific path handling for Windows Git Bash
+node ./scripts/build.js
+
+// Good: Using forward slashes in Windows Git Bash
+cat "./config/settings.json"
+
+// Good: Using proper path for Git Bash on Windows with drive letter
+cd /c/Work/github/CouponManager
+</example>
+
+<example type="invalid">
+// Bad: Using Windows backslash format with Git Bash
+cat "C:\Work\github\CouponManager\config\settings.json"
+
+// Bad: Mixing slash types in the same command
+cd C:/Work/github\CouponManager
+
+// Bad: Using absolute path when relative would work
+node C:/Work/github/CouponManager/scripts/build.js
+
+// Bad: Not accounting for Git Bash path translation on Windows
+cd C:\Work\github\CouponManager
+</example>

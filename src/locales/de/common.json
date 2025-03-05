@@ -1,9 +1,10 @@
 {
   "app": {
-    "coupon_manager": "Gutschein-Manager",
+    "coupon_manager": "Gutscheinmanager",
     "add_coupon": "Gutschein Hinzufügen",
     "coupons": "Gutscheine",
-    "retailers": "Händler"
+    "retailers": "Händler",
+    "sign_out": "Abmelden"
   },
   "form": {
     "retailer": "Händler",
@@ -18,13 +19,13 @@
     "cancel": "Abbrechen",
     "edit": "Bearbeiten",
     "delete": "Löschen",
-    "mark_as_used": "Als Benutzt Markieren",
-    "partial_use": "Teilweise Verwendung",
+    "mark_as_used": "Als Verwendet Markieren",
+    "partial_use": "Teilweise Verwenden",
     "scan_barcode": "Barcode Scannen",
     "copy_to_clipboard": "In die Zwischenablage kopieren"
   },
   "filter": {
-    "filter": "Filter",
+    "filter": "Filtern",
     "filter_by_retailer": "Nach Händler Filtern",
     "filter_by_amount": "Nach Betrag Filtern",
     "filter_by_status": "Nach Status Filtern",
@@ -35,32 +36,32 @@
   "status": {
     "active": "Aktiv",
     "expired": "Abgelaufen",
-    "used": "Benutzt"
+    "used": "Verwendet"
   },
   "general": {
     "total_value": "Gesamtwert",
     "active_coupons": "Aktive Gutscheine",
     "expired_coupons": "Abgelaufene Gutscheine",
     "language": "Sprache",
-    "not_applicable": "N/V",
+    "not_applicable": "N/A",
     "invalid_date": "Ungültiges Datum"
   },
   "tables": {
     "expires": "Läuft ab am",
     "actions": "Aktionen",
-    "total_coupons": "Gesamte Gutscheine",
+    "total_coupons": "Gesamtzahl der Gutscheine",
     "active_value": "Aktiver Wert",
     "expired_value": "Abgelaufener Wert"
   },
   "errors": {
     "error_accessing_camera": "Fehler beim Zugriff auf die Kamera",
     "invalid_qr_format": "Ungültiges QR-Code-Format",
-    "missing_required_fields": "Erforderliche Felder fehlen"
+    "missing_required_fields": "Pflichtfelder fehlen"
   },
   "dialog": {
-    "enter_amount_to_use": "Geben Sie den zu verwendenden Betrag ein",
-    "amount_to_use": "Zu verwendender Betrag",
-    "barcode_scanning_instruction": "Positionieren Sie den Barcode im Scanner-Rahmen, um automatisch die Gutscheindetails zu erfassen."
+    "enter_amount_to_use": "Zu verwendenden Betrag eingeben",
+    "amount_to_use": "Zu Verwendender Betrag",
+    "barcode_scanning_instruction": "Positionieren Sie den Barcode im Scanner-Rahmen, um die Gutscheindetails automatisch zu erfassen."
   },
   "messages": {
     "no_retailers_found": "Keine Händler gefunden.",
@@ -68,5 +69,21 @@
   },
   "notifications": {
     "copied_to_clipboard": "In die Zwischenablage kopiert!"
+  },
+  "login": {
+    "welcome_message": "Willkommen beim Gutscheinmanager. Bitte melden Sie sich an, um Ihre Gutscheine anzuzeigen und zu verwalten.",
+    "email_label": "E-Mail-Adresse",
+    "password_label": "Passwort",
+    "sign_in": "Anmelden",
+    "sign_up": "Registrieren",
+    "need_account": "Benötigen Sie ein Konto? Erstellen Sie eines",
+    "have_account": "Haben Sie bereits ein Konto? Melden Sie sich an",
+    "or_divider": "ODER",
+    "continue_as_guest": "Als Gast fortfahren",
+    "error_email_required": "E-Mail-Adresse ist erforderlich",
+    "error_email_invalid": "E-Mail-Adresse ist ungültig",
+    "error_password_required": "Passwort ist erforderlich",
+    "error_password_too_short": "Passwort muss mindestens 6 Zeichen lang sein",
+    "password_requirements": "Passwort muss mindestens 6 Zeichen lang sein (8+ empfohlen)"
   }
 } 

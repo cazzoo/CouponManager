@@ -10,6 +10,9 @@ const theme = createTheme({
 // Create a mock language context that matches the real one
 export const MockLanguageContext = createContext();
 
+// Add a mock AuthContext
+export const MockAuthContext = createContext();
+
 // Instead of just returning the key, provide basic translations for the most common keys
 export const mockTranslate = (key, language = 'en', params = {}) => {
   const translations = {
@@ -53,7 +56,18 @@ export const mockTranslate = (key, language = 'en', params = {}) => {
       'list.partial_use_dialog.submit': 'Submit',
       'list.partial_use_dialog.cancel': 'Cancel',
       'list.no_coupons': 'No coupons found',
-      'list.no_coupons_hint': 'Try adjusting your filters or add a new coupon'
+      'list.no_coupons_hint': 'Try adjusting your filters or add a new coupon',
+      // Login form translations
+      'app.sign_out': 'Sign Out',
+      'login.welcome_message': 'Welcome to Coupon Manager. Please sign in to view and manage your coupons.',
+      'login.email_label': 'Email Address',
+      'login.password_label': 'Password',
+      'login.sign_in': 'Sign In',
+      'login.sign_up': 'Sign Up',
+      'login.need_account': 'Need an account? Create one',
+      'login.have_account': 'Already have an account? Sign in',
+      'login.or_divider': 'OR',
+      'login.continue_as_guest': 'Continue as Guest'
     },
     es: {
       'add_coupon.title': 'Añadir Cupón',
@@ -95,7 +109,18 @@ export const mockTranslate = (key, language = 'en', params = {}) => {
       'list.partial_use_dialog.submit': 'Enviar',
       'list.partial_use_dialog.cancel': 'Cancelar',
       'list.no_coupons': 'No se encontraron cupones',
-      'list.no_coupons_hint': 'Ajuste los filtros o añada un nuevo cupón'
+      'list.no_coupons_hint': 'Ajuste los filtros o añada un nuevo cupón',
+      // Login form translations
+      'app.sign_out': 'Cerrar Sesión',
+      'login.welcome_message': 'Bienvenido al Gestor de Cupones. Por favor, inicie sesión para ver y administrar sus cupones.',
+      'login.email_label': 'Correo Electrónico',
+      'login.password_label': 'Contraseña',
+      'login.sign_in': 'Iniciar Sesión',
+      'login.sign_up': 'Registrarse',
+      'login.need_account': '¿Necesita una cuenta? Cree una',
+      'login.have_account': '¿Ya tiene una cuenta? Inicie sesión',
+      'login.or_divider': 'O',
+      'login.continue_as_guest': 'Continuar como Invitado'
     }
   };
   
@@ -121,6 +146,15 @@ export const mockUseLanguage = () => {
   return context;
 };
 
+// Mock the AuthContext for testing
+export const mockUseAuth = () => {
+  const context = useContext(MockAuthContext);
+  if (!context) {
+    throw new Error('mockUseAuth must be used within a MockAuthProvider');
+  }
+  return context;
+};
+
 export const MockLanguageProvider = ({ children, initialLanguage = 'en' }) => {
   const [language, setLanguage] = React.useState(initialLanguage);
   
@@ -137,17 +171,38 @@ export const MockLanguageProvider = ({ children, initialLanguage = 'en' }) => {
   );
 };
 
+// Create a mock AuthProvider component
+export const MockAuthProvider = ({ children, initialAuthState = {} }) => {
+  const [authState, setAuthState] = React.useState({
+    user: { id: 'test-user-id', email: 'test@example.com' },
+    loading: false,
+    error: null,
+    signIn: () => Promise.resolve({ user: { id: 'test-user-id', email: 'test@example.com' }, error: null }),
+    signUp: () => Promise.resolve({ user: { id: 'test-user-id', email: 'test@example.com' }, error: null }),
+    signOut: () => Promise.resolve({ error: null }),
+    ...initialAuthState
+  });
+
+  return (
+    <MockAuthContext.Provider value={authState}>
+      {children}
+    </MockAuthContext.Provider>
+  );
+};
+
 export const renderWithProviders = (ui, options = {}) => {
-  const { wrapper: CustomWrapper, ...rest } = options;
+  const { wrapper: CustomWrapper, initialAuthState, ...rest } = options;
   
   const AllTheProviders = ({ children }) => {
     return (
       <ThemeProvider theme={theme}>
-        {CustomWrapper ? (
-          <CustomWrapper>{children}</CustomWrapper>
-        ) : (
-          <MockLanguageProvider>{children}</MockLanguageProvider>
-        )}
+        <MockAuthProvider initialAuthState={initialAuthState}>
+          {CustomWrapper ? (
+            <CustomWrapper>{children}</CustomWrapper>
+          ) : (
+            <MockLanguageProvider>{children}</MockLanguageProvider>
+          )}
+        </MockAuthProvider>
       </ThemeProvider>
     );
   };
@@ -160,4 +215,14 @@ export const MockUseLanguage = () => ({
   language: 'en',
   changeLanguage: () => {},
   t: (key, params) => mockTranslate(key, 'en', params)
+});
+
+// For direct mock usage in tests
+export const MockUseAuth = () => ({
+  user: { id: 'test-user-id', email: 'test@example.com' },
+  loading: false,
+  error: null,
+  signIn: () => Promise.resolve({ user: { id: 'test-user-id', email: 'test@example.com' }, error: null }),
+  signUp: () => Promise.resolve({ user: { id: 'test-user-id', email: 'test@example.com' }, error: null }),
+  signOut: () => Promise.resolve({ error: null })
 }); 

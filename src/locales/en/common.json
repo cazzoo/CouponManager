@@ -3,7 +3,8 @@
     "coupon_manager": "Coupon Manager",
     "add_coupon": "Add Coupon",
     "coupons": "Coupons",
-    "retailers": "Retailers"
+    "retailers": "Retailers",
+    "sign_out": "Sign Out"
   },
   "form": {
     "retailer": "Retailer",
@@ -68,5 +69,21 @@
   },
   "notifications": {
     "copied_to_clipboard": "Copied to clipboard!"
+  },
+  "login": {
+    "welcome_message": "Welcome to Coupon Manager. Please sign in to view and manage your coupons.",
+    "email_label": "Email Address",
+    "password_label": "Password",
+    "sign_in": "Sign In",
+    "sign_up": "Sign Up",
+    "need_account": "Need an account? Create one",
+    "have_account": "Already have an account? Sign in",
+    "or_divider": "OR",
+    "continue_as_guest": "Continue as Guest",
+    "error_email_required": "Email is required",
+    "error_email_invalid": "Email is invalid",
+    "error_password_required": "Password is required",
+    "error_password_too_short": "Password must be at least 6 characters",
+    "password_requirements": "Password must be at least 6 characters (8+ recommended)"
   }
 } 

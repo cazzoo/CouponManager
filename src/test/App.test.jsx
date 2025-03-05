@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
+import { act } from 'react-dom/test-utils';
 
 // Mock the components directly before import in App.jsx
 vi.mock('../components/CouponList', () => ({
@@ -24,17 +25,21 @@ vi.mock('../components/AddCouponForm', () => ({
   )
 }));
 
+vi.mock('../components/LoginForm', () => ({
+  default: () => <div data-testid="login-form">LoginForm Component</div>
+}));
+
 vi.mock('../components/LanguageSelector', () => ({
   default: () => <div data-testid="language-selector">LanguageSelector Component</div>
 }));
 
 // Mock services
-vi.mock('../services/CouponService', () => ({
-  couponService: {
-    getAllCoupons: vi.fn(() => [
+vi.mock('../services/CouponServiceFactory', () => ({
+  default: {
+    getAllCoupons: vi.fn(() => Promise.resolve([
       { id: 1, retailer: 'TestRetailer', code: 'CODE1', expirationDate: '2023-12-31' },
       { id: 2, retailer: 'AnotherRetailer', code: 'CODE2', expirationDate: '2024-01-15' }
-    ]),
+    ])),
   },
 }));
 
@@ -46,31 +51,91 @@ vi.mock('../services/LanguageContext', () => ({
   })),
 }));
 
+// Mock the auth context with a variable to allow changing auth state
+const mockAuthState = {
+  user: { id: 'test-user', email: 'test@example.com' },
+  loading: false,
+  error: null,
+  signOut: vi.fn(),
+};
+
+vi.mock('../services/AuthContext', () => ({
+  useAuth: vi.fn(() => mockAuthState),
+}));
+
 describe('App Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset auth state to authenticated by default for most tests
+    mockAuthState.user = { id: 'test-user', email: 'test@example.com' };
+    mockAuthState.loading = false;
+    mockAuthState.error = null;
   });
 
-  it('renders without crashing', () => {
+  it('renders without crashing', async () => {
     render(<App isDarkMode={false} onThemeChange={vi.fn()} />);
     expect(screen.getByText('app.coupon_manager')).toBeInTheDocument();
+    
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
   });
 
-  it('displays both tabs', () => {
+  it('shows login form when user is not authenticated', async () => {
+    // Set mock auth state to not authenticated
+    mockAuthState.user = null;
+    
+    render(<App isDarkMode={false} onThemeChange={vi.fn()} />);
+    
+    // Should show login form instead of main app
+    expect(screen.getByTestId('login-form')).toBeInTheDocument();
+    expect(screen.queryByTestId('coupon-list')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('retailer-list')).not.toBeInTheDocument();
+  });
+
+  it('shows loading spinner during authentication loading', async () => {
+    // Set mock auth state to loading
+    mockAuthState.loading = true;
+    
+    render(<App isDarkMode={false} onThemeChange={vi.fn()} />);
+    
+    // Should show loading spinner
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.queryByTestId('login-form')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('coupon-list')).not.toBeInTheDocument();
+  });
+
+  it('displays both tabs when authenticated', async () => {
     render(<App isDarkMode={false} onThemeChange={vi.fn()} />);
     expect(screen.getByText('app.coupons')).toBeInTheDocument();
     expect(screen.getByText('app.retailers')).toBeInTheDocument();
+    
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
   });
 
-  it('shows CouponList by default', () => {
+  it('shows CouponList by default when authenticated', async () => {
     render(<App isDarkMode={false} onThemeChange={vi.fn()} />);
-    expect(screen.getByTestId('coupon-list')).toBeInTheDocument();
-    expect(screen.queryByTestId('retailer-list')).not.toBeInTheDocument();
+    
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+      expect(screen.getByTestId('coupon-list')).toBeInTheDocument();
+      expect(screen.queryByTestId('retailer-list')).not.toBeInTheDocument();
+    });
   });
 
   it('switches to RetailerList when Retailers tab is clicked', async () => {
     const user = userEvent.setup();
     render(<App isDarkMode={false} onThemeChange={vi.fn()} />);
+    
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
     
     // Click on the Retailers tab
     const retailersTab = screen.getByText('app.retailers');
@@ -88,6 +153,11 @@ describe('App Component', () => {
     
     render(<App isDarkMode={false} onThemeChange={vi.fn()} />);
     
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+    
     // Initially the form should not be open
     expect(screen.getByTestId('add-coupon-form')).toHaveAttribute('data-open', 'false');
     
@@ -104,6 +174,11 @@ describe('App Component', () => {
     const onThemeChangeMock = vi.fn();
     render(<App isDarkMode={false} onThemeChange={onThemeChangeMock} />);
     
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+    
     // Find and click the theme toggle button (using a more specific selector)
     const themeButton = screen.getByRole('button', { 
       name: '' // The button doesn't have a name, but is the only IconButton in the toolbar
@@ -114,8 +189,37 @@ describe('App Component', () => {
     expect(onThemeChangeMock).toHaveBeenCalledWith(true);
   });
 
-  it('includes LanguageSelector in the app bar', () => {
+  it('includes LanguageSelector in the app bar', async () => {
     render(<App isDarkMode={false} onThemeChange={vi.fn()} />);
     expect(screen.getByTestId('language-selector')).toBeInTheDocument();
+    
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows sign out button when authenticated', async () => {
+    render(<App isDarkMode={false} onThemeChange={vi.fn()} />);
+    
+    await waitFor(() => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+    
+    expect(screen.getByText('app.sign_out')).toBeInTheDocument();
+  });
+
+  it('calls signOut when sign out button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<App isDarkMode={false} onThemeChange={vi.fn()} />);
+    
+    await waitFor(() => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+    
+    const signOutButton = screen.getByText('app.sign_out');
+    await user.click(signOutButton);
+    
+    expect(mockAuthState.signOut).toHaveBeenCalled();
   });
 }); 

@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, fireEvent, within } from '@testing-library/react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import App from '../../App';
-import { renderWithProviders, mockTranslate, MockLanguageProvider } from '../util/test-utils';
+import { renderWithProviders, mockTranslate, MockLanguageProvider, MockUseAuth } from '../util/test-utils';
 
 // Mock the CouponService to avoid real API calls
 vi.mock('../../services/CouponService', () => ({
@@ -31,6 +31,14 @@ vi.mock('../../services/LanguageContext', () => {
       };
     },
     LanguageProvider: ({ children }) => <>{children}</>
+  };
+});
+
+// Mock the AuthContext
+vi.mock('../../services/AuthContext', () => {
+  return {
+    useAuth: () => MockUseAuth(),
+    AuthProvider: ({ children }) => <>{children}</>
   };
 });
 
