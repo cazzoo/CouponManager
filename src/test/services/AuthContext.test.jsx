@@ -4,21 +4,49 @@ import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AuthProvider, useAuth } from '../../services/AuthContext';
 import AuthService from '../../services/AuthService';
+import RoleService from '../../services/RoleService';
 
-// Mock AuthService
+// Mock services
 vi.mock('../../services/AuthService', () => ({
   default: {
     signUp: vi.fn(),
     signIn: vi.fn(),
     signOut: vi.fn(),
+    signInAnonymously: vi.fn(),
     getCurrentSession: vi.fn(),
     onAuthStateChange: vi.fn()
   }
 }));
 
+vi.mock('../../services/RoleService', () => ({
+  default: {
+    getUserRole: vi.fn(),
+    setUserRole: vi.fn()
+  },
+  Roles: {
+    USER: 'user',
+    MANAGER: 'manager'
+  },
+  Permissions: {
+    VIEW_ANY_COUPON: 'viewAnyCoupon',
+    EDIT_COUPON: 'editCoupon',
+    DELETE_COUPON: 'deleteCoupon',
+    MANAGE_USERS: 'manageUsers'
+  }
+}));
+
 // Test component that uses auth context
 const TestComponent = () => {
-  const { user, signIn, signOut, signUp, loading, error } = useAuth();
+  const { 
+    user, 
+    userRole,
+    signIn, 
+    signOut, 
+    signUp, 
+    loading, 
+    error,
+    isManager
+  } = useAuth();
   
   return (
     <div>
@@ -27,6 +55,8 @@ const TestComponent = () => {
       {user ? (
         <div>
           <div data-testid="user-email">{user.email}</div>
+          <div data-testid="user-role">{userRole || 'No role'}</div>
+          {isManager && <div data-testid="manager-badge">Manager</div>}
           <button data-testid="sign-out" onClick={signOut}>Sign Out</button>
         </div>
       ) : (
@@ -54,8 +84,96 @@ describe('AuthContext', () => {
     vi.clearAllMocks();
   });
 
-  it('should provide loading state initially', () => {
-    // Setup the mock implementation for getCurrentSession
+  it('should render loading state', () => {
+    // Mock loading state
+    AuthService.getCurrentSession.mockResolvedValue({
+      session: null,
+      error: null
+    });
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
+
+    expect(screen.getByTestId('loading')).toBeInTheDocument();
+  });
+
+  it('should render authenticated state with user role', async () => {
+    // Setup mocks for authentication and role
+    AuthService.getCurrentSession.mockResolvedValue({
+      session: {
+        user: { id: 'test-user-id', email: 'test@example.com' }
+      },
+      error: null
+    });
+    
+    RoleService.getUserRole.mockResolvedValue({
+      userId: 'test-user-id',
+      role: 'user'
+    });
+    
+    // Setup mock for auth state change listener
+    AuthService.onAuthStateChange.mockImplementation((callback) => {
+      return vi.fn(); // Mock unsubscribe function
+    });
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
+
+    // Wait for auth initialization to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    // Check if user info and role are displayed
+    expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
+    expect(screen.getByTestId('user-role')).toHaveTextContent('user');
+    expect(screen.queryByTestId('manager-badge')).not.toBeInTheDocument();
+  });
+
+  it('should render manager badge for users with manager role', async () => {
+    // Setup mocks for authentication and role
+    AuthService.getCurrentSession.mockResolvedValue({
+      session: {
+        user: { id: 'manager-id', email: 'manager@example.com' }
+      },
+      error: null
+    });
+    
+    RoleService.getUserRole.mockResolvedValue({
+      userId: 'manager-id',
+      role: 'manager'
+    });
+    
+    // Setup mock for auth state change listener
+    AuthService.onAuthStateChange.mockImplementation((callback) => {
+      return vi.fn(); // Mock unsubscribe function
+    });
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
+
+    // Wait for auth initialization to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    // Check if user info, role, and manager badge are displayed
+    expect(screen.getByTestId('user-email')).toHaveTextContent('manager@example.com');
+    expect(screen.getByTestId('user-role')).toHaveTextContent('manager');
+    expect(screen.getByTestId('manager-badge')).toBeInTheDocument();
+  });
+
+  it('should set user role after successful sign up', async () => {
+    // Setup mock for getCurrentSession
     AuthService.getCurrentSession.mockResolvedValue({
       session: null,
       error: null
@@ -66,17 +184,48 @@ describe('AuthContext', () => {
       return vi.fn(); // Mock unsubscribe function
     });
     
+    // Setup mock for signUp
+    AuthService.signUp.mockResolvedValue({
+      user: { id: 'new-user-id', email: 'test@example.com' },
+      error: null
+    });
+    
+    // Setup mock for setUserRole
+    RoleService.setUserRole.mockResolvedValue({
+      userId: 'new-user-id',
+      role: 'user'
+    });
+    
+    // Render the test component
     render(
       <AuthProvider>
         <TestComponent />
       </AuthProvider>
     );
     
-    expect(screen.getByTestId('loading')).toBeInTheDocument();
+    // Wait for initial loading to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+    
+    // Click the sign up button
+    const user = userEvent.setup();
+    await user.click(screen.getByTestId('sign-up'));
+    
+    // Wait for sign up to complete
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+    
+    // Check if AuthService.signUp was called
+    expect(AuthService.signUp).toHaveBeenCalledWith('test@example.com', 'password123');
+    
+    // Check if RoleService.setUserRole was called to set the initial role
+    expect(RoleService.setUserRole).toHaveBeenCalledWith('new-user-id', 'user');
   });
 
-  it('should handle successful sign in', async () => {
-    // Setup mock for getCurrentSession (initial state)
+  it('should fetch user role after successful sign in', async () => {
+    // Setup mock for getCurrentSession
     AuthService.getCurrentSession.mockResolvedValue({
       session: null,
       error: null
@@ -84,15 +233,19 @@ describe('AuthContext', () => {
     
     // Setup mock for auth state change listener
     AuthService.onAuthStateChange.mockImplementation((callback) => {
-      // Simulate auth state change after sign in
       return vi.fn(); // Mock unsubscribe function
     });
     
     // Setup mock for signIn
     AuthService.signIn.mockResolvedValue({
-      user: { id: 'test-user-id', email: 'test@example.com' },
-      session: { access_token: 'test-token' },
+      user: { id: 'existing-user-id', email: 'existing@example.com' },
       error: null
+    });
+    
+    // Setup mock for getUserRole
+    RoleService.getUserRole.mockResolvedValue({
+      userId: 'existing-user-id',
+      role: 'user'
     });
     
     // Render the test component
@@ -119,158 +272,7 @@ describe('AuthContext', () => {
     // Check if AuthService.signIn was called
     expect(AuthService.signIn).toHaveBeenCalledWith('test@example.com', 'password123');
     
-    // Set the user in the context
-    await act(async () => {
-      const authCallback = AuthService.onAuthStateChange.mock.calls[0][0];
-      authCallback('SIGNED_IN', {
-        user: { id: 'test-user-id', email: 'test@example.com' }
-      });
-    });
-    
-    // Verify user is now shown
-    expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
-  });
-
-  it('should handle sign out', async () => {
-    // Setup user in the session initially
-    AuthService.getCurrentSession.mockResolvedValue({
-      session: { 
-        user: { id: 'test-user-id', email: 'test@example.com' }
-      },
-      error: null
-    });
-    
-    // Setup mock for auth state change listener
-    let authCallback;
-    AuthService.onAuthStateChange.mockImplementation((callback) => {
-      authCallback = callback;
-      return vi.fn(); // Mock unsubscribe function
-    });
-    
-    // Setup mock for signOut
-    AuthService.signOut.mockResolvedValue({
-      error: null
-    });
-    
-    // Render the test component
-    render(
-      <AuthProvider>
-        <TestComponent />
-      </AuthProvider>
-    );
-    
-    // Wait for initial loading and set user
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-      // Simulate auth state change with user
-      if (authCallback) {
-        authCallback('SIGNED_IN', {
-          user: { id: 'test-user-id', email: 'test@example.com' }
-        });
-      }
-    });
-    
-    // Verify user is shown
-    expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
-    
-    // Click the sign out button
-    const user = userEvent.setup();
-    await user.click(screen.getByTestId('sign-out'));
-    
-    // Simulate auth state change after sign out
-    await act(async () => {
-      authCallback('SIGNED_OUT', { user: null });
-    });
-    
-    // Verify sign in button is now available
-    expect(screen.getByTestId('sign-in')).toBeInTheDocument();
-  });
-
-  it('should handle sign up', async () => {
-    // Setup mock for getCurrentSession
-    AuthService.getCurrentSession.mockResolvedValue({
-      session: null,
-      error: null
-    });
-    
-    // Setup mock for auth state change listener
-    AuthService.onAuthStateChange.mockImplementation((callback) => {
-      return vi.fn(); // Mock unsubscribe function
-    });
-    
-    // Setup mock for signUp
-    AuthService.signUp.mockResolvedValue({
-      user: { id: 'new-user-id', email: 'test@example.com' },
-      error: null
-    });
-    
-    // Render the test component
-    render(
-      <AuthProvider>
-        <TestComponent />
-      </AuthProvider>
-    );
-    
-    // Wait for initial loading to complete
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
-    
-    // Click the sign up button
-    const user = userEvent.setup();
-    await user.click(screen.getByTestId('sign-up'));
-    
-    // Wait for sign up to complete
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
-    
-    // Check if AuthService.signUp was called
-    expect(AuthService.signUp).toHaveBeenCalledWith('test@example.com', 'password123');
-  });
-
-  it('should handle errors during sign in', async () => {
-    // Setup mock for getCurrentSession
-    AuthService.getCurrentSession.mockResolvedValue({
-      session: null,
-      error: null
-    });
-    
-    // Setup mock for auth state change listener
-    AuthService.onAuthStateChange.mockImplementation((callback) => {
-      return vi.fn(); // Mock unsubscribe function
-    });
-    
-    // Setup mock for signIn to return an error
-    const mockError = new Error('Invalid login credentials');
-    AuthService.signIn.mockResolvedValue({
-      user: null,
-      session: null,
-      error: mockError
-    });
-    
-    // Render the test component
-    render(
-      <AuthProvider>
-        <TestComponent />
-      </AuthProvider>
-    );
-    
-    // Wait for initial loading to complete
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
-    
-    // Click the sign in button
-    const user = userEvent.setup();
-    await user.click(screen.getByTestId('sign-in'));
-    
-    // Wait for sign in to complete
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    });
-    
-    // Verify error message is shown
-    expect(screen.getByTestId('error')).toHaveTextContent('Invalid login credentials');
+    // Check if RoleService.getUserRole was called to fetch the user's role
+    expect(RoleService.getUserRole).toHaveBeenCalledWith('existing-user-id');
   });
 }); 

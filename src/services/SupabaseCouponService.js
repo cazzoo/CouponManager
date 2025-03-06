@@ -1,7 +1,9 @@
 import supabase from './SupabaseClient.js';
+import RoleService, { Permissions } from './RoleService.js';
 
 /**
  * Service for managing coupons using Supabase for data persistence
+ * Includes permission checking and user ownership
  */
 class SupabaseCouponService {
   /**
@@ -25,7 +27,8 @@ class SupabaseCouponService {
       activationCode: dbCoupon.activation_code,
       pin: dbCoupon.pin,
       createdAt: dbCoupon.created_at ? new Date(dbCoupon.created_at) : null,
-      updatedAt: dbCoupon.updated_at ? new Date(dbCoupon.updated_at) : null
+      updatedAt: dbCoupon.updated_at ? new Date(dbCoupon.updated_at) : null,
+      userId: dbCoupon.user_id // Include the user ID
     };
   }
 
@@ -50,19 +53,34 @@ class SupabaseCouponService {
       result.id = appCoupon.id;
     }
 
+    // Include user_id if provided
+    if (appCoupon.userId) {
+      result.user_id = appCoupon.userId;
+    }
+
     return result;
   }
 
   /**
-   * Retrieves all coupons from the database
+   * Retrieves all coupons the user has access to view
+   * @param {string} userId - The ID of the user making the request
    * @returns {Promise<Array>} A promise that resolves to an array of coupon objects
    */
-  async getAllCoupons() {
+  async getAllCoupons(userId) {
     try {
-      const { data, error } = await supabase
+      // Check if user has permission to view all coupons
+      const canViewAll = await RoleService.checkPermission(userId, Permissions.VIEW_ANY_COUPON);
+      
+      let query = supabase
         .from(this.#tableName)
-        .select('*')
-        .order('id');
+        .select('*');
+      
+      // If user can't view all coupons, restrict to their own
+      if (!canViewAll) {
+        query = query.eq('user_id', userId);
+      }
+      
+      const { data, error } = await query.order('id');
 
       if (error) {
         console.error('Error fetching coupons:', error);
@@ -79,12 +97,19 @@ class SupabaseCouponService {
   /**
    * Adds a new coupon to the database
    * @param {Object} coupon - The coupon object to add
+   * @param {string} userId - The ID of the user creating the coupon
    * @returns {Promise<Object|null>} A promise that resolves to the added coupon or null if failed
    */
-  async addCoupon(coupon) {
+  async addCoupon(coupon, userId) {
     try {
+      // Add user_id to the coupon data
+      const couponWithUser = {
+        ...coupon,
+        userId: userId
+      };
+      
       // Convert to snake_case for database
-      const dbCoupon = this.#mapToSnakeCase(coupon);
+      const dbCoupon = this.#mapToSnakeCase(couponWithUser);
       
       const { data, error } = await supabase
         .from(this.#tableName)
@@ -108,10 +133,23 @@ class SupabaseCouponService {
   /**
    * Updates an existing coupon in the database
    * @param {Object} updatedCoupon - The coupon object with updated values
+   * @param {string} userId - The ID of the user updating the coupon
    * @returns {Promise<Object|null>} A promise that resolves to the updated coupon or null if failed
    */
-  async updateCoupon(updatedCoupon) {
+  async updateCoupon(updatedCoupon, userId) {
     try {
+      // Check if user has permission to edit this coupon
+      const hasPermission = await RoleService.checkPermission(
+        userId,
+        Permissions.EDIT_COUPON,
+        { couponId: updatedCoupon.id }
+      );
+      
+      if (!hasPermission) {
+        console.error('User does not have permission to update this coupon');
+        return null;
+      }
+      
       // Convert to snake_case for database
       const dbCoupon = this.#mapToSnakeCase(updatedCoupon);
 
@@ -136,12 +174,62 @@ class SupabaseCouponService {
   }
 
   /**
-   * Marks a coupon as fully used by setting its current value to 0
-   * @param {number} couponId - The ID of the coupon to mark as used
+   * Deletes a coupon from the database
+   * @param {number} couponId - The ID of the coupon to delete
+   * @param {string} userId - The ID of the user deleting the coupon
    * @returns {Promise<boolean>} A promise that resolves to true if successful, false otherwise
    */
-  async markCouponAsUsed(couponId) {
+  async deleteCoupon(couponId, userId) {
     try {
+      // Check if user has permission to delete this coupon
+      const hasPermission = await RoleService.checkPermission(
+        userId,
+        Permissions.DELETE_COUPON,
+        { couponId }
+      );
+      
+      if (!hasPermission) {
+        console.error('User does not have permission to delete this coupon');
+        return false;
+      }
+      
+      const { error } = await supabase
+        .from(this.#tableName)
+        .delete()
+        .eq('id', couponId);
+
+      if (error) {
+        console.error('Error deleting coupon:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Unexpected error deleting coupon:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Marks a coupon as fully used by setting its current value to 0
+   * @param {number} couponId - The ID of the coupon to mark as used
+   * @param {string} userId - The ID of the user marking the coupon as used
+   * @returns {Promise<boolean>} A promise that resolves to true if successful, false otherwise
+   */
+  async markCouponAsUsed(couponId, userId) {
+    try {
+      // Check if user has permission to edit this coupon
+      const hasPermission = await RoleService.checkPermission(
+        userId,
+        Permissions.EDIT_COUPON,
+        { couponId }
+      );
+      
+      if (!hasPermission) {
+        console.error('User does not have permission to mark this coupon as used');
+        return false;
+      }
+      
       const { error } = await supabase
         .from(this.#tableName)
         .update({ 
@@ -166,10 +254,23 @@ class SupabaseCouponService {
    * Updates a coupon's currentValue after partial usage
    * @param {number} couponId - The ID of the coupon to update
    * @param {string} amount - The amount to deduct from currentValue
+   * @param {string} userId - The ID of the user partially using the coupon
    * @returns {Promise<Object|null>} A promise that resolves to the updated coupon or null if failed
    */
-  async partiallyUseCoupon(couponId, amount) {
+  async partiallyUseCoupon(couponId, amount, userId) {
     try {
+      // Check if user has permission to edit this coupon
+      const hasPermission = await RoleService.checkPermission(
+        userId,
+        Permissions.EDIT_COUPON,
+        { couponId }
+      );
+      
+      if (!hasPermission) {
+        console.error('User does not have permission to use this coupon');
+        return null;
+      }
+      
       // First get the current coupon to calculate new value
       const { data: coupon, error: fetchError } = await supabase
         .from(this.#tableName)
@@ -182,19 +283,20 @@ class SupabaseCouponService {
         return null;
       }
 
-      // Calculate new value
-      const currentValue = parseFloat(coupon.current_value);
-      const amountToDeduct = parseFloat(amount);
+      // Calculate the new current value
+      const currentValueFloat = parseFloat(coupon.current_value);
+      const amountFloat = parseFloat(amount);
       
-      if (isNaN(currentValue) || isNaN(amountToDeduct)) {
-        console.error('Invalid numeric values for coupon update');
+      if (isNaN(currentValueFloat) || isNaN(amountFloat)) {
+        console.error('Invalid numeric values for partial coupon use');
         return null;
       }
+      
+      // Calculate the new value, ensuring it's not negative
+      const newValue = Math.max(0, currentValueFloat - amountFloat).toString();
 
-      const newValue = Math.max(0, currentValue - amountToDeduct).toString();
-
-      // Update the coupon with new value
-      const { data, error } = await supabase
+      // Update the coupon with the new value
+      const { data: updatedCoupon, error: updateError } = await supabase
         .from(this.#tableName)
         .update({ 
           current_value: newValue,
@@ -204,13 +306,12 @@ class SupabaseCouponService {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error partially using coupon:', error);
+      if (updateError) {
+        console.error('Error updating coupon for partial use:', updateError);
         return null;
       }
 
-      // Convert back to camelCase for application
-      return this.#mapToCamelCase(data);
+      return this.#mapToCamelCase(updatedCoupon);
     } catch (error) {
       console.error('Unexpected error partially using coupon:', error);
       return null;
@@ -218,28 +319,82 @@ class SupabaseCouponService {
   }
 
   /**
-   * Gets unique retailers from all coupons
-   * @returns {Promise<Array>} A promise that resolves to an array of unique retailer names
+   * Retrieves all unique retailers from the coupons the user has access to
+   * @param {string} userId - The ID of the user making the request
+   * @returns {Promise<Array<string>>} A promise that resolves to an array of retailer names
    */
-  async getUniqueRetailers() {
+  async getUniqueRetailers(userId) {
     try {
-      const { data, error } = await supabase
+      // Check if user has permission to view all coupons
+      const canViewAll = await RoleService.checkPermission(userId, Permissions.VIEW_ANY_COUPON);
+      
+      let query = supabase
         .from(this.#tableName)
         .select('retailer');
+      
+      // If user can't view all coupons, restrict to their own
+      if (!canViewAll) {
+        query = query.eq('user_id', userId);
+      }
+      
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching retailers:', error);
         return [];
       }
 
-      // Extract unique retailer names
+      // Extract and deduplicate retailer names
       const retailers = [...new Set(data.map(item => item.retailer))];
-      return retailers;
+      
+      // Sort alphabetically
+      return retailers.sort();
     } catch (error) {
       console.error('Unexpected error fetching retailers:', error);
       return [];
     }
   }
+
+  /**
+   * Retrieves coupons belonging to a specific user
+   * @param {string} targetUserId - The ID of the user whose coupons to retrieve
+   * @param {string} requestingUserId - The ID of the user making the request
+   * @returns {Promise<Array>} A promise that resolves to an array of coupon objects
+   */
+  async getCouponsByUser(targetUserId, requestingUserId) {
+    try {
+      // Allow users to view their own coupons without permission check
+      if (targetUserId !== requestingUserId) {
+        // Check if requesting user has permission to view any coupon
+        const canViewAll = await RoleService.checkPermission(
+          requestingUserId, 
+          Permissions.VIEW_ANY_COUPON
+        );
+        
+        if (!canViewAll) {
+          console.error('User does not have permission to view other users\' coupons');
+          return [];
+        }
+      }
+
+      const { data, error } = await supabase
+        .from(this.#tableName)
+        .select('*')
+        .eq('user_id', targetUserId)
+        .order('id');
+
+      if (error) {
+        console.error('Error fetching coupons by user:', error);
+        return [];
+      }
+
+      return data.map(dbCoupon => this.#mapToCamelCase(dbCoupon));
+    } catch (error) {
+      console.error('Unexpected error fetching coupons by user:', error);
+      return [];
+    }
+  }
 }
 
+// Create and export a singleton instance
 export default new SupabaseCouponService(); 

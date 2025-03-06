@@ -19,13 +19,14 @@ import RetailerList from "./components/RetailerList";
 import AddCouponForm from "./components/AddCouponForm";
 import LanguageSelector from "./components/LanguageSelector";
 import LoginForm from "./components/LoginForm";
+import UserManagement from "./components/UserManagement";
 import couponService from "./services/CouponServiceFactory";
 import { useLanguage } from "./services/LanguageContext";
 import { useAuth } from "./services/AuthContext";
 
 function App({ isDarkMode, onThemeChange }) {
   const { t } = useLanguage();
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, signOut, isManager } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [coupons, setCoupons] = useState([]);
@@ -222,6 +223,7 @@ function App({ isDarkMode, onThemeChange }) {
         >
           <Tab label={t('app.coupons')} />
           <Tab label={t('app.retailers')} />
+          {isManager && <Tab label={t('app.user_management') || 'User Management'} />}
         </Tabs>
       </AppBar>
       <Container maxWidth="lg" sx={{ mt: 4, px: { xs: 2, sm: 3, md: 4 } }}>
@@ -293,6 +295,8 @@ function App({ isDarkMode, onThemeChange }) {
               }}
             />
           </Box>
+        ) : !loading && currentTab === 2 && isManager ? (
+          <UserManagement />
         ) : null}
       </Container>
     </Box>
