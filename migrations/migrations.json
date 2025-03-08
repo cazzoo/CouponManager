@@ -1,0 +1,38 @@
+[
+  {
+    "id": "20250306100000",
+    "description": "Create coupons table",
+    "file": "20250306100000-create_coupons_table.sql",
+    "dependencies": []
+  },
+  {
+    "id": "20250306100001",
+    "description": "Add user roles and coupon ownership",
+    "file": "20250306100001-add_user_roles_and_coupon_ownership.sql",
+    "dependencies": ["20250306100000"]
+  },
+  {
+    "id": "20250306100002",
+    "description": "Enable RLS for coupons",
+    "file": "20250306100002-enable_rls_for_coupons.sql",
+    "dependencies": ["20250306100001"]
+  },
+  {
+    "id": "20250306100003",
+    "description": "Enable RLS for user roles",
+    "file": "20250306100003-enable_rls_for_user_roles.sql",
+    "dependencies": ["20250306100001"]
+  },
+  {
+    "id": "20250306100004",
+    "description": "Add foreign keys for RLS",
+    "file": "20250306100004-add_foreign_keys_for_rls.sql",
+    "dependencies": ["20250306100001", "20250306100002", "20250306100003"]
+  },
+  {
+    "id": "20250306100005",
+    "description": "Add notes to coupons",
+    "file": "20250306100005-add_notes_to_coupons.sql",
+    "dependencies": ["20250306100000"]
+  }
+] 

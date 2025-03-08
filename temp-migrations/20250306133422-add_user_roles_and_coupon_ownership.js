@@ -1,4 +1,11 @@
--- Migration script to add user roles and coupon ownership
+
+'use strict';
+
+exports.shorthands = undefined;
+
+exports.up = function(pgm) {
+  // Using SQL for up migration
+  pgm.sql(`-- Migration script to add user roles and coupon ownership
 -- This adds:
 -- 1. A user_roles table to store user roles
 -- 2. A user_id column to the coupons table to associate coupons with users
@@ -102,4 +109,10 @@ ON CONFLICT (user_id) DO NOTHING;
 --       SELECT 1 FROM public.user_roles 
 --       WHERE user_id = auth.uid() AND role = 'manager'
 --     )
---   ); 
+--   ); `);
+};
+
+exports.down = function(pgm) {
+  // Down migration not implemented
+  // This is a placeholder for rollback logic if needed
+};

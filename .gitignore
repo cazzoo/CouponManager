@@ -41,3 +41,4 @@ pnpm-debug.log*
 
 # Private individual user cursor rules
 .cursor/rules/_*.mdc
+.pgpass
