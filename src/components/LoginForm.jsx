@@ -36,6 +36,9 @@ const LoginForm = () => {
 
   const isSignUp = tabIndex === 1;
 
+  // At the top of the component, add this console log
+  console.log('LoginForm state:', { email, password: password ? '[MASKED]' : '', error, loading });
+
   /**
    * Handle tab change between sign in and sign up
    */
@@ -50,6 +53,7 @@ const LoginForm = () => {
    */
   const validateForm = () => {
     const errors = {};
+    const isDevelopment = import.meta.env.DEV;
     
     if (!email.trim()) {
       errors.email = t('login.error_email_required');
@@ -59,7 +63,8 @@ const LoginForm = () => {
     
     if (!password) {
       errors.password = t('login.error_password_required');
-    } else if (password.length < 6) {
+    } else if (!isDevelopment && password.length < 6) {
+      // Only enforce password length in production
       errors.password = t('login.error_password_too_short');
     }
     
@@ -78,10 +83,19 @@ const LoginForm = () => {
       return;
     }
     
-    if (isSignUp) {
-      await signUp(email, password);
-    } else {
-      await signIn(email, password);
+    try {
+      console.log('Attempting login with:', { email });
+      if (isSignUp) {
+        await signUp(email, password);
+      } else {
+        await signIn(email, password);
+      }
+      // Don't reset the form on failure - the form will be unmounted on success
+    } catch (err) {
+      // Just catch the error to prevent unhandled promise rejection
+      // The error state is managed by AuthContext
+      console.log('Login failed:', err);
+      // The form state is preserved because we don't reset it here
     }
   };
 
@@ -108,6 +122,7 @@ const LoginForm = () => {
   // Validate specific field on blur
   const handleBlur = (field) => {
     const errors = { ...validationErrors };
+    const isDevelopment = import.meta.env.DEV;
     
     if (field === 'email') {
       if (!email.trim()) {
@@ -122,7 +137,8 @@ const LoginForm = () => {
     if (field === 'password') {
       if (!password) {
         errors.password = t('login.error_password_required');
-      } else if (password.length < 6) {
+      } else if (!isDevelopment && password.length < 6) {
+        // Only enforce password length in production
         errors.password = t('login.error_password_too_short');
       } else {
         delete errors.password;
@@ -143,6 +159,20 @@ const LoginForm = () => {
           <Typography variant="body2" sx={{ mb: 1, textAlign: 'center', fontSize: '0.875rem' }}>
             {t('login.welcome_message')}
           </Typography>
+          
+          {/* Dev mode helper - show available test accounts */}
+          {import.meta.env.DEV && (
+            <Alert 
+              severity="info" 
+              sx={{ mt: 1, width: '100%', mb: 1, fontSize: '0.75rem' }}
+            >
+              <Typography variant="subtitle2">Development Test Accounts:</Typography>
+              <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                <li>User: demo@example.com / demo</li>
+                <li>Manager: manager@example.com / password123</li>
+              </Box>
+            </Alert>
+          )}
           
           <Box sx={{ width: '100%', mb: 1 }}>
             <Tabs 
@@ -170,8 +200,14 @@ const LoginForm = () => {
           </Box>
           
           {error && (
-            <Alert severity="error" sx={{ mt: 1, width: '100%', mb: 1, py: 0 }}>
-              {error.message}
+            <Alert 
+              severity="error" 
+              sx={{ mt: 1, width: '100%', mb: 1, py: 0 }}
+              data-testid="login-error"
+            >
+              {typeof error === 'string' 
+                ? error 
+                : (error.message || 'Authentication failed')}
             </Alert>
           )}
           

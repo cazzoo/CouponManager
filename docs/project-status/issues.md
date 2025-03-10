@@ -1,6 +1,11 @@
-# Top priority issues
-- Build issue
-    - stack:
+# Issues and Known Problems
+
+Last Updated: 2023-03-15
+
+## Top Priority Issues
+
+- Build issue with top-level await
+    - Stack:
     ``` error during build:
 [vite:esbuild-transpile] Transform failed with 1 error:
 assets/index-!~{001}~.js:52390:4: ERROR: Top-level await is not available in the configured target environment ("chrome87", "edge88", "es2020", "firefox78", "safari14" + 2 overrides)
@@ -27,7 +32,27 @@ Top-level await is not available in the configured target environment ("chrome87
 Error: Process completed with exit code 1.
 ```
 
-#. Medium priority issues
+- User Management error message "Failed to fetch users. Please try again."
+  - This error occurs when accessing the User Management tab as a manager
+  - Issue may be related to Supabase admin API permissions
+  - Occurs more frequently in production environment than development
+
+## Medium Priority Issues
 
 - In the coupon list page, when all coupons are expired, we cannot see there are possibly coupons.
 - In the retailer list, when all coupons are expired for a given retailer, the link appears in green while it could appear in red (to indicate all are expired)
+- When a user is promoted to manager, some managers report not seeing the changes immediately
+
+## Low Priority Issues
+
+- Barcode scanner has intermittent connection issues on certain Android devices
+- Some translation placeholders appear in User Management section for non-English languages
+- Role updates sometimes require a page refresh to reflect in the UI
+- Permission errors sometimes use generic error messages without specific details
+
+## Recently Resolved Issues
+
+- Fixed: Coupon creation permission issues
+- Fixed: Spanish translations for User Management 
+- Fixed: Error handling in user authentication flow
+- Fixed: Role assignment in local memory database

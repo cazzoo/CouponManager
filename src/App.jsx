@@ -10,6 +10,9 @@ import {
   Tab,
   IconButton,
   CircularProgress,
+  Alert,
+  Collapse,
+  Tooltip
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -21,12 +24,25 @@ import LanguageSelector from "./components/LanguageSelector";
 import LoginForm from "./components/LoginForm";
 import UserManagement from "./components/UserManagement";
 import couponService from "./services/CouponServiceFactory";
+import { StorageType } from "./services/CouponServiceFactory";
 import { useLanguage } from "./services/LanguageContext";
 import { useAuth } from "./services/AuthContext";
+import { Permissions } from "./services/RoleServiceFactory";
 
 function App({ isDarkMode, onThemeChange }) {
   const { t } = useLanguage();
-  const { user, loading: authLoading, signOut, isManager } = useAuth();
+  const { user, loading: authLoading, signOut, isManager, userRole, hasPermission } = useAuth();
+  
+  // Debug log for manager status
+  console.log('App: User role:', userRole, 'isManager:', isManager);
+  
+  // Warn if the user is a manager but we're not showing the manager tab
+  useEffect(() => {
+    if (userRole === 'manager' && !isManager) {
+      console.warn('App: User has manager role but isManager is false. This might prevent access to User Management tab.');
+    }
+  }, [userRole, isManager]);
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [coupons, setCoupons] = useState([]);
@@ -34,6 +50,20 @@ function App({ isDarkMode, onThemeChange }) {
   const [retailerFilter, setRetailerFilter] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showDbAlert, setShowDbAlert] = useState(true);
+  const [canAddCoupon, setCanAddCoupon] = useState(false);
+  
+  // Debug log for auth state
+  console.log('App: Current auth state:', { 
+    isAuthenticated: !!user, 
+    userEmail: user?.email,
+    authLoading 
+  });
+
+  // Check if using in-memory database
+  const isUsingMemoryDb = import.meta.env.VITE_USE_MEMORY_DB === 'true';
+  const isDevelopment = import.meta.env.MODE === 'development';
+  const isAutoMockData = import.meta.env.VITE_AUTO_MOCK_DATA === 'true';
 
   // Load coupons when component mounts or user changes
   useEffect(() => {
@@ -60,12 +90,40 @@ function App({ isDarkMode, onThemeChange }) {
     }
   }, [user]);
 
+  // Check if user has permission to add coupons
+  useEffect(() => {
+    const checkAddCouponPermission = async () => {
+      if (user) {
+        try {
+          const canCreate = await hasPermission(Permissions.CREATE_COUPON);
+          console.log('App: User can create coupons:', canCreate);
+          // Use the actual permission result
+          setCanAddCoupon(canCreate);
+        } catch (err) {
+          console.error('Error checking coupon permission:', err);
+          setCanAddCoupon(false);
+        }
+      } else {
+        console.log('App: No user available, cannot add coupons');
+        setCanAddCoupon(false);
+      }
+    };
+    
+    checkAddCouponPermission();
+  }, [user, hasPermission]);
+
   const handleAddCoupon = async (newCoupon) => {
     try {
       setLoading(true);
-      const addedCoupon = await couponService.addCoupon(newCoupon);
+      console.log('App: Adding coupon:', newCoupon, 'with user:', user?.id);
+      
+      // Pass the current user's ID to the addCoupon method
+      const addedCoupon = await couponService.addCoupon(newCoupon, user?.id);
+      
+      console.log('App: Coupon added successfully:', addedCoupon);
       setCoupons([...coupons, addedCoupon]);
       setError(null);
+      setDialogOpen(false); // Close the dialog on success
       return true;
     } catch (err) {
       console.error('Error adding coupon:', err);
@@ -149,6 +207,7 @@ function App({ isDarkMode, onThemeChange }) {
 
   // If auth is loading, show loading spinner
   if (authLoading) {
+    console.log('App: Auth is loading, showing spinner');
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
@@ -158,6 +217,7 @@ function App({ isDarkMode, onThemeChange }) {
 
   // If user is not authenticated, show the login form
   if (!user) {
+    console.log('App: User is not authenticated, showing login form');
     return (
       <Box sx={{ bgcolor: isDarkMode ? "#303030" : "#f5f5f5", minHeight: "100vh" }}>
         <AppBar position="static" sx={{ backgroundColor: "#2e7d32" }}>
@@ -180,6 +240,7 @@ function App({ isDarkMode, onThemeChange }) {
     );
   }
 
+  console.log('App: User is authenticated, showing main application');
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static" sx={{ backgroundColor: "#2e7d32" }}>
@@ -206,27 +267,58 @@ function App({ isDarkMode, onThemeChange }) {
         <Tabs
           value={currentTab}
           onChange={(e, newValue) => setCurrentTab(newValue)}
+          aria-label="app navigation tabs"
           sx={{
-            bgcolor: "#1b5e20",
-            "& .MuiTab-root": {
-              color: "rgba(255, 255, 255, 0.7)",
-              "&.Mui-selected": {
-                color: "#ffffff",
-                fontWeight: "bold",
-              },
-            },
+            borderBottom: 1,
+            borderColor: "divider",
             "& .MuiTabs-indicator": {
-              backgroundColor: "#ffffff",
+              backgroundColor: "primary.main",
               height: 3,
             },
           }}
         >
           <Tab label={t('app.coupons')} />
           <Tab label={t('app.retailers')} />
-          {isManager && <Tab label={t('app.user_management') || 'User Management'} />}
+          {/* Debug output for the user management tab */}
+          {console.log('App: Rendering tabs, isManager:', isManager, 'userRole:', userRole)}
+          {isManager && (
+            <Tab 
+              label={t('app.user_management')} 
+              data-testid="user-management-tab"
+            />
+          )}
         </Tabs>
       </AppBar>
-      <Container maxWidth="lg" sx={{ mt: 4, px: { xs: 2, sm: 3, md: 4 } }}>
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        {/* Debug information */}
+        {isDevelopment && (
+          <Box sx={{ my: 2, p: 2, border: '1px dashed gray', borderRadius: 1, bgcolor: 'rgba(0,0,0,0.03)' }}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Debug Info:</strong> User: {user ? `${user.email} (${user.id})` : 'Not logged in'} | 
+              Role: {userRole || 'None'} |
+              isManager: {isManager ? 'Yes' : 'No'} |
+              Permissions: CREATE_COUPON={canAddCoupon ? 'Yes' : 'No'} |
+              Loading: {loading ? 'Yes' : 'No'} |
+              Auth Loading: {authLoading ? 'Yes' : 'No'}
+            </Typography>
+          </Box>
+        )}
+        
+        {/* Memory Database Alert */}
+        {isDevelopment && isUsingMemoryDb && (
+          <Collapse in={showDbAlert}>
+            <Alert 
+              severity="info" 
+              onClose={() => setShowDbAlert(false)}
+              sx={{ mb: 2 }}
+            >
+              {t('Using local memory database in development mode.')}
+              {isAutoMockData && ' ' + t('Mock data is automatically injected.')}
+              {' ' + t('To use Supabase instead, run: pnpm dev:supabase')}
+            </Alert>
+          </Collapse>
+        )}
+        
         {error && (
           <Box sx={{ my: 2 }}>
             <Typography color="error">{error}</Typography>
@@ -248,17 +340,32 @@ function App({ isDarkMode, onThemeChange }) {
                 mb: 2,
               }}
             >
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={() => {
-                  setSelectedCoupon(null);
-                  setDialogOpen(true);
-                }}
+              <Tooltip 
+                title={!canAddCoupon ? 'You do not have permission to add coupons' : ''}
+                arrow
               >
-                {t('app.add_coupon')}
-              </Button>
+                <span> {/* Tooltip needs a wrapper when the child is disabled */}
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
+                    onClick={() => {
+                      setSelectedCoupon(null);
+                      setDialogOpen(true);
+                    }}
+                    disabled={!canAddCoupon || loading}
+                    sx={{
+                      opacity: !canAddCoupon ? 0.6 : 1,
+                      '&.Mui-disabled': {
+                        bgcolor: 'rgba(25, 118, 210, 0.5)', 
+                        color: 'white'
+                      }
+                    }}
+                  >
+                    {t('app.add_coupon')} {!canAddCoupon ? '(Disabled)' : ''}
+                  </Button>
+                </span>
+              </Tooltip>
             </Box>
             <AddCouponForm
               open={dialogOpen}
@@ -295,8 +402,15 @@ function App({ isDarkMode, onThemeChange }) {
               }}
             />
           </Box>
-        ) : !loading && currentTab === 2 && isManager ? (
-          <UserManagement />
+        ) : !loading && currentTab === 2 && (isManager || isDevelopment) ? (
+          <Box>
+            {!isManager && isDevelopment && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                This is a development-only view. In production, this tab is only visible to managers.
+              </Alert>
+            )}
+            <UserManagement />
+          </Box>
         ) : null}
       </Container>
     </Box>

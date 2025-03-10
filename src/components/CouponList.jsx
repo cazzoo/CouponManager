@@ -193,8 +193,22 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
   const sortedNonExpiredActiveCoupons = sortCoupons(nonExpiredActiveCoupons);
   const sortedNonExpiredUsedCoupons = sortCoupons(nonExpiredUsedCoupons);
   const sortedExpiredCoupons = sortCoupons(expiredCoupons);
-  const groupedCoupons = [...sortedNonExpiredActiveCoupons, ...sortedNonExpiredUsedCoupons, ...sortedExpiredCoupons];
-
+  
+  // Create a Map to ensure unique coupon IDs and prevent duplicate keys
+  const couponMap = new Map();
+  
+  // Add coupons to the map in priority order
+  [...sortedNonExpiredActiveCoupons, ...sortedNonExpiredUsedCoupons, ...sortedExpiredCoupons].forEach(coupon => {
+    // Only add if not already in the map (first occurrence wins)
+    if (!couponMap.has(coupon.id)) {
+      couponMap.set(coupon.id, coupon);
+    } else {
+      console.warn(`Duplicate coupon ID detected: ${coupon.id}`);
+    }
+  });
+  
+  // Convert map back to array
+  const groupedCoupons = Array.from(couponMap.values());
 
   return (
     <>
@@ -291,7 +305,7 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
         <Box sx={{ width: '100%' }}>
           <Grid container spacing={2}>
             {groupedCoupons.map((coupon) => (
-              <Grid item xs={12} key={coupon.id}>
+              <Grid item xs={12} key={`mobile-${coupon.id}`}>
                 <Card variant="outlined" sx={{ 
                   mb: 1, 
                   bgcolor: isExpired(coupon.expirationDate) ? 'rgba(211, 47, 47, 0.08)' : 
@@ -491,9 +505,9 @@ const CouponList = ({ coupons, onUpdateCoupon, onMarkAsUsed, retailerFilter, set
               </TableRow>
             </TableHead>
             <TableBody>
-              {groupedCoupons.map((coupon) => (
+              {groupedCoupons.map((coupon, index) => (
                 <TableRow 
-                  key={coupon.id}
+                  key={`table-${coupon.id}`}
                   sx={{ 
                     bgcolor: isExpired(coupon.expirationDate) ? 'rgba(211, 47, 47, 0.08)' : 
                             isUsed(coupon.currentValue) ? 'rgba(158, 158, 158, 0.15)' : 'inherit'

@@ -22,10 +22,13 @@ Coupon Manager helps users track and manage their gift cards, vouchers, and coup
 - Dark/light theme support
 - Barcode scanning for quick coupon entry
 - Support for partial coupon usage
+- User management functionality with role-based access control
+- Role-based access control with three distinct user roles
 - Internationalization support (English, Spanish, French, and German)
 - Fully responsive design optimized for both desktop and mobile
 - Supabase integration for database and authentication
 - Database migration system for managing schema changes
+- Local memory database for development mode
 
 ## Getting Started
 
@@ -47,6 +50,15 @@ pnpm install
 
 # Start the development server
 pnpm dev
+```
+
+The development server automatically uses a local in-memory database with mock data pre-populated, so you can start developing immediately without setting up Supabase. See the [Local Memory Database documentation](./docs/local-memory-db.md) for more details.
+
+If you need to test with the actual Supabase database:
+
+```bash
+# Start the dev server with Supabase database connection
+pnpm dev:supabase
 ```
 
 Open your browser and navigate to `http://localhost:3000`
@@ -96,17 +108,28 @@ This will add sample coupons and user roles to the database. Due to SSL certific
 2. Click on **+ New User**
 3. Create the following users:
 
-| Role    | Email               | Password    |
-|---------|---------------------|-------------|
-| User    | user@example.com    | password123 |
-| Manager | manager@example.com | password123 |
-| User    | another@example.com | password123 |
+| Role    | Email               | Password    | Description          |
+|---------|---------------------|-------------|----------------------|
+| User    | user@example.com    | password123 | Standard user        |
+| Manager | manager@example.com | password123 | Administrator        |
+| User    | another@example.com | password123 | Another standard user|
+| Demo    | demo@example.com    | demo        | Demo user (limited)  |
 
 4. After creating the users, update the `fixedUserIds` array in `scripts/add-mock-data.js` with the actual UUIDs from Supabase.
 
 For detailed information about the migration system organization, see the [Migration System Organization](./docs/migration-system-organization.md) document.
 
 For detailed instructions on setting up Supabase, see the [Supabase Setup Guide](./docs/supabase-setup.md).
+
+### User Roles and Permissions
+
+The application implements a robust role-based access control system with three user roles:
+
+1. **Demo User**: Limited access for demonstration purposes. Can only view coupons, not create/edit/delete.
+2. **User**: Standard role with ability to manage their own coupons.
+3. **Manager**: Administrative role with access to user management and all system functions.
+
+For a detailed breakdown of permissions, see the [Permission Matrix](./docs/permission-matrix.md) documentation.
 
 ### Database Migrations
 
@@ -150,6 +173,7 @@ pnpm test:coverage
 ## Current Status
 
 - All core features implemented and fully functional
+- User management functionality with role-based permissions
 - 80% test coverage
 - Barcode scanning functionality implemented
 - Internationalization system in place with support for four languages
@@ -163,6 +187,8 @@ For detailed information about the project, please refer to the documentation:
 - [Product Requirements (PRD)](docs/prd.md)
 - [Architecture Documentation](docs/architecture.md) 
 - [Internationalization System](docs/i18n-system.md)
+- [Permission Matrix](docs/permission-matrix.md)
+- [User Management](docs/user-management.md)
 - [Code Style Guidelines](docs/code-style.md)
 - [Contributing Guidelines](docs/contributing.md)
 - [Testing Standards](docs/testing-standards.md)
@@ -173,7 +199,7 @@ For detailed information about the project, please refer to the documentation:
 
 - Optimized rendering performance for coupon list on mobile devices
 - Notification system for expiring coupons
-- User accounts and cloud synchronization
+- Enhanced user management capabilities
 - Data export/import functionality
 - Advanced search capabilities with tags and categories
 

@@ -4,7 +4,8 @@
     "add_coupon": "Añadir Cupón",
     "coupons": "Cupones",
     "retailers": "Comercios",
-    "sign_out": "Cerrar Sesión"
+    "sign_out": "Cerrar Sesión",
+    "user_management": "Gestión de Usuarios"
   },
   "form": {
     "retailer": "Comercio",
@@ -56,7 +57,12 @@
   "errors": {
     "error_accessing_camera": "Error al acceder a la cámara",
     "invalid_qr_format": "Formato de código QR inválido",
-    "missing_required_fields": "Faltan campos obligatorios"
+    "missing_required_fields": "Faltan campos obligatorios",
+    "access_denied": "Acceso denegado. Necesita permisos de administrador para ver esta página.",
+    "permission_denied": "Permiso denegado. No tiene los permisos necesarios.",
+    "fetch_users_failed": "Error al obtener usuarios. Por favor, inténtelo de nuevo.",
+    "role_update_failed": "Error al actualizar el rol del usuario. Por favor, inténtelo de nuevo.",
+    "cannot_change_own_role": "No puede cambiar su propio rol."
   },
   "dialog": {
     "enter_amount_to_use": "Ingrese el importe a utilizar",
@@ -65,7 +71,8 @@
   },
   "messages": {
     "no_retailers_found": "No se encontraron comercios.",
-    "no_coupons_found": "No se encontraron cupones que coincidan con sus filtros."
+    "no_coupons_found": "No se encontraron cupones que coincidan con sus filtros.",
+    "role_updated_successfully": "Rol de usuario actualizado con éxito."
   },
   "notifications": {
     "copied_to_clipboard": "¡Copiado al portapapeles!"
@@ -85,5 +92,20 @@
     "error_password_required": "La contraseña es obligatoria",
     "error_password_too_short": "La contraseña debe tener al menos 6 caracteres",
     "password_requirements": "La contraseña debe tener al menos 6 caracteres (8+ recomendado)"
+  },
+  "admin": {
+    "user_management": "Gestión de Usuarios",
+    "user_id": "ID de Usuario",
+    "email": "Correo Electrónico",
+    "created_at": "Creado el",
+    "role": "Rol",
+    "actions": "Acciones",
+    "promote_to_manager": "Promover a Administrador",
+    "demote_to_user": "Degradar a Usuario"
+  },
+  "roles": {
+    "user": "Usuario",
+    "manager": "Administrador",
+    "demo_user": "Usuario Demo"
   }
 } 

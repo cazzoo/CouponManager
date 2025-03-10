@@ -4,7 +4,8 @@
     "add_coupon": "Ajouter un Coupon",
     "coupons": "Coupons",
     "retailers": "Commerçants",
-    "sign_out": "Déconnexion"
+    "sign_out": "Déconnexion",
+    "user_management": "Gestion des Utilisateurs"
   },
   "form": {
     "retailer": "Commerçant",
@@ -56,7 +57,12 @@
   "errors": {
     "error_accessing_camera": "Erreur d'accès à la caméra",
     "invalid_qr_format": "Format de code QR invalide",
-    "missing_required_fields": "Champs obligatoires manquants"
+    "missing_required_fields": "Champs obligatoires manquants",
+    "access_denied": "Accès refusé. Vous avez besoin des autorisations d'administrateur pour voir cette page.",
+    "permission_denied": "Permission refusée. Vous n'avez pas les autorisations nécessaires.",
+    "fetch_users_failed": "Échec de la récupération des utilisateurs. Veuillez réessayer.",
+    "role_update_failed": "Échec de la mise à jour du rôle de l'utilisateur. Veuillez réessayer.",
+    "cannot_change_own_role": "Vous ne pouvez pas changer votre propre rôle."
   },
   "dialog": {
     "enter_amount_to_use": "Entrez le montant à utiliser",
@@ -65,7 +71,8 @@
   },
   "messages": {
     "no_retailers_found": "Aucun commerçant trouvé.",
-    "no_coupons_found": "Aucun coupon correspondant à vos filtres n'a été trouvé."
+    "no_coupons_found": "Aucun coupon correspondant à vos filtres n'a été trouvé.",
+    "role_updated_successfully": "Rôle de l'utilisateur mis à jour avec succès."
   },
   "notifications": {
     "copied_to_clipboard": "Copié dans le presse-papiers !"
@@ -85,5 +92,20 @@
     "error_password_required": "Le mot de passe est requis",
     "error_password_too_short": "Le mot de passe doit contenir au moins 6 caractères",
     "password_requirements": "Le mot de passe doit contenir au moins 6 caractères (8+ recommandé)"
+  },
+  "admin": {
+    "user_management": "Gestion des Utilisateurs",
+    "user_id": "ID Utilisateur",
+    "email": "Email",
+    "created_at": "Créé le",
+    "role": "Rôle",
+    "actions": "Actions",
+    "promote_to_manager": "Promouvoir au rang d'Administrateur",
+    "demote_to_user": "Rétrograder au rang d'Utilisateur"
+  },
+  "roles": {
+    "user": "Utilisateur",
+    "manager": "Administrateur",
+    "demo_user": "Utilisateur Démo"
   }
 } 

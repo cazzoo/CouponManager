@@ -4,7 +4,8 @@
     "add_coupon": "Add Coupon",
     "coupons": "Coupons",
     "retailers": "Retailers",
-    "sign_out": "Sign Out"
+    "sign_out": "Sign Out",
+    "user_management": "User Management"
   },
   "form": {
     "retailer": "Retailer",
@@ -56,7 +57,12 @@
   "errors": {
     "error_accessing_camera": "Error accessing camera",
     "invalid_qr_format": "Invalid QR code format",
-    "missing_required_fields": "Missing required fields"
+    "missing_required_fields": "Missing required fields",
+    "access_denied": "Access Denied. You need manager permissions to view this page.",
+    "permission_denied": "Permission denied. You lack the required permissions.",
+    "fetch_users_failed": "Failed to fetch users. Please try again.",
+    "role_update_failed": "Failed to update user role. Please try again.",
+    "cannot_change_own_role": "You cannot change your own role."
   },
   "dialog": {
     "enter_amount_to_use": "Enter amount to use",
@@ -65,7 +71,8 @@
   },
   "messages": {
     "no_retailers_found": "No retailers found.",
-    "no_coupons_found": "No coupons found matching your filters."
+    "no_coupons_found": "No coupons found matching your filters.",
+    "role_updated_successfully": "User role updated successfully."
   },
   "notifications": {
     "copied_to_clipboard": "Copied to clipboard!"
@@ -85,5 +92,20 @@
     "error_password_required": "Password is required",
     "error_password_too_short": "Password must be at least 6 characters",
     "password_requirements": "Password must be at least 6 characters (8+ recommended)"
+  },
+  "admin": {
+    "user_management": "User Management",
+    "user_id": "User ID",
+    "email": "Email",
+    "created_at": "Created At",
+    "role": "Role",
+    "actions": "Actions",
+    "promote_to_manager": "Promote to Manager",
+    "demote_to_user": "Demote to User"
+  },
+  "roles": {
+    "user": "User",
+    "manager": "Manager",
+    "demo_user": "Demo User"
   }
 } 

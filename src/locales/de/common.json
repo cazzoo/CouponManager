@@ -4,7 +4,8 @@
     "add_coupon": "Gutschein Hinzufügen",
     "coupons": "Gutscheine",
     "retailers": "Händler",
-    "sign_out": "Abmelden"
+    "sign_out": "Abmelden",
+    "user_management": "Benutzerverwaltung"
   },
   "form": {
     "retailer": "Händler",
@@ -56,7 +57,12 @@
   "errors": {
     "error_accessing_camera": "Fehler beim Zugriff auf die Kamera",
     "invalid_qr_format": "Ungültiges QR-Code-Format",
-    "missing_required_fields": "Pflichtfelder fehlen"
+    "missing_required_fields": "Pflichtfelder fehlen",
+    "access_denied": "Zugriff verweigert. Sie benötigen Administratorrechte, um diese Seite anzuzeigen.",
+    "permission_denied": "Berechtigung verweigert. Sie haben nicht die erforderlichen Berechtigungen.",
+    "fetch_users_failed": "Benutzer konnten nicht abgerufen werden. Bitte versuchen Sie es erneut.",
+    "role_update_failed": "Benutzerrolle konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
+    "cannot_change_own_role": "Sie können Ihre eigene Rolle nicht ändern."
   },
   "dialog": {
     "enter_amount_to_use": "Zu verwendenden Betrag eingeben",
@@ -65,7 +71,8 @@
   },
   "messages": {
     "no_retailers_found": "Keine Händler gefunden.",
-    "no_coupons_found": "Keine Gutscheine gefunden, die Ihren Filtern entsprechen."
+    "no_coupons_found": "Keine Gutscheine gefunden, die Ihren Filtern entsprechen.",
+    "role_updated_successfully": "Benutzerrolle wurde erfolgreich aktualisiert."
   },
   "notifications": {
     "copied_to_clipboard": "In die Zwischenablage kopiert!"
@@ -85,5 +92,20 @@
     "error_password_required": "Passwort ist erforderlich",
     "error_password_too_short": "Passwort muss mindestens 6 Zeichen lang sein",
     "password_requirements": "Passwort muss mindestens 6 Zeichen lang sein (8+ empfohlen)"
+  },
+  "admin": {
+    "user_management": "Benutzerverwaltung",
+    "user_id": "Benutzer-ID",
+    "email": "E-Mail",
+    "created_at": "Erstellt am",
+    "role": "Rolle",
+    "actions": "Aktionen",
+    "promote_to_manager": "Zum Administrator befördern",
+    "demote_to_user": "Zum Benutzer herabstufen"
+  },
+  "roles": {
+    "user": "Benutzer",
+    "manager": "Administrator",
+    "demo_user": "Demo-Benutzer"
   }
 } 

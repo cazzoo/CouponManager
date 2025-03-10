@@ -35,7 +35,18 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
     if (coupon) {
       setFormData(coupon);
     } else {
-      setFormData(initialFormState);
+      // For development/testing purposes, pre-fill with example values
+      if (import.meta.env.DEV) {
+        console.log('AddCouponForm: Pre-filling form with example values for testing');
+        setFormData({
+          ...initialFormState,
+          retailer: 'Example Store',
+          initialValue: '10',
+          currentValue: '10'
+        });
+      } else {
+        setFormData(initialFormState);
+      }
     }
   }, [coupon]);
 
@@ -55,7 +66,17 @@ const AddCouponForm = ({ open, onClose, onAddCoupon, onUpdateCoupon, coupon, cou
   };
 
   const validateForm = () => {
-    return formData.retailer && formData.initialValue && formData.currentValue;
+    // Debug log for form validation
+    console.log('Validating form with values:', {
+      retailer: formData.retailer,
+      initialValue: formData.initialValue,
+      currentValue: formData.currentValue
+    });
+    
+    const isValid = formData.retailer && formData.initialValue && formData.currentValue;
+    console.log('Form valid:', isValid);
+    
+    return isValid;
   };
 
   const handleCouponData = () => {

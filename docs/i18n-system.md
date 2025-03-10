@@ -2,7 +2,7 @@
 title: Translation System Documentation
 author: Development Team
 date: 2023-09-01
-version: 1.2
+version: 1.3
 status: Approved
 ---
 
@@ -113,39 +113,169 @@ export default MyComponent;
 
 ## Translation Namespaces
 
-Translations are organized into the following namespaces:
+Translations are organized into logical namespaces to keep the translation files manageable:
 
-- `app` - App-level strings like "Coupon Manager", "Add Coupon"
-- `form` - Form field labels: "Retailer", "Initial Value", etc.
-- `actions` - Action buttons: "Save", "Cancel", "Edit", etc.
-- `filter` - Filter-related texts
-- `status` - Status labels: "Active", "Expired", "Used"
-- `general` - Common texts that don't fit other categories
-- `tables` - Table headers and related texts
-- `errors` - Error messages
-- `dialog` - Texts used in dialogs, including scanner instructions
-- `messages` - User-facing messages like "No items found"
-- `notifications` - Notification messages like "Copied to clipboard!"
+| Namespace | Description | Examples |
+|-----------|-------------|----------|
+| `app` | Application-level terms | app.coupon_manager, app.add_coupon, app.user_management |
+| `form` | Form field labels | form.retailer, form.initial_value |
+| `actions` | Action buttons and links | actions.save, actions.edit |
+| `filter` | Filtering options | filter.filter_by_retailer |
+| `status` | Status indicators | status.active, status.expired |
+| `general` | General purpose terms | general.total_value |
+| `tables` | Table-specific terms | tables.expires, tables.actions |
+| `errors` | Error messages | errors.invalid_qr_format |
+| `dialog` | Dialog content | dialog.enter_amount_to_use |
+| `messages` | Notification messages | messages.no_coupons_found |
+| `notifications` | Toast notifications | notifications.copied_to_clipboard |
+| `login` | Authentication related | login.sign_in, login.password_label |
+| `admin` | User management | admin.user_management, admin.user_id |
+| `roles` | User roles | roles.user, roles.manager |
 
-> 💡 **Tip:** When adding new translations, always consider which namespace they belong to for consistency.
+## Recent Translation Additions
 
-### Translation Key Examples
+The application recently added translations for the User Management functionality, with these key namespaces:
 
-```javascript
-// Application title
-t('app.title')  // "Coupon Manager"
+1. **admin**: Translations for the User Management interface
+   - Column headers: user_id, email, created_at, role, actions
+   - Actions: promote_to_manager, demote_to_user
 
-// Form fields
-t('form.retailer')  // "Retailer"
-t('form.initial_value')  // "Initial Value"
+2. **roles**: Translations for user role names
+   - user: Standard user role
+   - manager: Administrator role
+   - demo_user: Limited demo user role
 
-// Action buttons
-t('actions.save')  // "Save"
-t('actions.cancel')  // "Cancel"
+3. **errors**: Additional error messages for permission handling
+   - access_denied: Shown when a user tries to access a restricted area
+   - permission_denied: Shown when a user lacks permissions for an action
+   - fetch_users_failed: Shown when user list cannot be retrieved
+   - role_update_failed: Shown when role update fails
+   - cannot_change_own_role: Shown when trying to change own role
 
-// Error messages
-t('errors.required_field')  // "This field is required"
+These translations are available in all supported languages.
+
+## Translation Files
+
+Translation files are stored in the `src/locales/{language}/common.json` format. Each language has its own directory:
+
 ```
+src/
+  locales/
+    en/
+      common.json    # English translations
+    es/
+      common.json    # Spanish translations
+    fr/
+      common.json    # French translations
+    de/
+      common.json    # German translations
+```
+
+## Using Translations
+
+### Basic Usage
+
+To use translations in components:
+
+```jsx
+import { useLanguage } from '../services/LanguageContext';
+
+function MyComponent() {
+  const { t } = useLanguage();
+
+  return (
+    <div>
+      <h1>{t('app.coupon_manager')}</h1>
+      <p>{t('messages.no_coupons_found')}</p>
+    </div>
+  );
+}
+```
+
+### Date Formatting
+
+The application uses `date-fns` in combination with the current language setting to format dates:
+
+```jsx
+import { format } from 'date-fns';
+import { enUS, es, fr, de } from 'date-fns/locale';
+
+const localeMap = {
+  en: enUS,
+  es: es,
+  fr: fr,
+  de: de
+};
+
+// In a component
+const formattedDate = format(
+  date, 
+  'PP', 
+  { locale: localeMap[language] || enUS }
+);
+```
+
+## Switching Languages
+
+Users can change the application language using the language selector in the top navigation bar. This component uses the `useLanguage` hook:
+
+```jsx
+const { language, changeLanguage } = useLanguage();
+
+// Change language
+changeLanguage('es'); // Switch to Spanish
+```
+
+## Adding New Translations
+
+To add a new translation:
+
+1. Add the translation key and value to `src/locales/en/common.json`
+2. Add the corresponding translations in the other language files
+
+Example:
+
+```json
+// In src/locales/en/common.json
+{
+  "new_namespace": {
+    "new_key": "New translation"
+  }
+}
+
+// In src/locales/es/common.json
+{
+  "new_namespace": {
+    "new_key": "Nueva traducción"
+  }
+}
+```
+
+## Translation Fallbacks
+
+If a translation is missing in a language, the system will fallback to the English version. Make sure all keys present in the English file are also present in other language files to avoid inconsistent UI.
+
+## Language Detection
+
+The application automatically detects the user's preferred language from their browser settings on first load. If the preferred language is supported, it will be used; otherwise, English is used as the default.
+
+## Adding a New Language
+
+To add support for a new language:
+
+1. Create a new directory in `src/locales/` with the language code
+2. Copy the structure of the English translations
+3. Translate all keys to the new language
+4. Add the language to the language selector component
+5. Add the language to the date-fns locale map
+
+## Best Practices
+
+1. Keep translation keys organized in appropriate namespaces
+2. Use descriptive, consistent naming for translation keys
+3. Avoid hardcoded text in components - always use the translation system
+4. Include placeholders in translations where needed
+5. Test UI with all supported languages to check for layout issues
 
 ## Date Localization
 
@@ -262,14 +392,6 @@ setError(`${t('errors.error_accessing_camera')}: ${err}`);
 4. **Feature-rich**: Supports plural forms, formatting, and other i18next features
 5. **Complete**: All UI elements, including date pickers and notifications, are localized
 6. **Maintainable**: Independent files per language make maintenance easier
-
-## Adding a New Language
-
-To add a new language:
-
-1. Create a new JSON file in `src/locales/[lang_code]/common.json`
-2. Add the language to the supported languages list in `src/i18n.js`
-3. Add the locale to the `localeMap` in components that use date formatting
 
 ## Additional Resources
 

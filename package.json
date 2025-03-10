@@ -4,7 +4,9 @@
   "description": "A web application to manage vouchers and coupons",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "VITE_USE_MEMORY_DB=true VITE_AUTO_MOCK_DATA=true vite",
+    "dev:supabase": "VITE_USE_MEMORY_DB=false vite",
+    "dev:memory": "VITE_USE_MEMORY_DB=true VITE_AUTO_MOCK_DATA=true vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
@@ -53,6 +55,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
     "jsdom": "^26.0.0",
+    "msw": "^2.7.3",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
     "typescript": "^5",
@@ -69,6 +72,11 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
+    ]
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
     ]
   }
 }

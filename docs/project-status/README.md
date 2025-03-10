@@ -10,13 +10,15 @@ The project status documentation provides a clear view of:
 - Completed features
 - In-progress work
 - Future development plans
+- Known issues and problems
 
 ## Documents
 
-The project status documentation consists of two main files:
+The project status documentation consists of three main files:
 
 1. **status.md** - Current project status and recently completed features
 2. **todo.md** - List of upcoming and future development tasks
+3. **issues.md** - Known issues, bugs, and problems to be addressed
 
 ## How to Use These Documents
 
@@ -36,11 +38,22 @@ The project status documentation consists of two main files:
    - Mark completed tasks with [x]
    - Move completed tasks to the "Recently Completed" section
 
+### Tracking Issues
+
+1. Edit `issues.md` to:
+   - Add new issues as they are discovered
+   - Categorize by priority (Top, Medium, Low)
+   - Move resolved issues to "Recently Resolved"
+   - Remove old resolved issues after a month
+
 ## Best Practices
 
 1. **Keep it simple** - Focus on what's important without excessive detail
 2. **Update regularly** - Ensure information stays current and relevant
-3. **Prioritize clearly** - Group tasks by timeframe (short-term, medium-term, long-term)
+3. **Prioritize clearly** - Group tasks by timeframe and issues by priority
 4. **Track completions** - Keep a record of recently completed work
+5. **Document issues** - Record all known issues with enough detail to understand the problem
+
+Last Updated: 2023-03-15
 
 This simplified approach removes complex agile terminology and streamlines project tracking to just what's needed. 

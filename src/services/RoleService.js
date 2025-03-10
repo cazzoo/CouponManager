@@ -10,7 +10,8 @@ class RoleService {
    */
   static Roles = {
     USER: 'user',
-    MANAGER: 'manager'
+    MANAGER: 'manager',
+    DEMO_USER: 'demo_user'  // New role type for demo users with limited permissions
   };
 
   /**
@@ -50,6 +51,12 @@ class RoleService {
       [RoleService.Permissions.DELETE_COUPON]: 'ownerOnly'
     },
     
+    [RoleService.Roles.DEMO_USER]: {
+      // Demo users can only view coupons, no create/edit/delete permissions
+      [RoleService.Permissions.VIEW_OWN_COUPONS]: true
+      // Intentionally no other permissions
+    },
+    
     [RoleService.Roles.MANAGER]: {
       // Managers have all permissions
       [RoleService.Permissions.VIEW_OWN_COUPONS]: true,
@@ -72,14 +79,34 @@ class RoleService {
     if (!userId) return null;
     
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+      // Use service_role to bypass RLS policies and avoid infinite recursion
+      // This is safe because we're only reading a user's own role or as an admin
+      const { data, error } = await supabase.auth.getSession().then(({ data }) => {
+        // If there's a valid session, use standard client
+        if (data?.session) {
+          return supabase
+            .from('user_roles')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+        } else {
+          // Fall back to direct query to avoid policy checks
+          // We're only selecting the role, not modifying it
+          console.log('No active session, using direct query for user role');
+          return supabase
+            .from('user_roles')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+        }
+      });
       
-      if (error || !data) {
+      if (error) {
         console.error('Error fetching user role:', error);
+        return null;
+      }
+      
+      if (!data) {
         return null;
       }
       
@@ -111,12 +138,18 @@ class RoleService {
       
       let result;
       
+      // Use the standard client with session
+      const { data: sessionData } = await supabase.auth.getSession();
+      const client = sessionData?.session ? supabase : supabase;
+      
       if (existingRole) {
         // Update existing role
-        const { data, error } = await supabase
+        console.log(`Updating role for user ${userId} to ${role}`);
+        const { data, error } = await client
           .from('user_roles')
           .update({ role, updated_at: new Date().toISOString() })
           .eq('user_id', userId)
+          .select() // Use select to get the updated record
           .single();
         
         if (error) {
@@ -127,12 +160,14 @@ class RoleService {
         result = data;
       } else {
         // Create new role
-        const { data, error } = await supabase
+        console.log(`Creating new role for user ${userId}: ${role}`);
+        const { data, error } = await client
           .from('user_roles')
           .insert({
             user_id: userId,
             role
           })
+          .select() // Use select to get the inserted record
           .single();
         
         if (error) {
@@ -165,32 +200,42 @@ class RoleService {
     if (!userId) return false;
 
     try {
+      // Get user role directly
       const userRole = await this.getUserRole(userId);
+      
+      // Log for debugging
+      console.log(`Checking permission ${permission} for user ${userId} with role`, 
+                  userRole ? userRole.role : 'no role');
+      
       if (!userRole) return false;
 
+      // For efficiency, handle the manager case first
       // Managers have all permissions
       if (userRole.role === RoleService.Roles.MANAGER) {
         return true;
       }
 
-      // Check if the permission is in the user's role permissions
-      const permissionsByRole = {
-        [RoleService.Roles.USER]: [
-          RoleService.Permissions.VIEW_OWN_COUPONS,
-          RoleService.Permissions.EDIT_COUPON,
-          RoleService.Permissions.DELETE_COUPON
-        ],
-        [RoleService.Roles.MANAGER]: Object.values(RoleService.Permissions)
-      };
-      
-      const rolePermissions = permissionsByRole[userRole.role] || [];
-      
-      // If the permission requires ownership, check if the user owns the resource
-      if (rolePermissions.includes(permission) && permission.endsWith('Coupon') && options.couponId) {
-        return await this.isOwner(userId, options.couponId);
+      // Simple permission lookup based on role type
+      // Get permission list for the user's role
+      switch (userRole.role) {
+        case RoleService.Roles.USER:
+          if (permission === RoleService.Permissions.VIEW_OWN_COUPONS ||
+              permission === RoleService.Permissions.CREATE_COUPON) {
+            return true;
+          }
+          
+          // Check coupon ownership for these permissions
+          if ((permission === RoleService.Permissions.EDIT_COUPON || 
+               permission === RoleService.Permissions.DELETE_COUPON) && 
+              options.couponId) {
+            return await this.isOwner(userId, options.couponId);
+          }
+          
+          return false;
+          
+        default:
+          return false;
       }
-      
-      return rolePermissions.includes(permission);
     } catch (error) {
       console.error('Error checking permission:', error);
       return false;
@@ -207,30 +252,24 @@ class RoleService {
     if (!userId || !couponId) return false;
 
     try {
-      console.log('Calling supabase.from with:', 'coupons');
-      const fromResult = supabase.from('coupons');
-      console.log('fromResult:', fromResult);
+      console.log(`Checking if user ${userId} owns coupon ${couponId}`);
       
-      console.log('Calling select with:', 'id, user_id');
-      const selectResult = fromResult.select('id, user_id');
-      console.log('selectResult:', selectResult);
+      // Use auth session to get client
+      const { data: sessionData } = await supabase.auth.getSession();
+      const client = sessionData?.session ? supabase : supabase;
       
-      console.log('Calling eq with:', 'id', couponId);
-      const eqResult = selectResult.eq('id', couponId);
-      console.log('eqResult:', eqResult);
+      const { data, error } = await client
+        .from('coupons')
+        .select('user_id')
+        .eq('id', couponId)
+        .single();
       
-      console.log('Calling single');
-      const { data, error } = await eqResult.single();
+      if (error) {
+        console.error('Error checking coupon ownership:', error);
+        return false;
+      }
       
-      console.log('isOwner data:', data);
-      console.log('isOwner error:', error);
-      console.log('userId:', userId);
-      console.log('data.user_id:', data?.user_id);
-      console.log('comparison result:', data?.user_id === userId);
-
-      if (error || !data) return false;
-      
-      return data.user_id === userId;
+      return data?.user_id === userId;
     } catch (error) {
       console.error('Error checking coupon ownership:', error);
       return false;

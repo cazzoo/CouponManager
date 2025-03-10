@@ -276,10 +276,18 @@ class CouponService {
   }
 
   getAllCoupons() {
-    return [...this.coupons];
+    // Convert any Date expirationDate to ISO string to avoid type issues
+    return this.coupons.map(coupon => ({
+      ...coupon,
+      expirationDate: coupon.expirationDate instanceof Date 
+        ? coupon.expirationDate.toISOString() 
+        : coupon.expirationDate
+    }));
   }
 
-  addCoupon(coupon) {
+  addCoupon(coupon, userId = null) {
+    console.log('CouponService: Adding coupon with userId:', userId);
+    
     const newCoupon = { 
       ...coupon, 
       id: Date.now(),
@@ -287,7 +295,13 @@ class CouponService {
       currentValue: coupon.initialValue,
       // Set default values for optional fields
       activationCode: coupon.activationCode || '',
-      pin: coupon.pin || ''
+      pin: coupon.pin || '',
+      // Ensure expirationDate is a string (ISO format)
+      expirationDate: coupon.expirationDate instanceof Date 
+        ? coupon.expirationDate.toISOString() 
+        : coupon.expirationDate,
+      // Associate with the user
+      user_id: userId || 'anonymous'
     };
     this.coupons.push(newCoupon);
     return newCoupon;
@@ -304,10 +318,16 @@ class CouponService {
         ? initialValue 
         : updatedCoupon.currentValue;
       
+      // Ensure expirationDate is a string
+      const safeExpirationDate = updatedCoupon.expirationDate instanceof Date
+        ? updatedCoupon.expirationDate.toISOString()
+        : updatedCoupon.expirationDate;
+      
       this.coupons[index] = {
         ...updatedCoupon,
         initialValue, // Keep the original initialValue
-        currentValue: safeCurrentValue // Ensure currentValue doesn't exceed initialValue
+        currentValue: safeCurrentValue, // Ensure currentValue doesn't exceed initialValue
+        expirationDate: safeExpirationDate, // Ensure expirationDate is a string
       };
       return this.coupons[index];
     }
