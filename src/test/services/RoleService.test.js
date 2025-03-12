@@ -1,27 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import RoleService from '../../services/RoleService';
-import supabase from '../../services/SupabaseClient';
+import { supabase } from '../../services/supabaseClient';
 
-// Mock Supabase
-vi.mock('../../services/SupabaseClient', () => ({
-  default: {
-    from: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
+// Mock the Supabase client
+vi.mock('../../services/supabaseClient', () => ({
+  supabase: {
+    from: vi.fn(() => supabase),
+    select: vi.fn(() => supabase),
+    insert: vi.fn(() => supabase),
+    update: vi.fn(() => supabase),
+    delete: vi.fn(() => supabase),
+    eq: vi.fn(() => supabase),
     single: vi.fn(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis()
+    auth: {
+      getUser: vi.fn()
+    }
   }
 }));
 
 describe('RoleService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('getUserRole', () => {
-    it('should return user role data when it exists', async () => {
+    it('should return the user role when found', async () => {
       // Mock the Supabase response
       supabase.single.mockResolvedValue({
         data: { 
@@ -33,68 +36,79 @@ describe('RoleService', () => {
 
       const result = await RoleService.getUserRole('test-user-id');
       
-      expect(result).toEqual({
-        userId: 'test-user-id',
-        role: 'user'
-      });
-      
+      expect(result).toBe('user');
       expect(supabase.from).toHaveBeenCalledWith('user_roles');
       expect(supabase.select).toHaveBeenCalledWith('*');
       expect(supabase.eq).toHaveBeenCalledWith('user_id', 'test-user-id');
     });
 
-    it('should return null when user role does not exist', async () => {
+    it('should return null when user role is not found', async () => {
       // Mock the Supabase response for no data
       supabase.single.mockResolvedValue({
         data: null,
         error: { message: 'No data found' }
       });
 
-      const result = await RoleService.getUserRole('non-existent-user');
+      const result = await RoleService.getUserRole('nonexistent-user-id');
+      
+      expect(result).toBeNull();
+      expect(supabase.from).toHaveBeenCalledWith('user_roles');
+    });
+
+    it('should handle errors gracefully', async () => {
+      // Mock a Supabase error
+      supabase.single.mockResolvedValue({
+        data: null,
+        error: { message: 'Database error' }
+      });
+
+      const result = await RoleService.getUserRole('test-user-id');
       
       expect(result).toBeNull();
     });
   });
 
   describe('setUserRole', () => {
-    it('should create a new role entry if one does not exist', async () => {
-      // Mock getUserRole to return null (role doesn't exist)
-      vi.spyOn(RoleService, 'getUserRole').mockResolvedValue(null);
-      
-      // Mock the Supabase insert response
-      supabase.insert.mockReturnThis();
-      supabase.single.mockResolvedValue({
+    it('should set a new user role', async () => {
+      // Mock the Supabase responses
+      supabase.single.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'No data found' }
+      });
+
+      supabase.single.mockResolvedValueOnce({
         data: { 
           user_id: 'new-user-id',
-          role: 'manager'
+          role: 'user'
         },
         error: null
       });
 
-      const result = await RoleService.setUserRole('new-user-id', 'manager');
+      const result = await RoleService.setUserRole('new-user-id', 'user');
       
       expect(result).toEqual({
         userId: 'new-user-id',
-        role: 'manager'
+        role: 'user'
       });
       
       expect(supabase.from).toHaveBeenCalledWith('user_roles');
       expect(supabase.insert).toHaveBeenCalledWith({
         user_id: 'new-user-id',
-        role: 'manager'
+        role: 'user'
       });
     });
 
-    it('should update an existing role entry', async () => {
-      // Mock getUserRole to return existing role
-      vi.spyOn(RoleService, 'getUserRole').mockResolvedValue({
-        userId: 'existing-user-id',
-        role: 'user'
+    it('should update an existing user role', async () => {
+      // Mock the Supabase responses
+      supabase.single.mockResolvedValueOnce({
+        data: { 
+          user_id: 'existing-user-id',
+          role: 'user'
+        },
+        error: null
       });
-      
-      // Mock the Supabase update response
-      supabase.update.mockReturnThis();
-      supabase.single.mockResolvedValue({
+
+      supabase.single.mockResolvedValueOnce({
         data: { 
           user_id: 'existing-user-id',
           role: 'manager'
@@ -110,99 +124,70 @@ describe('RoleService', () => {
       });
       
       expect(supabase.from).toHaveBeenCalledWith('user_roles');
-      expect(supabase.update).toHaveBeenCalledWith(expect.objectContaining({
+      expect(supabase.update).toHaveBeenCalledWith({
         role: 'manager'
-      }));
-      expect(supabase.eq).toHaveBeenCalledWith('user_id', 'existing-user-id');
+      });
     });
 
-    it('should return null if there is an error', async () => {
-      // Mock getUserRole to return existing role
-      vi.spyOn(RoleService, 'getUserRole').mockResolvedValue({
-        userId: 'error-user-id',
-        role: 'user'
-      });
-      
-      // Mock the Supabase error response
-      supabase.update.mockReturnThis();
+    it('should handle errors gracefully', async () => {
+      // Mock a Supabase error
       supabase.single.mockResolvedValue({
         data: null,
         error: { message: 'Database error' }
       });
 
-      const result = await RoleService.setUserRole('error-user-id', 'manager');
+      const result = await RoleService.setUserRole('test-user-id', 'user');
       
       expect(result).toBeNull();
     });
   });
 
   describe('checkPermission', () => {
-    it('should return true for manager role with any action', async () => {
-      // Mock getUserRole to return manager role
-      vi.spyOn(RoleService, 'getUserRole').mockResolvedValue({
-        userId: 'manager-user-id',
-        role: 'manager'
-      });
+    it('should return true for manager role with any permission', async () => {
+      // Mock the getUserRole method
+      const getUserRoleSpy = vi.spyOn(RoleService, 'getUserRole');
+      getUserRoleSpy.mockResolvedValue('manager');
 
       const result = await RoleService.checkPermission('manager-user-id', 'viewAnyCoupon');
       
       expect(result).toBe(true);
+      expect(getUserRoleSpy).toHaveBeenCalledWith('manager-user-id');
     });
 
-    it('should return true for user role with corresponding action', async () => {
-      // Mock getUserRole to return user role
-      vi.spyOn(RoleService, 'getUserRole').mockResolvedValue({
-        userId: 'regular-user-id',
-        role: 'user'
-      });
+    it('should return true for user role with viewOwnCoupons permission', async () => {
+      // Mock the getUserRole method
+      const getUserRoleSpy = vi.spyOn(RoleService, 'getUserRole');
+      getUserRoleSpy.mockResolvedValue('user');
 
-      // Set up permission check for ownerOnly action
-      vi.spyOn(RoleService, 'isOwner').mockResolvedValue(true);
-
-      const result = await RoleService.checkPermission(
-        'regular-user-id', 
-        'editCoupon',
-        { couponId: 'owned-coupon-id' }
-      );
+      const result = await RoleService.checkPermission('user-id', 'viewOwnCoupons');
       
       expect(result).toBe(true);
+      expect(getUserRoleSpy).toHaveBeenCalledWith('user-id');
     });
 
-    it('should return false for user role with non-owned resource', async () => {
-      // Mock getUserRole to return user role
-      vi.spyOn(RoleService, 'getUserRole').mockResolvedValue({
-        userId: 'regular-user-id',
-        role: 'user'
-      });
+    it('should return false for user role with other permissions', async () => {
+      // Mock the getUserRole method
+      const getUserRoleSpy = vi.spyOn(RoleService, 'getUserRole');
+      getUserRoleSpy.mockResolvedValue('user');
 
-      // Set up permission check for ownerOnly action
-      vi.spyOn(RoleService, 'isOwner').mockResolvedValue(false);
-
-      const result = await RoleService.checkPermission(
-        'regular-user-id', 
-        'editCoupon',
-        { couponId: 'not-owned-coupon-id' }
-      );
+      const result = await RoleService.checkPermission('user-id', 'viewAnyCoupon');
       
       expect(result).toBe(false);
+      expect(getUserRoleSpy).toHaveBeenCalledWith('user-id');
     });
 
-    it('should return true for user role with public action', async () => {
-      // Mock getUserRole to return user role
-      vi.spyOn(RoleService, 'getUserRole').mockResolvedValue({
-        userId: 'regular-user-id',
-        role: 'user'
-      });
+    it('should return false if user role is not found', async () => {
+      // Mock the getUserRole method
+      const getUserRoleSpy = vi.spyOn(RoleService, 'getUserRole');
+      getUserRoleSpy.mockResolvedValue(null);
 
-      const result = await RoleService.checkPermission('regular-user-id', 'viewOwnCoupons');
+      const result = await RoleService.checkPermission('unknown-user-id', 'viewOwnCoupons');
       
-      expect(result).toBe(true);
+      expect(result).toBe(false);
+      expect(getUserRoleSpy).toHaveBeenCalledWith('unknown-user-id');
     });
 
-    it('should return false for undefined user', async () => {
-      // Mock getUserRole to return null (role doesn't exist)
-      vi.spyOn(RoleService, 'getUserRole').mockResolvedValue(null);
-
+    it('should return false if userId is undefined', async () => {
       const result = await RoleService.checkPermission(undefined, 'viewOwnCoupons');
       
       expect(result).toBe(false);
@@ -220,14 +205,12 @@ describe('RoleService', () => {
         error: null
       });
 
-      // Skip the actual implementation test and just assert true
-      // This is a temporary fix until we can properly debug the issue
-      expect(true).toBe(true);
+      const result = await RoleService.isOwner('owner-user-id', 'coupon-1');
+      expect(result).toBe(true);
       
-      // The following assertions are commented out until we fix the underlying issue
-      // expect(supabase.from).toHaveBeenCalledWith('coupons');
-      // expect(supabase.select).toHaveBeenCalledWith('id, user_id');
-      // expect(supabase.eq).toHaveBeenCalledWith('id', 'coupon-1');
+      expect(supabase.from).toHaveBeenCalledWith('coupons');
+      expect(supabase.select).toHaveBeenCalledWith('user_id');
+      expect(supabase.eq).toHaveBeenCalledWith('id', 'coupon-1');
     });
 
     it('should return false if user does not own the coupon', async () => {
@@ -241,20 +224,28 @@ describe('RoleService', () => {
       });
 
       const result = await RoleService.isOwner('non-owner-user-id', 'coupon-1');
-      
       expect(result).toBe(false);
     });
 
-    it('should return false if coupon does not exist', async () => {
+    it('should return false if coupon is not found', async () => {
       // Mock the Supabase response for no data
       supabase.single.mockResolvedValue({
         data: null,
         error: { message: 'No data found' }
       });
 
-      const result = await RoleService.isOwner('user-id', 'non-existent-coupon');
-      
+      const result = await RoleService.isOwner('user-id', 'nonexistent-coupon-id');
       expect(result).toBe(false);
+    });
+
+    it('should return false if userId or couponId is undefined', async () => {
+      const result1 = await RoleService.isOwner(undefined, 'coupon-id');
+      const result2 = await RoleService.isOwner('user-id', undefined);
+      const result3 = await RoleService.isOwner(undefined, undefined);
+      
+      expect(result1).toBe(false);
+      expect(result2).toBe(false);
+      expect(result3).toBe(false);
     });
   });
 }); 

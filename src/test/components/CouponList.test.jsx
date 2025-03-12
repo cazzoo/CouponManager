@@ -97,8 +97,8 @@ describe('CouponList Component', () => {
       />
     );
     
-    // Find the retailer filter input
-    const retailerFilter = screen.getByLabelText(/filter\.filter_by_retailer/i);
+    // Find the retailer filter input by its name attribute instead of label
+    const retailerFilter = screen.getByRole('textbox', { name: 'form.retailer' });
     
     // Type 'Amazon' into the filter
     fireEvent.change(retailerFilter, { target: { value: 'Amazon' } });
@@ -125,8 +125,8 @@ describe('CouponList Component', () => {
     // Initially, expired coupons should not be visible
     expect(screen.queryByText(/BB100DEC/i)).not.toBeInTheDocument();
     
-    // Find and click the 'Show Expired' checkbox
-    const showExpiredCheckbox = screen.getByLabelText(/status\.expired/i);
+    // Find and click the 'Show Expired' checkbox by its name
+    const showExpiredCheckbox = screen.getByLabelText('filter.show_expired');
     fireEvent.click(showExpiredCheckbox);
     
     // Now the expired coupon should be visible
@@ -246,7 +246,7 @@ describe('CouponList Component', () => {
     );
     
     // Set an impossible filter combination
-    const retailerFilter = screen.getByLabelText(/filter\.filter_by_retailer/i);
+    const retailerFilter = screen.getByLabelText(/Retailer/i);
     fireEvent.change(retailerFilter, { target: { value: 'NonExistentRetailer' } });
     
     // Should show the "no coupons found" message

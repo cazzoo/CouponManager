@@ -18,6 +18,7 @@ Last Updated: 2023-06-15
 ## Short-term Tasks (Next 1-2 months)
 - [x] Use a local memory database when running dev
 - [x] Have a user-management view
+- [ ] Migrate tests to Serenity-js/cucumber for BDD based on https://github.com/serenity-js/serenity-js-cucumber-template
 - [ ] Migrate the tests files to TSX
 - [ ] Create admin dashboard
   - Implement manager/admin space for application settings
