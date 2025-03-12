@@ -23,6 +23,7 @@ interface Coupon {
   minimumPurchase?: string;  // Optional minimum purchase requirement
   terms?: string;            // Optional terms and conditions
   lastUpdated?: string;      // Optional date when the coupon was last updated
+  user_id: string;           // User ID who owns this coupon
 }
 ```
 
@@ -36,6 +37,7 @@ interface Coupon {
 - `dateAdded`: Auto-generated timestamp when the coupon is created
 - `expiryDate`: Must be a valid ISO date string if provided
 - `currency`: Should follow ISO 4217 standard if provided
+- `user_id`: Must be a valid user ID from the authentication system
 
 ## Retailer Statistics Model
 
@@ -50,6 +52,55 @@ interface RetailerStats {
   used: number;              // Number of used coupons
   currency: string;          // Primary currency for this retailer
   earliestExpiry?: string;   // Date of the earliest expiring coupon (ISO format)
+}
+```
+
+## User Model
+
+The User model represents users in the system.
+
+```typescript
+interface User {
+  id: string;                // Unique identifier from auth system
+  email: string;             // User's email address
+  created_at: string;        // When the user was created
+  last_sign_in_at: string;   // When the user last signed in
+  role: Role;                // User's role
+}
+
+enum Role {
+  DEMO_USER = 'DEMO_USER',   // Limited demo user
+  USER = 'USER',             // Regular user
+  MANAGER = 'MANAGER'        // Administrator
+}
+```
+
+## User Role Model
+
+The UserRole model represents the role assigned to a user.
+
+```typescript
+interface UserRole {
+  user_id: string;           // User ID from auth system
+  role: Role;                // User's role
+  created_at: string;        // When the role was assigned
+}
+```
+
+## Permission Model
+
+The Permission model represents permissions in the system.
+
+```typescript
+enum Permission {
+  VIEW_OWN_COUPONS = 'VIEW_OWN_COUPONS',
+  VIEW_ANY_COUPON = 'VIEW_ANY_COUPON',
+  CREATE_COUPON = 'CREATE_COUPON',
+  EDIT_COUPON = 'EDIT_COUPON',
+  DELETE_COUPON = 'DELETE_COUPON',
+  VIEW_USERS = 'VIEW_USERS',
+  EDIT_USER_ROLE = 'EDIT_USER_ROLE',
+  MANAGE_SYSTEM = 'MANAGE_SYSTEM'
 }
 ```
 
@@ -88,6 +139,27 @@ interface LanguageContextType {
   setLanguage: (code: string) => void; // Function to change language
   t: (key: string) => string; // Translation function
   languages: Language[];     // Available languages
+}
+```
+
+## Authentication Model
+
+The Authentication model represents the authentication state.
+
+```typescript
+interface AuthState {
+  user: User | null;         // Current user or null if not authenticated
+  isLoading: boolean;        // Whether authentication is being loaded
+  isAuthenticated: boolean;  // Whether the user is authenticated
+  isManager: boolean;        // Whether the user has the MANAGER role
+  isDemo: boolean;           // Whether the user has the DEMO_USER role
+}
+
+interface AuthContextType {
+  authState: AuthState;      // Current authentication state
+  signIn: (email: string, password: string) => Promise<void>; // Sign in function
+  signOut: () => Promise<void>; // Sign out function
+  checkPermission: (permission: Permission, options?: any) => boolean; // Check if user has permission
 }
 ```
 
@@ -160,28 +232,78 @@ interface BarcodeScannerProps {
 graph TD
     A[User inputs coupon data] --> B[Form validation]
     B -->|Valid| C[Create coupon object]
-    C --> D[Add to coupon list]
+    C --> P[Add user ID to coupon]
+    P --> Q[Check user permissions]
+    Q -->|Has permission| D[Add to coupon list]
     D --> E[Update retailer statistics]
     B -->|Invalid| F[Display validation errors]
+    Q -->|No permission| G[Display permission error]
 ```
 
 ### Coupon Usage Flow
 
 ```mermaid
 graph TD
-    A[User marks coupon as used] --> B[Update coupon object]
+    A[User marks coupon as used] --> H[Check user permissions]
+    H -->|Has permission| B[Update coupon object]
     B --> C[Update UI]
     B --> D[Update retailer statistics]
+    H -->|No permission| G[Display permission error]
 ```
 
-## Local Storage Schema
+### User Management Flow
 
-The application uses localStorage for data persistence with the following keys:
+```mermaid
+graph TD
+    A[Manager views user list] --> B[Fetch users from system]
+    B --> C[Display user list]
+    C --> D[Manager changes user role]
+    D --> E[Check permissions]
+    E -->|Has permission| F[Update user role]
+    F --> G[Update UI]
+    E -->|No permission| H[Display permission error]
+```
+
+## Supabase Database Schema
+
+The application uses Supabase as its database with the following tables:
+
+### coupons
+
+- `id`: UUID PRIMARY KEY
+- `retailer`: TEXT NOT NULL
+- `value`: TEXT NOT NULL
+- `expiry_date`: TIMESTAMP
+- `description`: TEXT
+- `activation_code`: TEXT NOT NULL
+- `is_used`: BOOLEAN NOT NULL DEFAULT FALSE
+- `date_added`: TIMESTAMP NOT NULL DEFAULT NOW()
+- `currency`: TEXT
+- `image`: TEXT
+- `barcode`: TEXT
+- `category`: TEXT
+- `minimum_purchase`: TEXT
+- `terms`: TEXT
+- `last_updated`: TIMESTAMP
+- `user_id`: UUID REFERENCES auth.users(id)
+
+### user_roles
+
+- `user_id`: UUID PRIMARY KEY REFERENCES auth.users(id)
+- `role`: TEXT NOT NULL
+- `created_at`: TIMESTAMP NOT NULL DEFAULT NOW()
+
+## Local Storage Schema (Development Mode)
+
+In development mode with the local memory database, the application uses localStorage with the following keys:
 
 - `couponManager_coupons`: Array of Coupon objects
 - `couponManager_language`: Current language code
 - `couponManager_theme`: Current theme setting ('light' or 'dark')
 - `couponManager_lastFilter`: Last used filter settings
+- `couponManager_users`: Array of User objects
+- `couponManager_userRoles`: Array of UserRole objects
+- `couponManager_currentUser`: Current authenticated user
 
 Example localStorage structure:
 
@@ -195,7 +317,8 @@ Example localStorage structure:
       "expiryDate": "2023-12-31",
       "activationCode": "AMZN-12345-ABCDE",
       "isUsed": false,
-      "dateAdded": "2023-01-15T14:30:00Z"
+      "dateAdded": "2023-01-15T14:30:00Z",
+      "user_id": "auth0|123456789"
     },
     {
       "id": "550e8400-e29b-41d4-a716-446655440001",
@@ -204,7 +327,8 @@ Example localStorage structure:
       "activationCode": "SB-98765-FGHIJ",
       "isUsed": true,
       "dateAdded": "2023-02-10T09:15:00Z",
-      "currency": "USD"
+      "currency": "USD",
+      "user_id": "auth0|123456789"
     }
   ],
   "couponManager_language": "en",
@@ -217,6 +341,39 @@ Example localStorage structure:
     "retailers": [],
     "sortBy": "dateAdded",
     "sortDirection": "desc"
+  },
+  "couponManager_users": [
+    {
+      "id": "auth0|123456789",
+      "email": "user@example.com",
+      "created_at": "2023-01-01T00:00:00Z",
+      "last_sign_in_at": "2023-01-02T00:00:00Z"
+    },
+    {
+      "id": "auth0|987654321",
+      "email": "manager@example.com",
+      "created_at": "2023-01-01T00:00:00Z",
+      "last_sign_in_at": "2023-01-02T00:00:00Z"
+    }
+  ],
+  "couponManager_userRoles": [
+    {
+      "user_id": "auth0|123456789",
+      "role": "USER",
+      "created_at": "2023-01-01T00:00:00Z"
+    },
+    {
+      "user_id": "auth0|987654321",
+      "role": "MANAGER",
+      "created_at": "2023-01-01T00:00:00Z"
+    }
+  ],
+  "couponManager_currentUser": {
+    "id": "auth0|123456789",
+    "email": "user@example.com",
+    "created_at": "2023-01-01T00:00:00Z",
+    "last_sign_in_at": "2023-01-02T00:00:00Z",
+    "role": "USER"
   }
 }
 ```

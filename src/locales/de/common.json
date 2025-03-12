@@ -5,7 +5,16 @@
     "coupons": "Gutscheine",
     "retailers": "Händler",
     "sign_out": "Abmelden",
-    "user_management": "Benutzerverwaltung"
+    "user_management": "Benutzerverwaltung",
+    "your_coupons": "Ihre Gutscheine",
+    "retailer_stats": "Händlerstatistiken",
+    "tabs": {
+      "coupons": "GUTSCHEINE",
+      "retailers": "HÄNDLER",
+      "users": "BENUTZER"
+    },
+    "using_memory_db": "Speicher-Datenbank wird verwendet.",
+    "with_mock_data": "Automatisch mit Beispieldaten gefüllt."
   },
   "form": {
     "retailer": "Händler",
@@ -13,7 +22,11 @@
     "current_value": "Aktueller Wert",
     "expiration_date": "Ablaufdatum",
     "activation_code": "Aktivierungscode",
-    "pin": "PIN"
+    "pin": "PIN",
+    "amount": "Betrag",
+    "notes": "Notizen",
+    "barcode": "Barcode",
+    "reference": "Referenz"
   },
   "actions": {
     "save": "Speichern",
@@ -23,7 +36,12 @@
     "mark_as_used": "Als Verwendet Markieren",
     "partial_use": "Teilweise Verwenden",
     "scan_barcode": "Barcode Scannen",
-    "copy_to_clipboard": "In die Zwischenablage kopieren"
+    "copy_to_clipboard": "In die Zwischenablage kopieren",
+    "refresh": "Aktualisieren",
+    "reset_role": "Rolle zurücksetzen",
+    "add": "Hinzufügen",
+    "update": "Aktualisieren",
+    "apply": "Anwenden"
   },
   "filter": {
     "filter": "Filtern",
@@ -32,7 +50,8 @@
     "filter_by_status": "Nach Status Filtern",
     "clear_filters": "Filter Löschen",
     "min_amount": "Mindestbetrag",
-    "max_amount": "Höchstbetrag"
+    "max_amount": "Höchstbetrag",
+    "show_expired": "Abgelaufene anzeigen"
   },
   "status": {
     "active": "Aktiv",
@@ -45,7 +64,8 @@
     "expired_coupons": "Abgelaufene Gutscheine",
     "language": "Sprache",
     "not_applicable": "N/A",
-    "invalid_date": "Ungültiges Datum"
+    "invalid_date": "Ungültiges Datum",
+    "current_user": "(Aktueller Benutzer)"
   },
   "tables": {
     "expires": "Läuft ab am",
@@ -62,17 +82,24 @@
     "permission_denied": "Berechtigung verweigert. Sie haben nicht die erforderlichen Berechtigungen.",
     "fetch_users_failed": "Benutzer konnten nicht abgerufen werden. Bitte versuchen Sie es erneut.",
     "role_update_failed": "Benutzerrolle konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
-    "cannot_change_own_role": "Sie können Ihre eigene Rolle nicht ändern."
+    "cannot_change_own_role": "Sie können Ihre eigene Rolle nicht ändern.",
+    "user_not_found": "Benutzer nicht gefunden.",
+    "invalid_parameters": "Ungültige Parameter."
   },
   "dialog": {
     "enter_amount_to_use": "Zu verwendenden Betrag eingeben",
     "amount_to_use": "Zu Verwendender Betrag",
-    "barcode_scanning_instruction": "Positionieren Sie den Barcode im Scanner-Rahmen, um die Gutscheindetails automatisch zu erfassen."
+    "barcode_scanning_instruction": "Positionieren Sie den Barcode im Scanner-Rahmen, um die Gutscheindetails automatisch zu erfassen.",
+    "partial_use_title": "Teilweise Verwendung",
+    "partial_use_description": "Geben Sie den Betrag ein, den Sie von diesem Gutschein verwenden möchten."
   },
   "messages": {
     "no_retailers_found": "Keine Händler gefunden.",
     "no_coupons_found": "Keine Gutscheine gefunden, die Ihren Filtern entsprechen.",
-    "role_updated_successfully": "Benutzerrolle wurde erfolgreich aktualisiert."
+    "role_updated_successfully": "Benutzerrolle wurde erfolgreich aktualisiert.",
+    "role_updated_ui_only": "Rolle nur in der Benutzeroberfläche aktualisiert. Datenbankaktualisierung fehlgeschlagen.",
+    "no_users_found": "Keine Benutzer gefunden.",
+    "users_refreshed": "Benutzerliste erfolgreich aktualisiert."
   },
   "notifications": {
     "copied_to_clipboard": "In die Zwischenablage kopiert!"
@@ -91,7 +118,8 @@
     "error_email_invalid": "E-Mail-Adresse ist ungültig",
     "error_password_required": "Passwort ist erforderlich",
     "error_password_too_short": "Passwort muss mindestens 6 Zeichen lang sein",
-    "password_requirements": "Passwort muss mindestens 6 Zeichen lang sein (8+ empfohlen)"
+    "password_requirements": "Passwort muss mindestens 6 Zeichen lang sein (8+ empfohlen)",
+    "error_general": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten und versuchen Sie es erneut."
   },
   "admin": {
     "user_management": "Benutzerverwaltung",
@@ -107,5 +135,12 @@
     "user": "Benutzer",
     "manager": "Administrator",
     "demo_user": "Demo-Benutzer"
+  },
+  "warnings": {
+    "using_mock_data": "Mock-Daten werden verwendet. Änderungen werden nicht in der Datenbank gespeichert."
+  },
+  "coupon": {
+    "add_new": "Neuen Gutschein hinzufügen",
+    "add": "Gutschein hinzufügen"
   }
 } 

@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { Language } from './types';
 
 // Import all language files
 import enCommon from './locales/en/common.json';
@@ -25,7 +26,7 @@ const resources = {
 };
 
 // Supported languages
-export const supportedLanguages = [
+export const supportedLanguages: Language[] = [
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Spanish' },
   { code: 'fr', name: 'French' },

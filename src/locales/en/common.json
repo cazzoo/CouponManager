@@ -5,7 +5,16 @@
     "coupons": "Coupons",
     "retailers": "Retailers",
     "sign_out": "Sign Out",
-    "user_management": "User Management"
+    "user_management": "User Management",
+    "your_coupons": "Your Coupons",
+    "retailer_stats": "Retailer Statistics",
+    "tabs": {
+      "coupons": "COUPONS",
+      "retailers": "RETAILERS",
+      "users": "USERS"
+    },
+    "using_memory_db": "Using in-memory database.",
+    "with_mock_data": "Auto-populated with mock data."
   },
   "form": {
     "retailer": "Retailer",
@@ -13,7 +22,11 @@
     "current_value": "Current Value",
     "expiration_date": "Expiration Date",
     "activation_code": "Activation Code",
-    "pin": "PIN"
+    "pin": "PIN",
+    "amount": "Amount",
+    "notes": "Notes",
+    "barcode": "Barcode",
+    "reference": "Reference"
   },
   "actions": {
     "save": "Save",
@@ -23,7 +36,12 @@
     "mark_as_used": "Mark as Used",
     "partial_use": "Partial Use",
     "scan_barcode": "Scan Barcode",
-    "copy_to_clipboard": "Copy to clipboard"
+    "copy_to_clipboard": "Copy to clipboard",
+    "refresh": "Refresh",
+    "reset_role": "Reset Role",
+    "add": "Add",
+    "update": "Update",
+    "apply": "Apply"
   },
   "filter": {
     "filter": "Filter",
@@ -32,7 +50,8 @@
     "filter_by_status": "Filter by Status",
     "clear_filters": "Clear Filters",
     "min_amount": "Min Amount",
-    "max_amount": "Max Amount"
+    "max_amount": "Max Amount",
+    "show_expired": "Show Expired"
   },
   "status": {
     "active": "Active",
@@ -45,7 +64,8 @@
     "expired_coupons": "Expired Coupons",
     "language": "Language",
     "not_applicable": "N/A",
-    "invalid_date": "Invalid Date"
+    "invalid_date": "Invalid Date",
+    "current_user": "(Current User)"
   },
   "tables": {
     "expires": "Expires",
@@ -62,17 +82,24 @@
     "permission_denied": "Permission denied. You lack the required permissions.",
     "fetch_users_failed": "Failed to fetch users. Please try again.",
     "role_update_failed": "Failed to update user role. Please try again.",
-    "cannot_change_own_role": "You cannot change your own role."
+    "cannot_change_own_role": "You cannot change your own role.",
+    "user_not_found": "User not found.",
+    "invalid_parameters": "Invalid parameters."
   },
   "dialog": {
     "enter_amount_to_use": "Enter amount to use",
     "amount_to_use": "Amount to Use",
-    "barcode_scanning_instruction": "Position the barcode within the scanner frame to automatically capture coupon details."
+    "barcode_scanning_instruction": "Position the barcode within the scanner frame to automatically capture coupon details.",
+    "partial_use_title": "Partial Use",
+    "partial_use_description": "Enter the amount you want to use from this coupon."
   },
   "messages": {
     "no_retailers_found": "No retailers found.",
     "no_coupons_found": "No coupons found matching your filters.",
-    "role_updated_successfully": "User role updated successfully."
+    "role_updated_successfully": "User role updated successfully.",
+    "role_updated_ui_only": "Role updated in UI only. Database update failed.",
+    "no_users_found": "No users found.",
+    "users_refreshed": "User list refreshed successfully."
   },
   "notifications": {
     "copied_to_clipboard": "Copied to clipboard!"
@@ -91,7 +118,8 @@
     "error_email_invalid": "Email is invalid",
     "error_password_required": "Password is required",
     "error_password_too_short": "Password must be at least 6 characters",
-    "password_requirements": "Password must be at least 6 characters (8+ recommended)"
+    "password_requirements": "Password must be at least 6 characters (8+ recommended)",
+    "error_general": "Login failed. Please check your credentials and try again."
   },
   "admin": {
     "user_management": "User Management",
@@ -107,5 +135,12 @@
     "user": "User",
     "manager": "Manager",
     "demo_user": "Demo User"
+  },
+  "warnings": {
+    "using_mock_data": "Using mock data. Changes will not be saved to the database."
+  },
+  "coupon": {
+    "add_new": "Add New Coupon",
+    "add": "Add Coupon"
   }
 } 

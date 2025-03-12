@@ -1,11 +1,23 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supportedLanguages } from '../i18n';
+import { Language } from '../types';
+
+interface LanguageContextType {
+  language: string;
+  changeLanguage: (newLanguage: string) => void;
+  t: (key: string) => string;
+  getSupportedLanguages: () => Language[];
+}
+
+interface LanguageProviderProps {
+  children: ReactNode;
+}
 
 // Create context
-export const LanguageContext = createContext();
+export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export const useLanguage = () => {
+export const useLanguage = (): LanguageContextType => {
   const context = useContext(LanguageContext);
   if (!context) {
     throw new Error('useLanguage must be used within a LanguageProvider');
@@ -13,10 +25,10 @@ export const useLanguage = () => {
   return context;
 };
 
-export const LanguageProvider = ({ children }) => {
+export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const { t, i18n } = useTranslation();
   
-  const changeLanguage = (newLanguage) => {
+  const changeLanguage = (newLanguage: string): void => {
     i18n.changeLanguage(newLanguage);
     // Set document lang attribute
     document.documentElement.lang = newLanguage;
@@ -32,13 +44,13 @@ export const LanguageProvider = ({ children }) => {
   document.title = t('app.coupon_manager');
   
   // Get supported languages from i18n config
-  const getSupportedLanguages = () => supportedLanguages;
+  const getSupportedLanguages = (): Language[] => supportedLanguages;
   
   return (
     <LanguageContext.Provider value={{ 
       language, 
       changeLanguage,
-      t: (key) => t(key),  // Simplify key format for compatibility with old code
+      t: (key: string) => t(key),  // Simplify key format for compatibility with old code
       getSupportedLanguages
     }}>
       {children}

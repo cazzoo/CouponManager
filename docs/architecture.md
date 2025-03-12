@@ -19,6 +19,10 @@ This architecture defines a modern, responsive web application for managing vouc
 | React Hooks | State management approach using React's built-in hooks |
 | react-qr-reader | Library for barcode and QR code scanning |
 | JSX/JavaScript | Primary languages for component development |
+| Supabase | Backend as a Service (BaaS) for authentication and data storage |
+| i18next | Internationalization framework for multi-language support |
+| MSW (Mock Service Worker) | API mocking library for development and testing |
+| @casl/ability | Permission management library (planned for implementation) |
 
 ## Architectural Diagrams
 
@@ -30,6 +34,7 @@ graph TD
     B --> C[CouponList]
     B --> D[RetailerList]
     B --> E[LanguageSelector]
+    B --> U[UserManagement]
     C --> F[AddCouponForm]
     F --> G[BarcodeScanner]
     
@@ -37,6 +42,7 @@ graph TD
     style B fill:#bbf,stroke:#333
     style C fill:#bfb,stroke:#333
     style D fill:#bfb,stroke:#333
+    style U fill:#fbf,stroke:#333
 ```
 
 ### Service Layer Interaction
@@ -45,16 +51,29 @@ graph TD
 graph TD
     A[Components] -->|Uses| B[CouponService]
     A -->|Uses| C[LanguageService]
-    B -->|Manages| D[(LocalStorage)]
-    C -->|Manages| D[(LocalStorage)]
+    A -->|Uses| R[RoleService]
+    A -->|Uses| X[AuthService]
+    B -->|Manages| D[(Database)]
+    B -.->|Dev Mode| L[(LocalMemoryDB)]
+    C -->|Manages| D[(Database)]
+    R -->|Manages| D[(Database)]
+    X -->|Authenticates| S[(Supabase)]
+    X -.->|Dev Mode| M[(MockAuth)]
     A -->|Consumes| E[LanguageContext]
+    A -->|Consumes| AU[AuthContext]
     E -->|Uses| C[LanguageService]
     
     style A fill:#f9f,stroke:#333
     style B fill:#bfb,stroke:#333
     style C fill:#bfb,stroke:#333
+    style R fill:#bfb,stroke:#333
+    style X fill:#bfb,stroke:#333
     style D fill:#bbf,stroke:#333
+    style L fill:#fbb,stroke:#333,stroke-dasharray: 5 5
     style E fill:#bbf,stroke:#333
+    style AU fill:#bbf,stroke:#333
+    style S fill:#bbf,stroke:#333
+    style M fill:#fbb,stroke:#333,stroke-dasharray: 5 5
 ```
 
 ### User Flow
@@ -64,7 +83,7 @@ sequenceDiagram
     participant User
     participant UI as User Interface
     participant CS as CouponService
-    participant LS as LocalStorage
+    participant LS as LocalStorage/Supabase
 
     User->>UI: Adds new coupon
     UI->>CS: saveCoupon(couponData)
@@ -95,7 +114,8 @@ sequenceDiagram
   "pin": "string", // PIN if required for redemption
   "used": "boolean", // Whether the coupon has been fully used
   "notes": "string", // Additional information
-  "addedDate": "Date" // When the coupon was added to the system
+  "addedDate": "Date", // When the coupon was added to the system
+  "user_id": "string" // User ID who owns this coupon
 }
 ```
 
@@ -125,6 +145,15 @@ sequenceDiagram
 }
 ```
 
+### User Roles Model
+```javascript
+{
+  "user_id": "string", // User ID from Supabase auth
+  "role": "string", // Role: "DEMO_USER", "USER", or "MANAGER"
+  "created_at": "timestamp" // When the role was assigned
+}
+```
+
 ## Project Structure
 
 ```
@@ -136,19 +165,48 @@ CouponManager/
 │   │   ├── BarcodeScanner.jsx    # Component for scanning coupon barcodes
 │   │   ├── CouponList.jsx        # Main coupon display component
 │   │   ├── LanguageSelector.jsx  # Component for language selection
-│   │   └── RetailerList.jsx      # Retailer statistics component
+│   │   ├── RetailerList.jsx      # Retailer statistics component
+│   │   └── UserManagement.jsx    # User management component
 │   ├── services/     # Service layer for data management
 │   │   ├── CouponService.js      # Business logic for coupon operations
+│   │   ├── CouponServiceFactory.js # Factory for selecting coupon service implementation
 │   │   ├── LanguageContext.jsx   # React context for language state
-│   │   └── LanguageService.js    # Service for localization
+│   │   ├── LanguageService.js    # Service for localization
+│   │   ├── AuthContext.jsx       # React context for authentication state
+│   │   ├── AuthService.js        # Service for authentication
+│   │   ├── AuthServiceFactory.js # Factory for selecting auth service implementation
+│   │   └── RoleService.js        # Service for role-based permissions
+│   ├── mocks/        # Mock data and services for development
+│   │   ├── data/                 # Mock data
+│   │   ├── handlers.js           # MSW request handlers
+│   │   └── browser.js            # MSW browser setup
+│   ├── locales/      # Internationalization
+│   │   ├── en/                   # English translations
+│   │   ├── es/                   # Spanish translations
+│   │   ├── fr/                   # French translations
+│   │   └── de/                   # German translations
 │   ├── test/         # Test files
 │   │   ├── components/           # Component tests
 │   │   └── services/             # Service tests
 │   ├── App.jsx       # Main application component
 │   └── index.jsx     # Application entry point
+├── migrations/       # SQL migrations for database schema
+│   ├── sql/                      # SQL migration files
+│   └── migrations.json           # Migration metadata
+├── scripts/          # Utility scripts
+│   ├── run-sql-migrations.js     # Script for running migrations
+│   └── create-migration.js       # Script for creating migrations
 ├── docs/             # Documentation
-│   ├── architecture.md # Architecture documentation
-│   └── prd.md          # Product Requirements Document
+│   ├── architecture.md           # Architecture documentation
+│   ├── data-models.md            # Data models documentation
+│   ├── i18n-system.md            # Internationalization documentation
+│   ├── local-memory-db.md        # Local memory database documentation
+│   ├── migration-system.md       # Migration system documentation
+│   ├── permission-matrix.md      # Permission matrix documentation
+│   ├── supabase-rls.md           # Supabase Row Level Security documentation
+│   ├── supabase-setup.md         # Supabase setup documentation
+│   ├── user-management.md        # User management documentation
+│   └── prd.md                    # Product Requirements Document
 ├── .cursor/rules/    # Cursor rules for development standards
 ├── index.html        # HTML template
 ├── package.json      # Project dependencies and scripts
@@ -164,3 +222,6 @@ CouponManager/
 | Add LanguageService | story-2 | Integration of translation service for internationalization |
 | Add BarcodeScanner | story-3 | Implementation of barcode scanning functionality |
 | Mobile Optimization | story-4 | Enhanced mobile view with responsive design | 
+| Supabase Integration | story-5 | Integration with Supabase for authentication and data storage |
+| User Management | story-6 | Implementation of user management functionality |
+| Local Memory DB | story-7 | Implementation of local memory database for development | 

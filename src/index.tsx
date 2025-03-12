@@ -9,8 +9,19 @@ import { AuthProvider } from './services/AuthContext';
 // Import i18n configuration
 import './i18n';
 
+// Augment the ImportMeta interface
+declare global {
+  interface ImportMeta {
+    env: {
+      DEV: boolean;
+      VITE_USE_MEMORY_DB: string;
+      [key: string]: any;
+    };
+  }
+}
+
 // Conditionally initialize MSW in development mode
-const initMockServiceWorker = async () => {
+const initMockServiceWorker = async (): Promise<void> => {
   if (import.meta.env.DEV && import.meta.env.VITE_USE_MEMORY_DB === 'true') {
     console.log('Initializing Mock Service Worker for development...');
     const { default: startMockServiceWorker } = await import('./mocks/browser');
@@ -45,13 +56,13 @@ const lightTheme = createTheme({
   },
 });
 
-function Root() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
+function Root(): JSX.Element {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   // Initialize MSW on component mount
   useEffect(() => {
-    const initialize = async () => {
+    const initialize = async (): Promise<void> => {
       await initMockServiceWorker();
       setIsInitialized(true);
     };
@@ -83,9 +94,15 @@ function Root() {
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error('Failed to find the root element');
+}
+
+const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <Root />
   </React.StrictMode>
-);
+); 

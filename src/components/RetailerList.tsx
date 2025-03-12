@@ -2,26 +2,36 @@ import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Link, 
          Card, CardContent, Typography, Box, Grid, useMediaQuery, useTheme, Divider, Chip, TableSortLabel } from '@mui/material';
 import { useLanguage } from '../services/LanguageContext';
+import { Coupon, RetailerStat, SortConfig } from '../types';
 
-const RetailerList = ({ coupons, onRetailerClick }) => {
+interface RetailerListProps {
+  coupons: Coupon[];
+  onRetailerClick?: (retailer: string, sort: SortConfig) => void;
+}
+
+type Order = 'asc' | 'desc';
+
+const RetailerList: React.FC<RetailerListProps> = ({ coupons, onRetailerClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { t } = useLanguage();
-  const [orderBy, setOrderBy] = useState('name');
-  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState<keyof RetailerStat>('name');
+  const [order, setOrder] = useState<Order>('asc');
 
-  const handleRetailerClick = (retailer) => {
-    onRetailerClick(retailer, { field: 'expirationDate', order: 'asc' });
+  const handleRetailerClick = (retailer: string): void => {
+    if (onRetailerClick) {
+      onRetailerClick(retailer, { field: 'expirationDate', order: 'asc' });
+    }
   };
 
-  const handleRequestSort = (property) => {
+  const handleRequestSort = (property: keyof RetailerStat): void => {
     const isAsc = order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
 
   // Function to check if a coupon is expired
-  const isExpired = (expirationDate) => {
+  const isExpired = (expirationDate?: string): boolean => {
     if (!expirationDate) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set to beginning of day for accurate comparison
@@ -29,12 +39,12 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
   };
   
   // Function to check if a coupon is used (current value is 0)
-  const isUsed = (currentValue) => {
+  const isUsed = (currentValue: string): boolean => {
     return currentValue === '0';
   };
 
   // Group coupons by retailer and calculate statistics for active and expired coupons
-  const retailerStats = coupons.reduce((acc, coupon) => {
+  const retailerStats: Record<string, RetailerStat> = coupons.reduce((acc: Record<string, RetailerStat>, coupon: Coupon) => {
     if (!acc[coupon.retailer]) {
       acc[coupon.retailer] = {
         name: coupon.retailer,
@@ -71,7 +81,7 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
   }, {});
 
   // Sort retailers based on orderBy and order
-  const sortedRetailers = Object.values(retailerStats).sort((a, b) => {
+  const sortedRetailers: RetailerStat[] = Object.values(retailerStats).sort((a, b) => {
     const isAsc = order === 'asc';
     switch (orderBy) {
       case 'name':
@@ -97,7 +107,7 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
     <>
       {isMobile ? (
         // Card view for mobile devices
-        <Box>
+        <Box sx={{ width: '100%' }}>
           {sortedRetailers.length === 0 ? (
             <Typography variant="body1" sx={{ textAlign: 'center', my: 4 }}>
               {t('messages.no_retailers_found')}
@@ -174,8 +184,15 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
         </Box>
       ) : (
         // Table view for larger screens
-        <TableContainer component={Paper} variant="outlined">
-          <Table size="small">
+        <TableContainer 
+          component={Paper} 
+          variant="outlined" 
+          sx={{ 
+            width: '100%',
+            overflowX: 'auto'
+          }}
+        >
+          <Table size="small" sx={{ minWidth: '100%' }}>
             <TableHead>
               <TableRow>
                 <TableCell>
@@ -250,8 +267,9 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
                     <TableCell>
                       <Link
                         component="button"
+                        color={retailer.activeCouponCount > 0 ? 'primary' : 'error'}
                         onClick={() => handleRetailerClick(retailer.name)}
-                        sx={{ cursor: 'pointer' }}
+                        sx={{ textDecoration: 'none' }}
                       >
                         {retailer.name}
                       </Link>
@@ -259,14 +277,16 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
                     <TableCell>{retailer.couponCount}</TableCell>
                     <TableCell>${retailer.totalValue.toFixed(2)}</TableCell>
                     <TableCell>{retailer.activeCouponCount}</TableCell>
-                    <TableCell sx={{ color: 'success.main' }}>${retailer.activeTotalValue.toFixed(2)}</TableCell>
+                    <TableCell>${retailer.activeTotalValue.toFixed(2)}</TableCell>
                     <TableCell>{retailer.expiredCouponCount}</TableCell>
-                    <TableCell sx={{ color: 'error.main' }}>${retailer.expiredTotalValue.toFixed(2)}</TableCell>
+                    <TableCell>${retailer.expiredTotalValue.toFixed(2)}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} align="center">{t('messages.no_retailers_found')}</TableCell>
+                  <TableCell colSpan={7} align="center">
+                    {t('messages.no_retailers_found')}
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -277,4 +297,4 @@ const RetailerList = ({ coupons, onRetailerClick }) => {
   );
 };
 
-export default RetailerList;
+export default RetailerList; 

@@ -1,43 +1,113 @@
 # CouponManager Todo List
 
-Last Updated: 2023-03-15
+Last Updated: 2023-06-15
+
+## High Priority (Next Sprint)
+- [ ] Convert to TSX
+  - Convert all JSX files to TypeScript for better type safety
+  - Start with core components (CouponList, AddCouponForm)
+  - Update build pipeline to support TypeScript
+- [ ] Implement @casl/ability for permissions
+  - Replace current role-based system with more flexible ability-based system
+  - Define ability rules for each user role
+  - Integrate with existing RoleService
+- [ ] Add pagination for User Management list
+  - Implement server-side pagination for performance with large user lists
+  - Add page size selector (10/25/50 items per page)
 
 ## Short-term Tasks (Next 1-2 months)
 - [x] Use a local memory database when running dev
 - [x] Have a user-management view
-- [ ] Have a manager/admin space where we can tweak the application settings
-- [ ] Have a user-space where we can tweak user preferences
+- [ ] Migrate the tests files to TSX
+- [ ] Create admin dashboard
+  - Implement manager/admin space for application settings
+  - Add system-wide configuration options
+  - Create admin-only analytics views
+- [ ] Implement user preferences panel
+  - Allow users to customize their experience
+  - Add theme selection, language preference, and notification settings
+  - Store preferences in user profile
 - [ ] Add notification system for expiring coupons
+  - Create notification component and service
+  - Implement expiry date checking logic
+  - Add user preferences for notification timing
 - [ ] Implement data visualization for retailer statistics
-- [ ] Use babel
-- [ ] Convert to TSX
-- [ ] Fix connection issues with barcode scanner on certain Android devices
-- [ ] Optimize rendering performance for coupon list on mobile devices
-- [ ] Enhance User Management with filtering and sorting capabilities
-- [ ] Add pagination for User Management list
+  - Add charts and graphs for coupon usage
+  - Create retailer comparison views
+  - Add exportable reports
+- [ ] Use Babel for better browser compatibility
+  - Configure Babel with appropriate presets
+  - Ensure compatibility with older browsers
+- [ ] Fix connection issues with barcode scanner on Android
+  - Troubleshoot and fix issues with specific Android devices
+  - Add fallback mechanism when scanner is unavailable
+- [ ] Optimize rendering performance for coupon list
+  - Implement virtualized list for better performance
+  - Add lazy loading for images
+  - Optimize component re-rendering
+- [ ] Enhance User Management with filtering and sorting
+  - Add role-based filtering
+  - Implement sorting by multiple columns
+  - Add search functionality for users
 
 ## Medium-term Tasks (Next 3-6 months)
-
 - [x] Add user accounts and authentication
 - [ ] Implement export/import functionality for coupon data
+  - Add CSV/JSON export options
+  - Create import wizard with validation
+  - Support batch processing
 - [ ] Create advanced search capabilities
-- [ ] Implement coupon categories and tags for better organization
+  - Implement full-text search across all coupon fields
+  - Add fuzzy matching for retailer names
+  - Create saved searches functionality
+- [ ] Implement coupon categories and tags
+  - Add custom categories with color coding
+  - Support user-defined tags
+  - Add filtering by category/tag
 - [ ] Add user activity logging
+  - Track coupon creation, updates, and usage
+  - Create user activity dashboard
+  - Implement audit log for admin users
 - [ ] Implement user-specific settings and preferences
+  - Allow customization of dashboard layout
+  - Support email notifications
+  - Add default values for new coupons
 - [ ] Add bulk operations for coupons
+  - Implement multi-select in coupon list
+  - Add bulk edit, delete, and export functions
+  - Create batch processing for coupon imports
 
 ## Long-term Tasks (Future Development)
-
 - [ ] Expose services via REST API
-- [ ] Make the app compatible with browser extensions
+  - Create authenticated API endpoints
+  - Add rate limiting and throttling
+  - Implement API key management
+- [ ] Create browser extensions
+  - Develop Chrome/Firefox extensions
+  - Add coupon auto-detection on shopping sites
+  - Implement one-click save functionality
 - [ ] Provide usage history tracking for coupons
-- [ ] Consider switching runtime to bun
-- [ ] Implement reporting features for usage statistics
+  - Record each time a coupon is used
+  - Track partial usage over time
+  - Add usage notes and receipts
+- [ ] Consider switching runtime to Bun
+  - Evaluate performance benefits
+  - Test compatibility with existing code
+  - Create migration plan
+- [ ] Implement reporting features
+  - Create customizable reports
+  - Add scheduled report generation
+  - Support PDF export
 - [ ] Add print functionality for coupons
-- [ ] Develop a mobile application version
+  - Create printable coupon templates
+  - Add QR codes for easy scanning
+  - Support batch printing
+- [ ] Develop a mobile application
+  - Create React Native or Flutter app
+  - Implement offline support
+  - Add mobile-specific features (barcode scanning, location-based alerts)
 
 ## Recently Completed
-
 - [x] Implement User Management functionality
 - [x] Add role-based access control (RBAC)
 - [x] Integrate with Supabase for user authentication
@@ -55,8 +125,21 @@ Last Updated: 2023-03-15
 ## Backlog Grooming Notes
 
 ### Items to Discuss at Next Planning
-
 - Enhancing User Management with additional features
+  - Consider adding bulk user import/export
+  - Discuss password reset flow improvements
 - Adding export functionality for coupon data
+  - Determine priority of different export formats
+  - Consider CSV vs. JSON vs. PDF exports
 - Creating a reporting feature for usage statistics
-- Implementing user notification system for expiring coupons
+  - Define key metrics to track
+  - Discuss visualization options
+- Implementing user notification system
+  - Decide between in-app vs. email vs. push notifications
+  - Set priorities for different notification types
+- Progress on TSX conversion
+  - Review conversion strategy and timeline
+  - Discuss any blockers or challenges
+- Implementation approach for @casl/ability permissions
+  - Determine permission structure
+  - Plan migration from current RBAC system

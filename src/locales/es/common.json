@@ -5,7 +5,16 @@
     "coupons": "Cupones",
     "retailers": "Comercios",
     "sign_out": "Cerrar Sesión",
-    "user_management": "Gestión de Usuarios"
+    "user_management": "Gestión de Usuarios",
+    "your_coupons": "Tus Cupones",
+    "retailer_stats": "Estadísticas de Comercios",
+    "tabs": {
+      "coupons": "CUPONES",
+      "retailers": "COMERCIOS",
+      "users": "USUARIOS"
+    },
+    "using_memory_db": "Usando base de datos en memoria.",
+    "with_mock_data": "Poblada automáticamente con datos de ejemplo."
   },
   "form": {
     "retailer": "Comercio",
@@ -13,7 +22,11 @@
     "current_value": "Valor Actual",
     "expiration_date": "Fecha de Vencimiento",
     "activation_code": "Código de Activación",
-    "pin": "PIN"
+    "pin": "PIN",
+    "amount": "Importe",
+    "notes": "Notas",
+    "barcode": "Código de Barras",
+    "reference": "Referencia"
   },
   "actions": {
     "save": "Guardar",
@@ -23,7 +36,12 @@
     "mark_as_used": "Marcar como Usado",
     "partial_use": "Uso Parcial",
     "scan_barcode": "Escanear Código de Barras",
-    "copy_to_clipboard": "Copiar al portapapeles"
+    "copy_to_clipboard": "Copiar al portapapeles",
+    "refresh": "Actualizar",
+    "reset_role": "Restablecer Rol",
+    "add": "Añadir",
+    "update": "Actualizar",
+    "apply": "Aplicar"
   },
   "filter": {
     "filter": "Filtrar",
@@ -32,7 +50,8 @@
     "filter_by_status": "Filtrar por Estado",
     "clear_filters": "Limpiar Filtros",
     "min_amount": "Importe Mínimo",
-    "max_amount": "Importe Máximo"
+    "max_amount": "Importe Máximo",
+    "show_expired": "Mostrar Vencidos"
   },
   "status": {
     "active": "Activo",
@@ -45,7 +64,8 @@
     "expired_coupons": "Cupones Vencidos",
     "language": "Idioma",
     "not_applicable": "N/A",
-    "invalid_date": "Fecha Inválida"
+    "invalid_date": "Fecha Inválida",
+    "current_user": "(Usuario Actual)"
   },
   "tables": {
     "expires": "Vence el",
@@ -62,17 +82,24 @@
     "permission_denied": "Permiso denegado. No tiene los permisos necesarios.",
     "fetch_users_failed": "Error al obtener usuarios. Por favor, inténtelo de nuevo.",
     "role_update_failed": "Error al actualizar el rol del usuario. Por favor, inténtelo de nuevo.",
-    "cannot_change_own_role": "No puede cambiar su propio rol."
+    "cannot_change_own_role": "No puede cambiar su propio rol.",
+    "user_not_found": "Usuario no encontrado.",
+    "invalid_parameters": "Parámetros inválidos."
   },
   "dialog": {
     "enter_amount_to_use": "Ingrese el importe a utilizar",
     "amount_to_use": "Importe a Utilizar",
-    "barcode_scanning_instruction": "Posicione el código de barras dentro del marco del escáner para capturar automáticamente los detalles del cupón."
+    "barcode_scanning_instruction": "Posicione el código de barras dentro del marco del escáner para capturar automáticamente los detalles del cupón.",
+    "partial_use_title": "Uso Parcial",
+    "partial_use_description": "Ingrese el importe que desea utilizar de este cupón."
   },
   "messages": {
     "no_retailers_found": "No se encontraron comercios.",
     "no_coupons_found": "No se encontraron cupones que coincidan con sus filtros.",
-    "role_updated_successfully": "Rol de usuario actualizado con éxito."
+    "role_updated_successfully": "Rol de usuario actualizado con éxito.",
+    "role_updated_ui_only": "Rol actualizado solo en la interfaz. La actualización de la base de datos falló.",
+    "no_users_found": "No se encontraron usuarios.",
+    "users_refreshed": "Lista de usuarios actualizada con éxito."
   },
   "notifications": {
     "copied_to_clipboard": "¡Copiado al portapapeles!"
@@ -91,7 +118,8 @@
     "error_email_invalid": "El correo electrónico no es válido",
     "error_password_required": "La contraseña es obligatoria",
     "error_password_too_short": "La contraseña debe tener al menos 6 caracteres",
-    "password_requirements": "La contraseña debe tener al menos 6 caracteres (8+ recomendado)"
+    "password_requirements": "La contraseña debe tener al menos 6 caracteres (8+ recomendado)",
+    "error_general": "Error de inicio de sesión. Por favor revise sus credenciales e intente de nuevo."
   },
   "admin": {
     "user_management": "Gestión de Usuarios",
@@ -107,5 +135,12 @@
     "user": "Usuario",
     "manager": "Administrador",
     "demo_user": "Usuario Demo"
+  },
+  "warnings": {
+    "using_mock_data": "Usando datos de ejemplo. Los cambios no se guardarán en la base de datos."
+  },
+  "coupon": {
+    "add_new": "Añadir Nuevo Cupón",
+    "add": "Añadir Cupón"
   }
 } 

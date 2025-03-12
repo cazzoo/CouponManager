@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, MouseEvent, ChangeEvent } from 'react';
 import {
   FormControl,
   Select,
@@ -7,37 +7,43 @@ import {
   Box,
   useMediaQuery,
   IconButton,
-  Menu
+  Menu,
+  SelectChangeEvent
 } from '@mui/material';
 import LanguageIcon from '@mui/icons-material/Language';
 import { useTheme } from '@mui/material/styles';
 import { useLanguage } from '../services/LanguageContext';
 
-const LanguageSelector = () => {
+interface Language {
+  code: string;
+  name: string;
+}
+
+const LanguageSelector: React.FC = () => {
   const { language, changeLanguage, t, getSupportedLanguages } = useLanguage();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
   
-  const languages = getSupportedLanguages();
+  const languages: Language[] = getSupportedLanguages();
   
-  const handleChange = (event) => {
+  const handleChange = (event: SelectChangeEvent<string>) => {
     changeLanguage(event.target.value);
   };
   
-  const handleMobileClick = (event) => {
+  const handleMobileClick = (event: MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
   
-  const handleMobileClose = (languageCode) => {
+  const handleMobileClose = (languageCode?: string) => {
     setAnchorEl(null);
     if (languageCode) {
       changeLanguage(languageCode);
     }
   };
   
-  const getCurrentLanguageName = () => {
+  const getCurrentLanguageName = (): string => {
     const currentLang = languages.find(lang => lang.code === language);
     return currentLang ? currentLang.name : 'English';
   };

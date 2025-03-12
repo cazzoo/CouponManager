@@ -5,7 +5,16 @@
     "coupons": "Coupons",
     "retailers": "Commerçants",
     "sign_out": "Déconnexion",
-    "user_management": "Gestion des Utilisateurs"
+    "user_management": "Gestion des Utilisateurs",
+    "your_coupons": "Vos Coupons",
+    "retailer_stats": "Statistiques des Commerçants",
+    "tabs": {
+      "coupons": "COUPONS",
+      "retailers": "COMMERÇANTS",
+      "users": "UTILISATEURS"
+    },
+    "using_memory_db": "Utilisation d'une base de données en mémoire.",
+    "with_mock_data": "Auto-remplie avec des données factices."
   },
   "form": {
     "retailer": "Commerçant",
@@ -13,7 +22,11 @@
     "current_value": "Valeur Actuelle",
     "expiration_date": "Date d'Expiration",
     "activation_code": "Code d'Activation",
-    "pin": "Code PIN"
+    "pin": "Code PIN",
+    "amount": "Montant",
+    "notes": "Notes",
+    "barcode": "Code-barres",
+    "reference": "Référence"
   },
   "actions": {
     "save": "Enregistrer",
@@ -23,7 +36,12 @@
     "mark_as_used": "Marquer comme Utilisé",
     "partial_use": "Utilisation Partielle",
     "scan_barcode": "Scanner le Code-barre",
-    "copy_to_clipboard": "Copier dans le presse-papiers"
+    "copy_to_clipboard": "Copier dans le presse-papiers",
+    "refresh": "Actualiser",
+    "reset_role": "Réinitialiser le Rôle",
+    "add": "Ajouter",
+    "update": "Mettre à jour",
+    "apply": "Appliquer"
   },
   "filter": {
     "filter": "Filtrer",
@@ -32,7 +50,8 @@
     "filter_by_status": "Filtrer par Statut",
     "clear_filters": "Effacer les Filtres",
     "min_amount": "Montant Minimum",
-    "max_amount": "Montant Maximum"
+    "max_amount": "Montant Maximum",
+    "show_expired": "Afficher les Expirés"
   },
   "status": {
     "active": "Actif",
@@ -45,7 +64,8 @@
     "expired_coupons": "Coupons Expirés",
     "language": "Langue",
     "not_applicable": "N/A",
-    "invalid_date": "Date Invalide"
+    "invalid_date": "Date Invalide",
+    "current_user": "(Utilisateur Actuel)"
   },
   "tables": {
     "expires": "Expire le",
@@ -62,17 +82,24 @@
     "permission_denied": "Permission refusée. Vous n'avez pas les autorisations nécessaires.",
     "fetch_users_failed": "Échec de la récupération des utilisateurs. Veuillez réessayer.",
     "role_update_failed": "Échec de la mise à jour du rôle de l'utilisateur. Veuillez réessayer.",
-    "cannot_change_own_role": "Vous ne pouvez pas changer votre propre rôle."
+    "cannot_change_own_role": "Vous ne pouvez pas changer votre propre rôle.",
+    "user_not_found": "Utilisateur non trouvé.",
+    "invalid_parameters": "Paramètres invalides."
   },
   "dialog": {
     "enter_amount_to_use": "Entrez le montant à utiliser",
     "amount_to_use": "Montant à Utiliser",
-    "barcode_scanning_instruction": "Positionnez le code-barres dans le cadre du scanner pour capturer automatiquement les détails du coupon."
+    "barcode_scanning_instruction": "Positionnez le code-barres dans le cadre du scanner pour capturer automatiquement les détails du coupon.",
+    "partial_use_title": "Utilisation Partielle",
+    "partial_use_description": "Entrez le montant que vous souhaitez utiliser de ce coupon."
   },
   "messages": {
     "no_retailers_found": "Aucun commerçant trouvé.",
     "no_coupons_found": "Aucun coupon correspondant à vos filtres n'a été trouvé.",
-    "role_updated_successfully": "Rôle de l'utilisateur mis à jour avec succès."
+    "role_updated_successfully": "Rôle de l'utilisateur mis à jour avec succès.",
+    "role_updated_ui_only": "Rôle mis à jour uniquement dans l'interface. La mise à jour de la base de données a échoué.",
+    "no_users_found": "Aucun utilisateur trouvé.",
+    "users_refreshed": "Liste des utilisateurs actualisée avec succès."
   },
   "notifications": {
     "copied_to_clipboard": "Copié dans le presse-papiers !"
@@ -91,7 +118,8 @@
     "error_email_invalid": "L'adresse email est invalide",
     "error_password_required": "Le mot de passe est requis",
     "error_password_too_short": "Le mot de passe doit contenir au moins 6 caractères",
-    "password_requirements": "Le mot de passe doit contenir au moins 6 caractères (8+ recommandé)"
+    "password_requirements": "Le mot de passe doit contenir au moins 6 caractères (8+ recommandé)",
+    "error_general": "Échec de la connexion. Veuillez vérifier vos identifiants et réessayer."
   },
   "admin": {
     "user_management": "Gestion des Utilisateurs",
@@ -107,5 +135,12 @@
     "user": "Utilisateur",
     "manager": "Administrateur",
     "demo_user": "Utilisateur Démo"
+  },
+  "warnings": {
+    "using_mock_data": "Utilisation de données factices. Les modifications ne seront pas enregistrées dans la base de données."
+  },
+  "coupon": {
+    "add_new": "Ajouter un Nouveau Coupon",
+    "add": "Ajouter un Coupon"
   }
 } 

@@ -114,6 +114,12 @@ const MockAuthService = {
     };
   },
   
+  // Compatibility method that maps to signInWithPassword for AuthContext compatibility
+  signIn: async (email, password) => {
+    console.log('MockAuthService: Using signIn compatibility method');
+    return MockAuthService.signInWithPassword({ email, password });
+  },
+  
   // Sign out
   signOut: async () => {
     console.log('MockAuthService: Signing out current user');

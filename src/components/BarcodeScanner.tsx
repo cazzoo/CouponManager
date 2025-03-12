@@ -2,15 +2,30 @@ import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, Alert } from '@mui/material';
 import { QrReader } from 'react-qr-reader';
 import { useLanguage } from '../services/LanguageContext';
+import { Coupon, CouponData } from '../types';
 
-const BarcodeScanner = ({ open, onClose, onScanSuccess }) => {
+interface ScanResult {
+  text?: string;
+}
+
+interface BarcodeScannerProps {
+  open: boolean;
+  onClose: () => void;
+  onScanSuccess: (data: CouponData | string) => void;
+}
+
+const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ open, onClose, onScanSuccess }) => {
   const { t } = useLanguage();
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleScan = (result) => {
+  const handleResult = (result: any, error: any) => {
+    if (error) {
+      setError(`${t('errors.error_accessing_camera')}: ${error.message || error}`);
+      return;
+    }
+    
     if (result) {
-      // For the latest react-qr-reader, result might be in a different format
-      const data = result?.text || result;
+      const data = result?.text;
       
       if (data) {
         try {
@@ -20,7 +35,7 @@ const BarcodeScanner = ({ open, onClose, onScanSuccess }) => {
           
           try {
             // Try to parse as JSON first
-            const parsedData = JSON.parse(formattedData);
+            const parsedData = JSON.parse(formattedData) as CouponData;
             
             // Validate that we have the required fields
             if (!parsedData.retailer || !parsedData.initialValue) {
@@ -44,10 +59,6 @@ const BarcodeScanner = ({ open, onClose, onScanSuccess }) => {
     }
   };
 
-  const handleError = (err) => {
-    setError(`${t('errors.error_accessing_camera')}: ${err}`);
-  };
-
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{t('actions.scan_barcode')}</DialogTitle>
@@ -63,11 +74,11 @@ const BarcodeScanner = ({ open, onClose, onScanSuccess }) => {
           </Typography>
           <Box sx={{ width: '100%', maxWidth: 400, mx: 'auto' }}>
             <QrReader
-              delay={300}
-              onError={handleError}
-              onScan={handleScan}
-              style={{ width: '100%' }}
-              facingMode="environment"
+              constraints={{ facingMode: 'environment' }}
+              onResult={handleResult}
+              scanDelay={300}
+              videoStyle={{ width: '100%' }}
+              videoId="qr-video"
             />
           </Box>
         </Box>
@@ -79,4 +90,4 @@ const BarcodeScanner = ({ open, onClose, onScanSuccess }) => {
   );
 };
 
-export default BarcodeScanner;
+export default BarcodeScanner; 

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { loadEnv } from 'vite'
+import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current directory.
@@ -18,5 +19,15 @@ export default defineConfig(({ mode }) => {
     },
     // Environment variables with VITE_ prefix are automatically
     // exposed to client side code via import.meta.env
+    build: {
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'index.html'),
+        }
+      }
+    },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
+    }
   }
-})
+}) 
