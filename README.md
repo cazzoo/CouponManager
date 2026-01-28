@@ -14,6 +14,8 @@ A modern web application for managing vouchers and coupons with an intuitive use
 
 Coupon Manager helps users track and manage their gift cards, vouchers, and coupons. It provides a clean, responsive interface for managing coupon details including retailer information, values, expiration dates, and usage status.
 
+> 🚨 **Platform Compatibility Warning:** The Cypress testing framework cannot be executed on macOS 26.2 due to a binary path incompatibility issue. If you're on macOS 26.2, use CI/CD, Docker, or a VM for running tests. See the [Testing](#testing) section below and [`docs/cypress-known-issues.md`](docs/cypress-known-issues.md) for details and workarounds.
+
 ## Key Features
 
 - Add, edit, and track coupons with detailed information
@@ -159,16 +161,63 @@ For more information on migrations, see the [migrations README](./migrations/REA
 
 ### Testing
 
+> 🚨 **Critical Platform Compatibility Issue:** Cypress cannot be executed on macOS 26.2 due to a binary path incompatibility. This is a framework-level issue that cannot be fixed at the project level. If you're on macOS 26.2, use the workarounds below.
+
+**Platform Compatibility:**
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Linux | ✅ Compatible | All versions supported |
+| Windows | ✅ Compatible | All versions supported |
+| macOS 24.x and earlier | ✅ Compatible | All versions supported |
+| macOS 25.2.0 | ❌ Incompatible | Binary incompatibility |
+| macOS 26.2.0 | ❌ Incompatible | Binary path incompatibility |
+| macOS 27.x and later | ✅ Compatible | If available |
+
+**Running Tests on Compatible Platforms:**
+
 ```bash
-# Run tests
-pnpm test
+# Run all E2E tests
+pnpm cypress:run
 
-# Run tests in watch mode
-pnpm test:watch
+# Run all component tests
+pnpm cypress:component:run
 
-# Generate test coverage reports
-pnpm test:coverage
+# Open Cypress Test Runner for interactive testing
+pnpm cypress:open
+
+# Open Cypress Component Test Runner
+pnpm cypress:component:open
 ```
+
+**Workarounds for macOS 26.2:**
+
+1. **Use CI/CD (Recommended):**
+   - Push your code changes to trigger CI/CD pipelines
+   - Review test results from CI/CD
+   - GitHub Actions uses compatible Linux environments
+
+2. **Use Docker:**
+   ```bash
+   # Run E2E tests in Docker
+   docker run -it -v $PWD:/e2e -w /e2e cypress/included:15.9.0
+
+   # Run component tests in Docker
+   docker run -it -v $PWD:/e2e -w /e2e cypress/included:15.9.0 cypress run --component
+   ```
+
+3. **Use Virtual Machines:**
+   - Set up a VM with Linux, Windows, or compatible macOS
+   - Run tests in the VM environment
+
+4. **Use Cloud-Based Testing Services:**
+   - BrowserStack, Sauce Labs, or TestingBot
+   - No local environment setup required
+
+**For More Information:**
+- See [`docs/cypress-known-issues.md`](docs/cypress-known-issues.md) for detailed technical information
+- See [`docs/cypress-migration-summary.md`](docs/cypress-migration-summary.md) for migration status
+- See [`docs/cypress-testing-guide.md`](docs/cypress-testing-guide.md) for testing guide
 
 ## Current Status
 
@@ -185,13 +234,14 @@ pnpm test:coverage
 For detailed information about the project, please refer to the documentation:
 
 - [Product Requirements (PRD)](docs/prd.md)
-- [Architecture Documentation](docs/architecture.md) 
+- [Architecture Documentation](ARCHITECTURE.md)
 - [Internationalization System](docs/i18n-system.md)
 - [Permission Matrix](docs/permission-matrix.md)
 - [User Management](docs/user-management.md)
 - [Code Style Guidelines](docs/code-style.md)
 - [Contributing Guidelines](docs/contributing.md)
 - [Testing Standards](docs/testing-standards.md)
+- [Cypress Testing Guide](docs/cypress-testing-guide.md)
 - [Current Project Status](docs/project-status/status.md)
 - [Future Development Plans](docs/project-status/todo.md)
 

@@ -1,0 +1,8 @@
+ignoredBuiltDependencies:
+  - msw
+  - puppeteer
+
+onlyBuiltDependencies:
+  - cypress
+  - esbuild
+  - vue-demi

@@ -104,12 +104,12 @@ const RetailerList: React.FC<RetailerListProps> = ({ coupons, onRetailerClick })
   });
 
   return (
-    <>
+    <Box data-testid="retailer-list">
       {isMobile ? (
         // Card view for mobile devices
         <Box sx={{ width: '100%' }}>
           {sortedRetailers.length === 0 ? (
-            <Typography variant="body1" sx={{ textAlign: 'center', my: 4 }}>
+            <Typography variant="body1" sx={{ textAlign: 'center', my: 4 }} data-testid="retailer-empty-state">
               {t('messages.no_retailers_found')}
             </Typography>
           ) : (
@@ -293,7 +293,7 @@ const RetailerList: React.FC<RetailerListProps> = ({ coupons, onRetailerClick })
           </Table>
         </TableContainer>
       )}
-    </>
+    </Box>
   );
 };
 

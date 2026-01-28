@@ -165,7 +165,7 @@ const LoginForm: React.FC = () => {
           </Tabs>
         </Box>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} data-testid="login-form">
           <TextField
             margin="normal"
             required
@@ -180,8 +180,9 @@ const LoginForm: React.FC = () => {
             onBlur={() => handleBlur('email')}
             error={!!validationErrors.email}
             helperText={validationErrors.email}
+            inputProps={{ 'data-testid': 'username-input' }}
           />
-          
+
           <TextField
             margin="normal"
             required
@@ -196,26 +197,28 @@ const LoginForm: React.FC = () => {
             onBlur={() => handleBlur('password')}
             error={!!validationErrors.password}
             helperText={validationErrors.password}
+            inputProps={{ 'data-testid': 'password-input' }}
           />
-          
+
           {isSignUp && showPasswordRequirements && (
             <FormHelperText>
               {t('login.password_requirements')}
             </FormHelperText>
           )}
-          
+
           {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
+            <Alert severity="error" sx={{ mt: 2 }} data-testid="login-error-message">
               {typeof error === 'string' ? error : t('login.error_general')}
             </Alert>
           )}
-          
+
           <Button
             type="submit"
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
             disabled={loading}
+            data-testid="login-submit-button"
           >
             {loading ? (
               <CircularProgress size={24} />

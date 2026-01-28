@@ -75,16 +75,11 @@ The target users for CouponManager are:
    - Graceful error handling
 
 4. **Security**
-   - All data stored locally on user's device
-   - No sensitive data transmitted to external servers
-   - Secure implementation of browser storage
+   - Data stored in Supabase with Row-Level Security (RLS) for production; local storage for development
+   - Supabase handles secure authentication and data transmission
+   - Secure implementation of Supabase RLS policies
 
 ## Epic Structure
-Epic-1: Core Coupon Management (Complete)
-Epic-2: Enhanced Filtering and Statistics (Complete)
-Epic-3: Mobile Optimization and Barcode Scanning (Current)
-Epic-4: Internationalization and Accessibility (Future)
-Epic-5: Data Import/Export and Synchronization (Future)
 
 ## Story List
 ### Epic-3: Mobile Optimization and Barcode Scanning
@@ -104,11 +99,11 @@ Story-5: Add keyboard navigation support
 Story-6: Improve screen reader compatibility
 
 ## Tech Stack
-- **Languages**: JavaScript/JSX, HTML5, CSS3
+- **Languages**: TypeScript/TSX, HTML5, CSS3
 - **Frameworks**: React 18, Material-UI 5
 - **Build Tools**: Vite, Vitest
 - **State Management**: React Hooks
-- **Storage**: Browser LocalStorage
+- **Storage**: Browser LocalStorage (development) and Supabase PostgreSQL (production)
 - **Other**: date-fns, react-qr-reader
 
 ## Future Enhancements

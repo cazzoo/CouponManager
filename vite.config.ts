@@ -1,20 +1,25 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { loadEnv } from 'vite'
 import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current directory.
-  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
-  const env = loadEnv(mode, process.cwd(), '')
-  
   return {
     plugins: [react()],
     server: {
-      port: 3000
+      port: 3000,
+      fs: {
+        strict: true,
+        allow: ['src', 'public', 'node_modules']
+      },
+      watch: {
+        ignored: ['**/pocketbase/**', '**/pb_data/**', '**/pb_migrations/**', 'pocketbase']
+      }
+    },
+    optimizeDeps: {
+      exclude: ['pocketbase']
     },
     define: {
-      // Make env variables available to the client side code
+      // Make env variables available to client side code
       'process.env.NODE_ENV': JSON.stringify(mode),
     },
     // Environment variables with VITE_ prefix are automatically
@@ -23,11 +28,12 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: resolve(__dirname, 'index.html'),
-        }
+        },
+        external: ['pocketbase']
       }
     },
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
     }
   }
-}) 
+})

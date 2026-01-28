@@ -5,8 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# DISABLED: This workflow is for Vitest coverage reports
+# Project has migrated to Cypress which doesn't generate coverage in the same format
+# Re-enable if/when Cypress coverage is configured
 jobs:
-  update-coverage-badge:
     runs-on: ubuntu-latest
     
     permissions:

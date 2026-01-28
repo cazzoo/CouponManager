@@ -220,7 +220,7 @@ const AddCouponForm: React.FC<AddCouponFormProps> = ({
           {t('actions.scan_barcode')}
         </Button>
       </DialogTitle>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} data-testid="coupon-form">
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Autocomplete
@@ -320,8 +320,8 @@ const AddCouponForm: React.FC<AddCouponFormProps> = ({
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>{t('actions.cancel')}</Button>
-          <Button type="submit" variant="contained">
+          <Button onClick={onClose} data-testid="coupon-cancel-button">{t('actions.cancel')}</Button>
+          <Button type="submit" variant="contained" data-testid="coupon-submit-button">
             {coupon && coupon.id ? t('actions.update') : t('actions.add')}
           </Button>
         </DialogActions>

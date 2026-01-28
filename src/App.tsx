@@ -292,8 +292,8 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
 
   console.log('App: User is authenticated, showing main application');
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" sx={{ 
+    <Box sx={{ flexGrow: 1 }} data-testid="dashboard-container">
+      <AppBar position="static" sx={{
         backgroundColor: "#2e7d32",
         boxShadow: 3,
         borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
@@ -333,8 +333,8 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
             >
               {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
-            <Button 
-              color="inherit" 
+            <Button
+              color="inherit"
               onClick={handleSignOut}
               sx={{
                 textTransform: 'none',
@@ -344,6 +344,7 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
                   backgroundColor: 'rgba(255, 255, 255, 0.1)'
                 }
               }}
+              data-testid="logout-button"
             >
               {t('app.sign_out')}
             </Button>
@@ -394,23 +395,26 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
             variant="scrollable"
             scrollButtons="auto"
           >
-            <Tab 
-              label={t('app.tabs.coupons')} 
-              sx={{ 
+            <Tab
+              label={t('app.tabs.coupons')}
+              sx={{
                 borderRadius: '4px 4px 0 0',
               }}
+              data-testid="nav-coupons"
             />
-            <Tab 
-              label={t('app.tabs.retailers')} 
-              sx={{ 
+            <Tab
+              label={t('app.tabs.retailers')}
+              sx={{
                 borderRadius: '4px 4px 0 0',
               }}
+              data-testid="nav-retailers"
             />
-            {isManager && <Tab 
-              label={t('app.tabs.users')} 
-              sx={{ 
+            {isManager && <Tab
+              label={t('app.tabs.users')}
+              sx={{
                 borderRadius: '4px 4px 0 0',
               }}
+              data-testid="nav-users"
             />}
           </Tabs>
         </Container>
@@ -459,6 +463,7 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
                       color="primary"
                       startIcon={<AddIcon />}
                       onClick={handleOpenDialog}
+                      data-testid="create-coupon-button"
                     >
                       {t('coupon.add')}
                     </Button>

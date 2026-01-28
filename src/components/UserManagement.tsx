@@ -332,7 +332,7 @@ const UserManagement: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 }} data-testid="user-management-page">
       <Typography variant="h4" gutterBottom>
         {loading && <CircularProgress size={24} sx={{ mr: 1 }} />}
         {getText('app.user_management', 'User Management')}
@@ -353,12 +353,13 @@ const UserManagement: React.FC = () => {
         </Button>
       </Box>
       
-      <TableContainer 
+      <TableContainer
         component={Paper}
-        sx={{ 
+        sx={{
           width: '100%',
           overflowX: 'auto'
         }}
+        data-testid="user-list"
       >
         <Table size="small" sx={{ minWidth: '100%' }}>
           <TableHead>

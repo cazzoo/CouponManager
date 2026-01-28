@@ -239,7 +239,7 @@ const CouponList: React.FC<CouponListProps> = ({
 
   // Render the component - rendering logic will be preserved from the original JSX
   return (
-    <>
+    <Box data-testid="coupon-list">
       {/* Filters Section */}
       <Paper variant="outlined" sx={{ width: '100%', mb: 2, p: 2 }}>
         <Box sx={{ width: '100%' }}>
@@ -310,7 +310,7 @@ const CouponList: React.FC<CouponListProps> = ({
 
       {/* No coupons message */}
       {groupedCoupons.length === 0 && (
-        <Typography variant="body1" sx={{ textAlign: 'center', my: 4 }}>
+        <Typography variant="body1" sx={{ textAlign: 'center', my: 4 }} data-testid="coupon-empty-state">
           {t('messages.no_coupons_found')}
         </Typography>
       )}
@@ -571,7 +571,7 @@ const CouponList: React.FC<CouponListProps> = ({
           {t('notifications.copied_to_clipboard')}: {copiedText}
         </Alert>
       </Snackbar>
-    </>
+    </Box>
   );
 };
 

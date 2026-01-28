@@ -1,0 +1,141 @@
+---
+description: ENFORCE security and permissions WHEN implementing features TO protect user data and maintain access control
+globs: src/services/**/*.ts,src/components/**/*.tsx
+alwaysApply: true
+---
+
+# Security and Permissions Rules
+
+<version>1.0.0</version>
+
+## Context
+- When implementing coupon CRUD operations
+- When accessing user data
+- When checking user permissions
+- When validating input data
+- When interacting with external APIs
+
+## Requirements
+
+### Role-Based Access Control (RBAC)
+- User role: Can only access own coupons
+- Manager role: Can access all coupons and manage users
+- Demo role: Read-only access to sample data
+- Always check permissions in service layer before data access
+- Never rely solely on client-side permission checks
+
+### Ownership Verification
+- Verify `userId` matches logged-in user before operations
+- Check ownership in services, not components
+- Throw descriptive error messages for access violations
+- Implement RLS policies on database level (Supabase)
+
+### Input Validation
+- Validate all user inputs on client-side for UX
+- Validate all user inputs on server-side for security
+- Sanitize data before storage
+- Use parameterized queries to prevent SQL injection
+- Validate email format, phone numbers, etc.
+
+### Data Security
+- Never log sensitive data (passwords, tokens)
+- Never expose service role keys in client code
+- Use environment variables for secrets
+- Mask partial sensitive data in logs
+- Implement rate limiting on authentication endpoints
+
+### Error Handling
+- Never expose internal error details to users
+- Use generic error messages for security-sensitive operations
+- Log full error details server-side for debugging
+- Implement proper error boundaries
+- Handle network errors gracefully
+
+## Examples
+
+<example>
+// ✅ Good: Ownership check in service
+async getCoupon(id: string, userId?: string): Promise<Coupon | null> {
+  const coupon = await this.db.getById(id);
+
+  if (!coupon) {
+    return null;
+  }
+
+  // Check ownership for user role
+  if (userId && coupon.userId !== userId) {
+    throw new Error('Access denied: You can only access your own coupons');
+  }
+
+  return coupon;
+}
+
+// ✅ Good: Role-based permission check
+async getAllCoupons(user: User | null): Promise<Coupon[]> {
+  if (!user) {
+    throw new Error('Authentication required');
+  }
+
+  if (user.role === 'demo') {
+    // Demo users get read-only sample data
+    return getSampleCoupons();
+  }
+
+  if (user.role === 'user') {
+    // Users see only their own coupons
+    return this.db.query({ userId: user.id });
+  }
+
+  if (user.role === 'manager') {
+    // Managers see all coupons
+    return this.db.queryAll();
+  }
+
+  throw new Error('Invalid user role');
+}
+
+// ✅ Good: Input validation
+async addCoupon(data: CouponFormData, userId?: string): Promise<Coupon> {
+  if (!data.retailer?.trim()) {
+    throw new Error('Retailer is required');
+  }
+
+  if (!data.initialValue?.trim()) {
+    throw new Error('Initial value is required');
+  }
+
+  if (isNaN(parseFloat(data.initialValue))) {
+    throw new Error('Initial value must be a number');
+  }
+
+  // ... proceed with safe data
+}
+</example>
+
+<example type="invalid">
+// ❌ Bad: No ownership check
+async getCoupon(id: string): Promise<Coupon | null> {
+  // Anyone can access any coupon!
+  return this.db.getById(id);
+}
+
+// ❌ Bad: Client-side only validation
+const addCoupon = (data) => {
+  if (data.retailer) {
+    // No server validation - security risk!
+    api.post('/coupons', data);
+  }
+};
+
+// ❌ Bad: Exposing sensitive data
+console.log('User logged in:', {
+  email: user.email,
+  password: user.password, // NEVER log passwords!
+  token: user.token // NEVER expose tokens in logs!
+});
+
+// ❌ Bad: Generic error without context
+catch (error) {
+  throw new Error('Something went wrong'); // Not helpful
+}
+</example>

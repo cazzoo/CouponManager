@@ -143,7 +143,7 @@ When creating PDF exports:
 2. Use a Markdown-to-PDF converter that handles image references
    ```bash
    # Using markdown-pdf (example)
-   npx markdown-pdf docs/architecture.md
+   npx markdown-pdf ARCHITECTURE.md
    ```
 
 3. Verify that the images appear correctly in the exported document

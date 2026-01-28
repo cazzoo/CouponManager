@@ -56,7 +56,7 @@ const LanguageSelector: React.FC = () => {
           color="inherit"
           size="small"
           aria-label={t('general.language')}
-          data-testid="language-icon"
+          data-testid="language-selector"
         >
           <LanguageIcon />
         </IconButton>
@@ -80,7 +80,7 @@ const LanguageSelector: React.FC = () => {
   }
   
   return (
-    <Box sx={{ minWidth: 120, marginLeft: 2 }}>
+    <Box sx={{ minWidth: 120, marginLeft: 2 }} data-testid="language-selector">
       <FormControl variant="outlined" size="small" sx={{ m: 1, minWidth: 120 }}>
         <InputLabel id="language-select-label">{t('general.language')}</InputLabel>
         <Select

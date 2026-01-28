@@ -1,9 +1,9 @@
 # CouponManager Todo List
 
-Last Updated: 2023-06-15
+Last Updated: January 23, 2026
 
 ## High Priority (Next Sprint)
-- [ ] Convert to TSX
+- [x] Convert to TSX
   - Convert all JSX files to TypeScript for better type safety
   - Start with core components (CouponList, AddCouponForm)
   - Update build pipeline to support TypeScript

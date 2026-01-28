@@ -27,7 +27,7 @@ pnpm-debug.log*
 
 # Editor directories and files
 .vscode/*
-!.vscode/extensions.json
+!vscode/extensions.json
 .idea
 .DS_Store
 *.suo
@@ -38,6 +38,17 @@ pnpm-debug.log*
 
 # Vite specific
 /.vite/
+
+# PocketBase runtime data (do not commit)
+thirdparty/pocketbase/pb_data/
+thirdparty/pocketbase/pb_public/
+thirdparty/pocketbase/storage/
+
+# Keep PocketBase binaries (they're checked-in dependencies)
+!thirdparty/pocketbase/pocketbase-darwin-arm64
+!thirdparty/pocketbase/pocketbase-darwin-amd64
+!thirdparty/pocketbase/pocketbase-linux-amd64
+!thirdparty/pocketbase/pocketbase-windows-amd64.exe
 
 # Private individual user cursor rules
 .cursor/rules/_*.mdc

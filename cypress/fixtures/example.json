@@ -1,0 +1,21 @@
+{
+  "coupon": {
+    "id": "test-coupon-1",
+    "code": "TESTCODE123",
+    "description": "Test coupon for Cypress testing",
+    "retailer": "Test Retailer",
+    "discount": "20%",
+    "expiryDate": "2025-12-31",
+    "userId": "test-user-1"
+  },
+  "user": {
+    "id": "test-user-1",
+    "email": "test@example.com",
+    "role": "user"
+  },
+  "retailer": {
+    "id": "retailer-1",
+    "name": "Test Retailer",
+    "website": "https://example.com"
+  }
+}

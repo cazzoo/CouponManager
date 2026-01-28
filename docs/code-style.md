@@ -1,3 +1,16 @@
+# ⚠️ DEPRECATED - Code Style Guidelines
+
+> **⚠️ This document is DEPRECATED and should no longer be used.**
+>
+> Please refer to [`CODING_STANDARDS.md`](CODING_STANDARDS.md:1) as the authoritative source for coding standards.
+>
+> **Reason for deprecation:**
+> - This document references `PropTypes` which is no longer used. The project has migrated to TypeScript for type safety.
+> - This document references Material-UI v4 styling patterns. The project now uses Material-UI v5, which has different styling patterns.
+> - The content has been superseded by the comprehensive [`CODING_STANDARDS.md`](CODING_STANDARDS.md:1) document.
+
+---
+
 # Code Style Guidelines for CouponManager
 
 ## Overview
@@ -17,7 +30,7 @@ This document outlines the coding style and formatting standards for the CouponM
 ## Naming Conventions
 
 ### Components
-- Use PascalCase for component names: `CouponList.jsx`, `BarcodeScanner.jsx`
+- Use PascalCase for component names: `CouponList.tsx`, `BarcodeScanner.tsx`
 - Name files the same as the main component they export
 - Use descriptive names that reflect the component's purpose
 
@@ -39,7 +52,7 @@ This document outlines the coding style and formatting standards for the CouponM
 
 Components should be structured in a consistent manner:
 
-```jsx
+```tsx
 // 1. Imports
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
@@ -67,7 +80,7 @@ function ComponentName({ prop1, prop2 }) {
   // 7. Rendering logic
   return (
     <div>
-      {/* JSX content */}
+      {/* TSX content */}
     </div>
   );
 }
@@ -87,11 +100,11 @@ ComponentName.defaultProps = {
 export default ComponentName;
 ```
 
-## JSX Guidelines
+## TSX Guidelines
 
 - Use self-closing tags for elements without children: `<Input />`
-- Use proper spacing in JSX:
-  ```jsx
+- Use proper spacing in TSX:
+  ```tsx
   <Button
     variant="contained"
     onClick={handleClick}
@@ -111,7 +124,7 @@ export default ComponentName;
 - Use context for global state that needs to be accessed by many components
 - Prefer controlled components for form elements
 - Use state update functions for state that depends on previous state:
-  ```jsx
+  ```tsx
   // Correct
   setCount(prevCount => prevCount + 1);
   
@@ -123,7 +136,7 @@ export default ComponentName;
 
 - Use Material-UI's styling system (emotion) for component styling
 - Follow the naming convention for custom styles:
-  ```jsx
+  ```tsx
   const useStyles = makeStyles((theme) => ({
     root: {
       margin: theme.spacing(2),
@@ -139,13 +152,13 @@ export default ComponentName;
 
 ## Comments and Documentation
 
-Follow the commenting standards specified in the JSX and TypeScript commenting rules:
+Follow the commenting standards specified in the TSX and TypeScript commenting rules:
 
 - Include JSDoc comments for all components, functions, and hooks
 - Document props, return values, and side effects
 - Comment complex logic or non-obvious code
 - Keep comments up-to-date when code changes
-- See `.cursor/rules/2001-jsx-comments.mdc` for detailed JSX commenting standards
+- See `.cursor/rules/2001-tsx-comments.mdc` for detailed TSX commenting standards
 
 ## Error Handling
 

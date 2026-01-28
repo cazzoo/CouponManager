@@ -2,7 +2,7 @@
   "name": "coupon-manager",
   "version": "1.0.0",
   "description": "A web application to manage vouchers and coupons",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "dev": "cross-env VITE_USE_MEMORY_DB=true VITE_AUTO_MOCK_DATA=true vite",
     "dev:supabase": "cross-env VITE_USE_MEMORY_DB=false vite",
@@ -20,7 +20,13 @@
     "migrate:up": "node scripts/run-sql-migrations.js up",
     "migrate:list": "node scripts/run-sql-migrations.js list",
     "migrate:status": "node scripts/run-sql-migrations.js status",
-    "migrate:create": "node scripts/create-migration.js"
+    "migrate:create": "node scripts/create-migration.js",
+    "pb:start": "./thirdparty/pocketbase/pocketbase-darwin-arm64 serve --http=0.0.0.0:8090",
+    "pb:setup": "node scripts/pocketbase-setup.js",
+    "pb:create-collections": "node scripts/pocketbase-create-collections.mjs",
+    "pb:reset": "node scripts/pocketbase-reset.js",
+    "db:seed": "node scripts/pocketbase-seed-data.js",
+    "setup:thirdparty": "bash scripts/setup-thirdparty.sh"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",

@@ -1,0 +1,125 @@
+---
+description: FOLLOW development standards WHEN implementing features TO ensure code quality and consistency
+globs: **/*.{js,jsx,ts,tsx}
+alwaysApply: true
+---
+
+# Development Standards for AI Agents
+
+<version>1.0.0</version>
+
+## Context
+- When implementing new features or modifying existing code
+- When writing tests
+- When creating components or services
+- When working with state management
+- When handling user interactions
+
+## Requirements
+
+### TypeScript Strict Mode
+- Always use explicit types (no implicit any)
+- Always check for null/undefined before accessing properties
+- Never use `any` type unless absolutely necessary
+- Use interfaces or type aliases for complex types
+- Enable strict mode in tsconfig.json
+
+### Factory Pattern Usage
+- Always access services via factory methods
+- Never directly instantiate services in components
+- Import from factory files: `AuthServiceFactory.ts`, `CouponServiceFactory.ts`, `RoleServiceFactory.ts`
+- Use factories to get service instances: `getCouponService()`
+
+### Component Structure
+- Use functional components with hooks
+- Define interfaces for props: `interface ComponentProps { }`
+- Use TypeScript for component type: `const Component: React.FC<Props> = () => { }`
+- Destructure props in function signature
+- Keep components focused on single responsibility
+- Use hooks in this order: useState → useEffect → useCallback → useMemo
+
+### Service Layer
+- Implement business logic in services, not components
+- Validate input in services before data operations
+- Check permissions in services
+- Return consistent error messages
+- Use async/await for all service methods
+- Handle errors with try-catch and re-throw with context
+
+### Test-Driven Development (TDD)
+- Write failing tests first (RED)
+- Implement minimal code to pass tests (GREEN)
+- Refactor while keeping tests passing (REFACTOR)
+- Use AAA pattern: Arrange → Act → Assert
+- Test behavior, not implementation details
+- Mock external dependencies
+
+### Naming Conventions
+- Components: PascalCase (`CouponList`)
+- Hooks: use + PascalCase (`useCoupons`)
+- Services: PascalCase (`CouponService`)
+- Factories: PascalCase + Factory (`CouponServiceFactory`)
+- Types/Interfaces: PascalCase (`Coupon`)
+- Variables: camelCase (`userId`)
+- Constants: UPPER_SNAKE_CASE (`MAX_RETRIES`)
+
+### Package Management
+- Use pnpm for all operations
+- Never use npm or yarn
+- Run commands from project root (no cd)
+- Use standard pnpm commands: `pnpm test`, `pnpm build`, `pnpm dev`
+
+## Examples
+
+<example>
+// ✅ Good: Using factory pattern
+import { getCouponService } from '../services/CouponServiceFactory';
+const service = getCouponService();
+
+// ✅ Good: Explicit types
+const formatDate = (date: string, locale: string = 'en-US'): string => {
+  return new Date(date).toLocaleDateString(locale);
+};
+
+// ✅ Good: Null check before access
+const coupon = coupons.find(c => c.id === id);
+if (coupon) {
+  console.log(coupon.retailer);
+}
+
+// ✅ Good: TDD approach
+describe('CouponService', () => {
+  it('should add a new coupon', async () => {
+    // Arrange
+    const service = getCouponService();
+    const data = { retailer: 'Amazon', initialValue: '50' };
+
+    // Act
+    const result = await service.addCoupon(data, 'user-123');
+
+    // Assert
+    expect(result.id).toBeDefined();
+    expect(result.retailer).toBe('Amazon');
+  });
+});
+</example>
+
+<example type="invalid">
+// ❌ Bad: Direct instantiation
+import CouponService from '../services/CouponService';
+const service = new CouponService();
+
+// ❌ Bad: Implicit any
+function processData(data) {
+  return data.map(item => item.value);
+}
+
+// ❌ Bad: No null check
+const coupon = coupons.find(c => c.id === id);
+console.log(coupon.retailer);
+
+// ❌ Bad: No TDD, just implementation
+const service = getCouponService();
+const coupon = await service.addCoupon(data, userId);
+// No tests written
+</example>
