@@ -1,23 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  CircularProgress,
-  Alert,
-  SelectChangeEvent
-} from '@mui/material';
 import { useLanguage } from '../services/LanguageContext';
 import { useAuth } from '../services/AuthContext';
 import RoleService from '../services/RoleService';
@@ -323,97 +304,95 @@ const UserManagement: React.FC = () => {
 
   if (!isManager) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">
+      <div className="p-3">
+        <div className="alert alert-error">
           {getText('errors.access_denied', 'Access Denied. You need manager permissions to view this page.')}
-        </Alert>
-      </Box>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }} data-testid="user-management-page">
-      <Typography variant="h4" gutterBottom>
-        {loading && <CircularProgress size={24} sx={{ mr: 1 }} />}
+    <div className="p-3" data-testid="user-management-page">
+      <h4 className="text-xl font-bold mb-2">
+        {loading && <span className="loading loading-spinner loading-sm mr-2"></span>}
         {getText('app.user_management', 'User Management')}
-      </Typography>
+      </h4>
       
       {usingMockData && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
+        <div className="alert alert-warning mb-2">
           {getText('warnings.using_mock_data', 'Using mock data. Changes will not be saved to the database.')}
-        </Alert>
+        </div>
       )}
       
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+      {error && <div className="alert alert-error mb-2">{error}</div>}
+      {success && <div className="alert alert-success mb-2">{success}</div>}
       
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button onClick={refreshUserList} disabled={loading} variant="outlined">
+      <div className="flex justify-end mb-2">
+        <button 
+          onClick={refreshUserList} 
+          disabled={loading} 
+          className="btn btn-outline"
+        >
           {getText('actions.refresh', 'Refresh')}
-        </Button>
-      </Box>
+        </button>
+      </div>
       
-      <TableContainer
-        component={Paper}
-        sx={{
-          width: '100%',
-          overflowX: 'auto'
-        }}
-        data-testid="user-list"
-      >
-        <Table size="small" sx={{ minWidth: '100%' }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>{getText('admin.email', 'Email')}</TableCell>
-              <TableCell>{getText('admin.user_id', 'User ID')}</TableCell>
-              <TableCell>{getText('admin.role', 'Role')}</TableCell>
-              <TableCell>{getText('admin.actions', 'Actions')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
+      <div className="overflow-x-auto shadow-lg border border-base-300 rounded-lg" data-testid="user-list">
+        <table className="table table-zebra table-compact w-full">
+          <thead>
+            <tr>
+              <th>{getText('admin.email', 'Email')}</th>
+              <th>{getText('admin.user_id', 'User ID')}</th>
+              <th>{getText('admin.role', 'Role')}</th>
+              <th>{getText('admin.actions', 'Actions')}</th>
+            </tr>
+          </thead>
+          <tbody>
             {users.map(userItem => (
-              <TableRow key={userItem.id}>
-                <TableCell>{userItem.email}</TableCell>
-                <TableCell>{userItem.id.substring(0, 8)}...</TableCell>
-                <TableCell>
-                  <FormControl fullWidth size="small">
-                    <Select
+              <tr key={userItem.id}>
+                <td className="font-medium">{userItem.email}</td>
+                <td className="font-mono text-xs">{userItem.id.substring(0, 8)}...</td>
+                <td>
+                  <div className="form-control">
+                    <select 
+                      className="select select-bordered select-sm"
                       value={userRoles[userItem.id] || USER_ROLE}
                       disabled={loading || userItem.id === user?.id}
-                      onChange={(e: SelectChangeEvent) => {
+                      onChange={(e) => {
                         const newRole = e.target.value as UserRole;
                         handleRoleChange(userItem.id, newRole);
                       }}
                     >
-                      <MenuItem value={USER_ROLE}>{getText('roles.user', 'User')}</MenuItem>
-                      <MenuItem value={MANAGER_ROLE}>{getText('roles.manager', 'Manager')}</MenuItem>
-                      <MenuItem value={DEMO_USER_ROLE}>{getText('roles.demo_user', 'Demo User')}</MenuItem>
-                    </Select>
-                  </FormControl>
+                      <option value={USER_ROLE}>{getText('roles.user', 'User')}</option>
+                      <option value={MANAGER_ROLE}>{getText('roles.manager', 'Manager')}</option>
+                      <option value={DEMO_USER_ROLE}>{getText('roles.demo_user', 'Demo User')}</option>
+                    </select>
+                  </div>
                   
                   {userItem.id === user?.id && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    <span className="text-xs text-base-content/60 block mt-1">
                       {getText('general.current_user', '(Current User)')}
-                    </Typography>
+                    </span>
                   )}
-                </TableCell>
-                <TableCell>
+                </td>
+                <td>
                   {userItem.id !== user?.id && (
-                    <Button 
-                      size="small" 
+                    <button 
+                      className="btn btn-sm btn-outline btn-primary"
                       onClick={() => handleRoleChange(userItem.id, USER_ROLE)}
                       disabled={loading || userRoles[userItem.id] === USER_ROLE}
                     >
                       {getText('actions.reset_role', 'Reset Role')}
-                    </Button>
+                    </button>
                   )}
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 

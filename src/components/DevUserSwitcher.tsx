@@ -1,24 +1,5 @@
 import React, { useState, useEffect, MouseEvent } from 'react';
-import {
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Box,
-  useMediaQuery,
-  IconButton,
-  Menu,
-  Typography,
-  Chip,
-  Badge,
-  Tooltip,
-  CircularProgress,
-  SelectChangeEvent
-} from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
-import ShieldIcon from '@mui/icons-material/Shield';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import { useTheme } from '@mui/material/styles';
+import { User, Shield, EyeOff } from 'lucide-react';
 import { useAuth } from '../services/AuthContext';
 import { useLanguage } from '../services/LanguageContext';
 import { getAllDevUsers, getUserInitials, getDevUserByEmail, setLastSelectedUser } from '../config/devUsers';
@@ -26,16 +7,30 @@ import type { DevTestUser } from '../config/devUsers';
 import type { UserRole } from '../types';
 
 const DevUserSwitcher: React.FC = () => {
+  if (!import.meta.env.DEV) {
+    return null;
+  }
+
   const { user, signIn, signOut } = useAuth();
   const { t } = useLanguage();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [switching, setSwitching] = useState<boolean>(false);
   const open = Boolean(anchorEl);
-  
+
   const currentUserEmail: string = user?.email || '';
   const devUsers: DevTestUser[] = getAllDevUsers();
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640); // sm breakpoint in Tailwind
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (user?.email && switching) {
@@ -47,12 +42,12 @@ const DevUserSwitcher: React.FC = () => {
   const getRoleIcon = (role: UserRole): React.ReactElement => {
     switch (role) {
       case 'manager':
-        return <ShieldIcon fontSize="small" sx={{ color: theme.palette.warning.main }} />;
+        return <Shield size={16} className="text-warning" />;
       case 'demo':
-        return <VisibilityOffIcon fontSize="small" sx={{ color: theme.palette.grey[500] }} />;
+        return <EyeOff size={16} className="text-gray-500" />;
       case 'user':
       default:
-        return <PersonIcon fontSize="small" sx={{ color: theme.palette.info.main }} />;
+        return <User size={16} className="text-info" />;
     }
   };
 
@@ -99,7 +94,7 @@ const DevUserSwitcher: React.FC = () => {
     }
   };
 
-  const handleDesktopChange = (event: SelectChangeEvent<string>): void => {
+  const handleDesktopChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const selectedEmail = event.target.value;
     const selectedUser = getDevUserByEmail(selectedEmail);
     if (selectedUser) {
@@ -109,147 +104,125 @@ const DevUserSwitcher: React.FC = () => {
 
   if (isMobile) {
     return (
-      <Box sx={{ marginLeft: 1 }} data-testid="dev-user-switcher">
-        <Tooltip title={t('devUserSwitcher.switch_user')}>
-          <Badge
-            badgeContent={getUserInitials(currentUserEmail)}
-            color="secondary"
-            overlap="circular"
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            sx={{
-              '& .MuiBadge-badge': {
+      <div className="ml-1" data-testid="dev-user-switcher">
+        <div className="tooltip tooltip-bottom" data-tip={t('devUserSwitcher.switch_user')}>
+          <div className="relative">
+            <div 
+              className="badge badge-secondary badge-xs absolute -bottom-1 -right-1 z-10"
+              style={{
                 fontSize: '0.6rem',
-                height: 18,
-                minWidth: 18,
+                height: '18px',
+                minWidth: '18px',
                 padding: '0 4px',
                 backgroundColor: '#673ab7'
-              }
-            }}
-          >
-            <Badge
-              badgeContent="DEV"
-              sx={{
-                '& .MuiBadge-badge': {
+              }}
+            >
+              {getUserInitials(currentUserEmail)}
+            </div>
+            <div className="relative">
+              <div 
+                className="badge badge-xs absolute -top-1 -right-1 z-20"
+                style={{
                   backgroundColor: '#673ab7',
                   color: 'white',
                   fontSize: '0.5rem',
-                  height: 14,
-                  minWidth: 14,
-                  padding: '0 3px',
-                  top: 6,
-                  right: 6
-                }
-              }}
-            >
-              <IconButton
+                  height: '14px',
+                  minWidth: '14px',
+                  padding: '0 3px'
+                }}
+              >
+                DEV
+              </div>
+              <button
                 onClick={handleMobileClick}
-                color="inherit"
-                size="small"
+                className="btn btn-circle btn-ghost btn-sm"
                 aria-label={t('devUserSwitcher.switch_user')}
                 disabled={switching}
               >
-                {switching ? <CircularProgress size={20} /> : <PersonIcon />}
-              </IconButton>
-            </Badge>
-          </Badge>
-        </Tooltip>
-        <Menu
-          anchorEl={anchorEl}
-          open={open}
-          onClose={() => handleMobileClose()}
-        >
-          {devUsers.map((devUser) => (
-            <MenuItem
-              key={devUser.email}
-              onClick={() => handleMobileClose(devUser)}
-              selected={devUser.email === currentUserEmail}
-              disabled={switching}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 200 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  {getRoleIcon(devUser.role)}
-                  <Typography variant="body2">{devUser.email}</Typography>
-                </Box>
-                {devUser.email === currentUserEmail && (
-                  <Chip
-                    label={t('devUserSwitcher.current')}
-                    size="small"
-                    color="secondary"
-                    sx={{ ml: 'auto', height: 20, fontSize: '0.7rem' }}
-                  />
+                {switching ? (
+                  <span className="loading loading-spinner loading-xs"></span>
+                ) : (
+                  <User size={20} />
                 )}
-              </Box>
-            </MenuItem>
-          ))}
-        </Menu>
-      </Box>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {open && (
+          <div className="dropdown dropdown-end">
+            <ul className="menu dropdown-content bg-base-100 rounded-box z-[1] w-64 p-2 shadow">
+              {devUsers.map((devUser) => (
+                <li key={devUser.email}>
+                  <a
+                    onClick={() => handleMobileClose(devUser)}
+                    className={`flex items-center gap-2 min-w-[200px] ${
+                      devUser.email === currentUserEmail ? 'active' : ''
+                    } ${switching ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <div className="flex items-center gap-1">
+                      {getRoleIcon(devUser.role)}
+                      <span className="text-sm">{devUser.email}</span>
+                    </div>
+                    {devUser.email === currentUserEmail && (
+                      <div className="badge badge-secondary badge-sm ml-auto">
+                        {t('devUserSwitcher.current')}
+                      </div>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     );
   }
 
   return (
-    <Box sx={{ position: 'relative', marginLeft: 2 }} data-testid="dev-user-switcher">
-      <Badge
-        badgeContent="DEV"
-        sx={{
-          '& .MuiBadge-badge': {
+    <div className="relative ml-2" data-testid="dev-user-switcher">
+      <div className="relative">
+        <div 
+          className="badge badge-xs absolute -top-1 -right-1 z-10"
+          style={{
             backgroundColor: '#673ab7',
             color: 'white',
             fontSize: '0.6rem',
-            height: 16,
-            minWidth: 16,
+            height: '16px',
+            minWidth: '16px',
             padding: '0 4px'
-          }
-        }}
-      >
-        <FormControl variant="outlined" size="small" sx={{ m: 1, minWidth: 200 }}>
-          <InputLabel id="dev-user-select-label">{t('devUserSwitcher.switch_user')}</InputLabel>
-          <Select
-            labelId="dev-user-select-label"
+          }}
+        >
+          DEV
+        </div>
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text text-xs">{t('devUserSwitcher.switch_user')}</span>
+          </label>
+          <select
             id="dev-user-select"
+            className="select select-bordered select-sm min-w-[200px]"
             value={currentUserEmail}
             onChange={handleDesktopChange}
-            label={t('devUserSwitcher.switch_user')}
             disabled={switching}
-            renderValue={(value: string) => (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {switching ? (
-                  <CircularProgress size={16} />
-                ) : (
-                  <>
-                    {getRoleIcon(devUsers.find(u => u.email === value)?.role || 'user')}
-                    <Typography variant="body2">{value}</Typography>
-                  </>
-                )}
-              </Box>
-            )}
           >
             {devUsers.map((devUser) => (
-              <MenuItem key={devUser.email} value={devUser.email}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {getRoleIcon(devUser.role)}
-                    <Typography variant="body2">{devUser.email}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {getRoleText(devUser.role)}
-                    </Typography>
-                    {devUser.email === currentUserEmail && (
-                      <Chip
-                        label={t('devUserSwitcher.current')}
-                        size="small"
-                        color="secondary"
-                        sx={{ height: 20, fontSize: '0.7rem' }}
-                      />
-                    )}
-                  </Box>
-                </Box>
-              </MenuItem>
+              <option key={devUser.email} value={devUser.email}>
+                {devUser.email} {devUser.email === currentUserEmail ? `(${t('devUserSwitcher.current')})` : ''}
+              </option>
             ))}
-          </Select>
-        </FormControl>
-      </Badge>
-    </Box>
+          </select>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 mt-1 min-w-[200px]">
+        {switching ? (
+          <span className="loading loading-spinner loading-xs"></span>
+        ) : (
+          getRoleIcon(devUsers.find(u => u.email === currentUserEmail)?.role || 'user')
+        )}
+        <span className="text-sm">{currentUserEmail || t('devUserSwitcher.switch_user')}</span>
+      </div>
+    </div>
   );
 };
 

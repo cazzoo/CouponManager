@@ -9,19 +9,19 @@ import { renderWithProviders } from '../util/test-utils';
 vi.mock('react-qr-reader', () => {
   const QrReader = ({ onResult }) => (
     <div data-testid="mock-qr-reader">
-      <button 
+      <button
         data-testid="simulate-scan-button"
         onClick={() => onResult({ text: 'test-barcode-123' }, null)}
       >
         Simulate Successful Scan
       </button>
-      <button 
+      <button
         data-testid="simulate-error-button"
         onClick={() => onResult(null, 'mock-error')}
       >
         Simulate Error
       </button>
-      <button 
+      <button
         data-testid="simulate-null-scan"
         onClick={() => onResult(null, null)}
       >
@@ -29,7 +29,7 @@ vi.mock('react-qr-reader', () => {
       </button>
     </div>
   );
-  
+
   return { QrReader };
 });
 

@@ -3,36 +3,81 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AuthProvider, useAuth } from '../../services/AuthContext';
-import * as AuthService from '../../services/AuthService';
-import * as RoleService from '../../services/RoleService';
+import PocketBaseAuthService from '../../services/PocketBaseAuthService';
 
-// Mock the AuthService
-vi.mock('../../services/AuthService', () => ({
-  signIn: vi.fn(),
-  signUp: vi.fn(),
-  signOut: vi.fn(),
-  signInAnonymously: vi.fn(),
-  getCurrentSession: vi.fn(),
-  getUser: vi.fn(),
-  onAuthStateChange: vi.fn(),
-}));
-
-// Mock the RoleService
-vi.mock('../../services/RoleService', () => ({
+// Create singleton mock instance for role service
+const mockRoleServiceInstance = {
   getUserRole: vi.fn(),
   setUserRole: vi.fn(),
   hasPermission: vi.fn(),
-  checkPermission: vi.fn(),
+  checkPermission: vi.fn()
+};
+
+// Mock the PocketBaseClient
+vi.mock('../../services/PocketBaseClient', () => {
+  const mockAuthStore = {
+    isValid: false,
+    token: null,
+    model: null,
+    save: vi.fn(),
+    clear: vi.fn(),
+    onChange: vi.fn()
+  };
+
+  const mockCollection = {
+    create: vi.fn(),
+    authWithPassword: vi.fn()
+  };
+
+  const mockInstance = {
+    collection: vi.fn(() => mockCollection),
+    authStore: mockAuthStore
+  };
+
+  return {
+    default: {
+      getInstance: vi.fn(() => mockInstance)
+    }
+  };
+});
+
+// Mock the PocketBaseAuthService
+vi.mock('../../services/PocketBaseAuthService', () => ({
+  default: {
+    signUp: vi.fn(),
+    signInWithPassword: vi.fn(),
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+    signInAnonymously: vi.fn(),
+    getCurrentSession: vi.fn(),
+    getUser: vi.fn(),
+    onAuthStateChange: vi.fn()
+  }
+}));
+
+// Mock the PocketBaseRoleService
+vi.mock('../../services/PocketBaseRoleService', () => ({
+  default: mockRoleServiceInstance
+}));
+
+// Mock the RoleServiceFactory to return the same singleton instance
+vi.mock('../../services/RoleServiceFactory', () => ({
+  getRoleService: vi.fn(() => Promise.resolve(mockRoleServiceInstance)),
+  Roles: {
+    USER: 'user',
+    MANAGER: 'manager',
+    DEMO_USER: 'demo'
+  }
 }));
 
 // Test component that uses the AuthContext
 const TestComponent = () => {
   const { user, loading, error, signIn, signUp, signOut, signInAnonymously, userRole } = useAuth();
-  
+
   if (loading) {
     return <div data-testid="loading">Loading...</div>;
   }
-  
+
   if (user) {
     return (
       <div>
@@ -43,7 +88,7 @@ const TestComponent = () => {
       </div>
     );
   }
-  
+
   return (
     <div>
       <div data-testid="auth-form">
@@ -59,22 +104,34 @@ const TestComponent = () => {
 describe('AuthContext', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    
+
     // Default mock implementations
-    AuthService.getCurrentSession.mockReturnValue(null);
-    AuthService.getUser.mockReturnValue(null);
-    
-    // Mock onAuthStateChange to call the callback with no user by default
-    AuthService.onAuthStateChange.mockImplementation((callback) => {
-      // Call the callback with a SIGNED_OUT event
-      setTimeout(() => {
-        callback('SIGNED_OUT', { user: null });
-      }, 0);
-      return { data: { unsubscribe: vi.fn() } };
+    PocketBaseAuthService.getCurrentSession.mockReturnValue(Promise.resolve({
+      session: null,
+      error: null
+    }));
+    PocketBaseAuthService.getUser.mockReturnValue(null);
+
+    // Mock onAuthStateChange to NOT auto-trigger - tests will trigger manually
+    // This ensures roleService is initialized before auth state changes
+    PocketBaseAuthService.onAuthStateChange.mockImplementation(() => {
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
+
+    // Reset role service mocks
+    mockRoleServiceInstance.getUserRole.mockReset();
+    mockRoleServiceInstance.setUserRole.mockReset();
+    mockRoleServiceInstance.hasPermission.mockReset();
+    mockRoleServiceInstance.checkPermission.mockReset();
   });
 
   it('should render loading state initially', async () => {
+    let authChangeCallback;
+    PocketBaseAuthService.onAuthStateChange.mockImplementation((callback) => {
+      authChangeCallback = callback;
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
+    });
+
     render(
       <AuthProvider>
         <TestComponent />
@@ -82,30 +139,33 @@ describe('AuthContext', () => {
     );
 
     expect(screen.getByTestId('loading')).toBeInTheDocument();
-    
-    // Wait for loading to complete
+
+    await waitFor(() => {
+      expect(authChangeCallback).toBeDefined();
+    });
+
+    authChangeCallback('signedOut', null);
+
     await waitFor(() => {
       expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
     });
   });
 
   it('should render authenticated state with user role', async () => {
-    // Setup mocks for authenticated user
-    const mockUser = { id: 'test-user-id', email: 'test@example.com' };
-    
-    // Set up initial state as authenticated
-    AuthService.getCurrentSession.mockReturnValue({ user: mockUser });
-    AuthService.getUser.mockReturnValue(mockUser);
-    
-    RoleService.getUserRole.mockResolvedValue('user');
+    const mockUser = { id: 'test-user-id', email: 'test@example.com', role: 'user' };
 
-    // Trigger the onAuthStateChange callback with a signed-in event
-    AuthService.onAuthStateChange.mockImplementation((callback) => {
-      // Call the callback with a SIGNED_IN event
-      setTimeout(() => {
-        callback('SIGNED_IN', { user: mockUser });
-      }, 0);
-      return { data: { unsubscribe: vi.fn() } };
+    PocketBaseAuthService.getCurrentSession.mockReturnValue(Promise.resolve({
+      session: { token: 'test-token', user: mockUser },
+      error: null
+    }));
+    PocketBaseAuthService.getUser.mockReturnValue(mockUser);
+
+    mockRoleServiceInstance.getUserRole.mockResolvedValue('user');
+
+    let authChangeCallback;
+    PocketBaseAuthService.onAuthStateChange.mockImplementation((callback) => {
+      authChangeCallback = callback;
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
     render(
@@ -114,12 +174,16 @@ describe('AuthContext', () => {
       </AuthProvider>
     );
 
-    // Wait for loading to complete
+    await waitFor(() => {
+      expect(authChangeCallback).toBeDefined();
+    });
+
+    authChangeCallback('signedIn', { token: 'test-token', user: mockUser });
+
     await waitFor(() => {
       expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
     });
 
-    // Check if user info and role are displayed
     await waitFor(() => {
       expect(screen.getByTestId('user-email')).toHaveTextContent('test@example.com');
       expect(screen.getByTestId('user-role')).toHaveTextContent('user');
@@ -128,22 +192,20 @@ describe('AuthContext', () => {
   });
 
   it('should render manager badge for users with manager role', async () => {
-    // Setup mocks for authentication and role
-    const mockUser = { id: 'manager-id', email: 'manager@example.com' };
-    
-    // Set up initial state as authenticated
-    AuthService.getCurrentSession.mockReturnValue({ user: mockUser });
-    AuthService.getUser.mockReturnValue(mockUser);
-    
-    RoleService.getUserRole.mockResolvedValue('manager');
+    const mockUser = { id: 'manager-id', email: 'manager@example.com', role: 'manager' };
 
-    // Trigger the onAuthStateChange callback with a signed-in event
-    AuthService.onAuthStateChange.mockImplementation((callback) => {
-      // Call the callback with a SIGNED_IN event
-      setTimeout(() => {
-        callback('SIGNED_IN', { user: mockUser });
-      }, 0);
-      return { data: { unsubscribe: vi.fn() } };
+    PocketBaseAuthService.getCurrentSession.mockReturnValue(Promise.resolve({
+      session: { token: 'test-token', user: mockUser },
+      error: null
+    }));
+    PocketBaseAuthService.getUser.mockReturnValue(mockUser);
+
+    mockRoleServiceInstance.getUserRole.mockResolvedValue('manager');
+
+    let authChangeCallback;
+    PocketBaseAuthService.onAuthStateChange.mockImplementation((callback) => {
+      authChangeCallback = callback;
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
     render(
@@ -152,12 +214,16 @@ describe('AuthContext', () => {
       </AuthProvider>
     );
 
-    // Wait for loading to complete
+    await waitFor(() => {
+      expect(authChangeCallback).toBeDefined();
+    });
+
+    authChangeCallback('signedIn', { token: 'test-token', user: mockUser });
+
     await waitFor(() => {
       expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
     });
 
-    // Check if user info, role, and manager badge are displayed
     await waitFor(() => {
       expect(screen.getByTestId('user-email')).toHaveTextContent('manager@example.com');
       expect(screen.getByTestId('user-role')).toHaveTextContent('manager');
@@ -166,30 +232,29 @@ describe('AuthContext', () => {
   });
 
   it('should set user role after successful sign up', async () => {
-    // Start with no user
-    AuthService.getCurrentSession.mockReturnValue(null);
-    AuthService.getUser.mockReturnValue(null);
-    
-    // Setup mock for signUp
-    const newUser = { id: 'new-user-id', email: 'test@example.com' };
-    AuthService.signUp.mockResolvedValue({
-      data: {
-        user: newUser
-      },
+    PocketBaseAuthService.getCurrentSession.mockReturnValue(Promise.resolve({
+      session: null,
+      error: null
+    }));
+    PocketBaseAuthService.getUser.mockReturnValue(null);
+
+    const newUser = { id: 'new-user-id', email: 'test@example.com', role: 'user' };
+    PocketBaseAuthService.signUp.mockResolvedValue({
+      data: { user: newUser },
       error: null
     });
-    
-    // Mock role setting
-    RoleService.setUserRole.mockResolvedValue({
+
+    mockRoleServiceInstance.setUserRole.mockResolvedValue({
       userId: 'new-user-id',
       role: 'user'
     });
-    
-    // Mock auth state change after sign up
+
+    mockRoleServiceInstance.getUserRole.mockResolvedValue(null);
+
     let authChangeCallback;
-    AuthService.onAuthStateChange.mockImplementation((callback) => {
+    PocketBaseAuthService.onAuthStateChange.mockImplementation((callback) => {
       authChangeCallback = callback;
-      return { data: { unsubscribe: vi.fn() } };
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
     render(
@@ -197,57 +262,53 @@ describe('AuthContext', () => {
         <TestComponent />
       </AuthProvider>
     );
-    
-    // Ensure not logged in - sign-up button should be visible
+
+    await waitFor(() => {
+      expect(authChangeCallback).toBeDefined();
+    });
+
+    authChangeCallback('signedOut', null);
+
     await waitFor(() => {
       expect(screen.getByTestId('sign-up')).toBeInTheDocument();
     });
-    
-    // Click sign up button
+
     const user = userEvent.setup();
     await user.click(screen.getByTestId('sign-up'));
-    
-    // Simulate auth state change after successful sign up
+
     if (authChangeCallback) {
-      setTimeout(() => {
-        // Update the mock to return the new user
-        AuthService.getUser.mockReturnValue(newUser);
-        // Trigger auth state change
-        authChangeCallback('SIGNED_IN', { user: newUser });
-      }, 0);
+      PocketBaseAuthService.getUser.mockReturnValue(newUser);
+      authChangeCallback('signedIn', { token: 'test-token', user: newUser });
     }
-    
-    // Verify that signUp was called with correct parameters
-    expect(AuthService.signUp).toHaveBeenCalledWith('test@example.com', 'password');
-    
-    // Verify that setUserRole was called with correct parameters
+
     await waitFor(() => {
-      expect(RoleService.setUserRole).toHaveBeenCalledWith('new-user-id', 'user');
+      expect(PocketBaseAuthService.signUp).toHaveBeenCalledWith('test@example.com', 'password');
+    });
+
+    await waitFor(() => {
+      expect(mockRoleServiceInstance.setUserRole).toHaveBeenCalledWith('new-user-id', 'user');
     });
   });
 
   it('should fetch user role after successful sign in', async () => {
-    // Start with no user
-    AuthService.getCurrentSession.mockReturnValue(null);
-    AuthService.getUser.mockReturnValue(null);
-    
-    // Setup mock for signIn
-    const signedInUser = { id: 'signed-in-user-id', email: 'test@example.com' };
-    AuthService.signIn.mockResolvedValue({
-      data: {
-        user: signedInUser
-      },
+    PocketBaseAuthService.getCurrentSession.mockReturnValue(Promise.resolve({
+      session: null,
+      error: null
+    }));
+    PocketBaseAuthService.getUser.mockReturnValue(null);
+
+    const signedInUser = { id: 'signed-in-user-id', email: 'test@example.com', role: 'user' };
+    PocketBaseAuthService.signIn.mockResolvedValue({
+      data: { user: signedInUser, session: { token: 'test-token', user: signedInUser } },
       error: null
     });
-    
-    // Mock role fetching
-    RoleService.getUserRole.mockResolvedValue('user');
-    
-    // Mock auth state change after sign in
+
+    mockRoleServiceInstance.getUserRole.mockResolvedValue('user');
+
     let authChangeCallback;
-    AuthService.onAuthStateChange.mockImplementation((callback) => {
+    PocketBaseAuthService.onAuthStateChange.mockImplementation((callback) => {
       authChangeCallback = callback;
-      return { data: { unsubscribe: vi.fn() } };
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
     render(
@@ -255,32 +316,31 @@ describe('AuthContext', () => {
         <TestComponent />
       </AuthProvider>
     );
-    
-    // Ensure not logged in - sign-in button should be visible
+
+    await waitFor(() => {
+      expect(authChangeCallback).toBeDefined();
+    });
+
+    authChangeCallback('signedOut', null);
+
     await waitFor(() => {
       expect(screen.getByTestId('sign-in')).toBeInTheDocument();
     });
-    
-    // Click sign in button
+
     const user = userEvent.setup();
     await user.click(screen.getByTestId('sign-in'));
-    
-    // Simulate auth state change after successful sign in
+
     if (authChangeCallback) {
-      setTimeout(() => {
-        // Update the mock to return the signed in user
-        AuthService.getUser.mockReturnValue(signedInUser);
-        // Trigger auth state change
-        authChangeCallback('SIGNED_IN', { user: signedInUser });
-      }, 0);
+      PocketBaseAuthService.getUser.mockReturnValue(signedInUser);
+      authChangeCallback('signedIn', { token: 'test-token', user: signedInUser });
     }
-    
-    // Verify that signIn was called with correct parameters
-    expect(AuthService.signIn).toHaveBeenCalledWith('test@example.com', 'password');
-    
-    // Verify that getUserRole was called with correct parameters
+
     await waitFor(() => {
-      expect(RoleService.getUserRole).toHaveBeenCalledWith('signed-in-user-id');
+      expect(PocketBaseAuthService.signIn).toHaveBeenCalledWith('test@example.com', 'password');
+    });
+
+    await waitFor(() => {
+      expect(mockRoleServiceInstance.getUserRole).toHaveBeenCalledWith('signed-in-user-id');
     });
   });
-}); 
+});

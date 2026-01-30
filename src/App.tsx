@@ -1,23 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  Container,
-  Typography,
-  Box,
-  AppBar,
-  Toolbar,
-  Button,
-  Tabs,
-  Tab,
-  IconButton,
-  CircularProgress,
-  Alert,
-  Collapse,
-  Tooltip,
-  Paper
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
+import { Plus, Sun, Moon } from "lucide-react";
 import CouponList from "./components/CouponList";
 import RetailerList from "./components/RetailerList";
 import AddCouponForm from "./components/AddCouponForm";
@@ -37,20 +19,15 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
   const { t } = useLanguage();
   const { user, loading: authLoading, signOut, userRole, hasPermission } = useAuth();
   
-  // Calculate isManager from userRole
   const isManager = userRole === 'manager';
   
-  // Debug log for manager status
   console.log('App: User role:', userRole, 'isManager:', isManager);
   
-  // Warn if the user is a manager but we're not showing the manager tab
   useEffect(() => {
     if (userRole === 'manager' && !isManager) {
       console.warn('App: User has manager role but isManager is false. This might prevent access to User Management tab.');
     }
   }, [userRole, isManager]);
-  
-  // State for coupons
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
@@ -59,18 +36,12 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
   const [currentTab, setCurrentTab] = useState<number>(0);
   const [retailerFilter, setRetailerFilter] = useState<string>('');
   const [canAddCoupon, setCanAddCoupon] = useState<boolean>(false);
-  
-  // Debug log for auth state
   console.log('App: Current auth state:', { 
     isAuthenticated: !!user, 
     userEmail: user?.email,
     authLoading 
   });
-
-  // Check development environment flag
   const isDevelopment = import.meta.env.DEV === true;
-
-  // Load coupons when component mounts or user changes
   useEffect(() => {
     // Only fetch coupons if user is authenticated
     if (user) {
@@ -78,9 +49,9 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
         try {
           setLoading(true);
           const allCoupons = await couponService.getAllCoupons();
-          console.log('Coupons loaded:', allCoupons); // Debug log
-          console.log('Number of coupons:', allCoupons.length); // Check length
-          console.log('First coupon (if any):', allCoupons.length > 0 ? allCoupons[0] : 'No coupons'); // Check first item
+          console.log('Coupons loaded:', allCoupons);
+          console.log('Number of coupons:', allCoupons.length);
+          console.log('First coupon (if any):', allCoupons.length > 0 ? allCoupons[0] : 'No coupons');
           setCoupons(allCoupons);
           setError(null);
         } catch (err) {
@@ -94,8 +65,6 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
       fetchCoupons();
     }
   }, [user]);
-
-  // Initialize permissions when user changes
   useEffect(() => {
     const checkPermissions = async (): Promise<void> => {
       if (user) {
@@ -120,13 +89,12 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
       setLoading(true);
       console.log('App: Adding coupon:', newCoupon, 'with user:', user?.id);
       
-      // Pass the current user's ID to the addCoupon method
       const addedCoupon = await couponService.addCoupon(newCoupon, user?.id);
       
       console.log('App: Coupon added successfully:', addedCoupon);
       setCoupons([...coupons, addedCoupon]);
       setError(null);
-      setDialogOpen(false); // Close the dialog on success
+      setDialogOpen(false);
       return true;
     } catch (err) {
       console.error('Error adding coupon:', err);
@@ -168,7 +136,6 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
       const result = await couponService.markCouponAsUsed(couponId);
       
       if (result) {
-        // Update the coupon in the local state
         const updatedCoupons = coupons.map(coupon => {
           if (coupon.id === couponId) {
             return {
@@ -194,12 +161,10 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
     }
   };
 
-  // Handle sign out
   const handleSignOut = async (): Promise<void> => {
     try {
       setLoading(true);
       await signOut();
-      // We don't need to do anything else here as the auth state change will trigger a re-render
     } catch (err) {
       console.error('Error signing out:', err);
       setError('Failed to sign out. Please try again.');
@@ -207,254 +172,168 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
       setLoading(false);
     }
   };
-
-  // Handle opening add coupon dialog
   const handleOpenDialog = (): void => {
     setSelectedCoupon(null);
     setDialogOpen(true);
   };
 
-  // Handle closing add coupon dialog
   const handleCloseDialog = (): void => {
     setDialogOpen(false);
     setSelectedCoupon(null);
   };
-
-  // Handle tab change
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number): void => {
+  const handleTabChange = (newValue: number): void => {
     setCurrentTab(newValue);
   };
-
-  // Handle editing a coupon
   const handleEditCoupon = (coupon: Coupon): void => {
     setSelectedCoupon(coupon);
     setDialogOpen(true);
   };
-
-  // Handle retailer filter change
   const handleRetailerFilterChange = (retailer: string): void => {
     setRetailerFilter(retailer);
   };
-
-  // Wrapper for handleUpdateCoupon to match CouponList interface
   const handleCouponUpdate = useCallback((couponId: string, updatedData: Partial<Coupon>): void => {
     if (updatedData && couponId) {
-      // Find the coupon by ID and merge with updated data
       const updatedCoupon = {
         ...coupons.find(c => c.id === couponId),
         ...updatedData
       } as Coupon;
       
-      // Call the original update function
       handleUpdateCoupon(updatedCoupon);
     }
   }, [coupons]);
-
-  // If auth is loading, show loading spinner
   if (authLoading) {
-    console.log('App: Auth is loading, showing spinner');
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center h-screen">
+        <span className="loading loading-spinner loading-lg" role="progressbar"></span>
+      </div>
     );
   }
-
-  // If user is not authenticated, show the login form
   if (!user) {
     console.log('App: User is not authenticated, showing login form');
     return (
-      <Box sx={{ bgcolor: isDarkMode ? "#303030" : "#f5f5f5", minHeight: "100vh" }}>
-        <AppBar position="static" sx={{ backgroundColor: "#2e7d32" }}>
-          <Toolbar sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              {t('app.coupon_manager')}
-            </Typography>
-            <LanguageSelector />
-            {isDevelopment && <DevUserSwitcher />}
-            <IconButton
-              sx={{ ml: 1 }}
-              onClick={() => onThemeChange(!isDarkMode)}
-              color="inherit"
-            >
-              {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
-            </IconButton>
-          </Toolbar>
-        </AppBar>
+      <div className={`min-h-screen ${isDarkMode ? "bg-gray-800" : "bg-gray-50"}`}>
+        <nav className="navbar bg-green-600 text-white">
+          <div className="container mx-auto">
+            <div className="flex-1">
+              <a className="btn btn-ghost text-xl normal-case">{t('app.coupon_manager')}</a>
+            </div>
+            <div className="flex-none gap-2">
+              <LanguageSelector />
+              {isDevelopment && <DevUserSwitcher />}
+              <button
+                className="btn btn-ghost btn-circle"
+                onClick={() => onThemeChange(!isDarkMode)}
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+        </nav>
         <LoginForm />
-      </Box>
+      </div>
     );
   }
 
   console.log('App: User is authenticated, showing main application');
   return (
-    <Box sx={{ flexGrow: 1 }} data-testid="dashboard-container">
-      <AppBar position="static" sx={{
-        backgroundColor: "#2e7d32",
-        boxShadow: 3,
-        borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
-      }}>
-        <Toolbar sx={{ 
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: { xs: '0 8px', sm: '0 16px' }
-        }}>
-          <Typography variant="h6" component="div" sx={{ 
-            flexGrow: 1,
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            {t('app.coupon_manager')}
-          </Typography>
-          <LanguageSelector />
-          {isDevelopment && <DevUserSwitcher />}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ 
-              mr: 2, 
-              display: { xs: 'none', sm: 'block' },
-              color: 'rgba(255, 255, 255, 0.9)'
-            }}>
+    <div className="min-h-screen bg-base-200" data-testid="dashboard-container">
+      <nav className="navbar bg-green-600 text-white shadow-lg border-b border-green-700">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex-1">
+            <a className="btn btn-ghost text-xl normal-case font-semibold tracking-wide">
+              {t('app.coupon_manager')}
+            </a>
+          </div>
+          <div className="flex-none gap-2 items-center">
+            <LanguageSelector />
+            {isDevelopment && <DevUserSwitcher />}
+            <div className="hidden sm:block text-sm mr-2 text-green-100">
               {user.email}
-            </Typography>
-            <IconButton
-              sx={{ 
-                mr: 1,
-                color: 'inherit',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                }
-              }}
+            </div>
+            <button
+              className="btn btn-ghost btn-circle mr-1 hover:bg-green-700"
               onClick={() => onThemeChange(!isDarkMode)}
-              color="inherit"
             >
-              {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
-            </IconButton>
-            <Button
-              color="inherit"
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <button
+              className="btn btn-ghost hover:bg-green-700 normal-case"
               onClick={handleSignOut}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 500,
-                borderRadius: '4px',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                }
-              }}
               data-testid="logout-button"
             >
               {t('app.sign_out')}
-            </Button>
-          </Box>
-        </Toolbar>
-      </AppBar>
+            </button>
+          </div>
+        </div>
+      </nav>
 
-      {/* Move tabs below AppBar */}
-      <Box sx={{ 
-        bgcolor: '#f5f5f5', 
-        borderBottom: '1px solid #e0e0e0',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-        ...(isDarkMode && { bgcolor: '#303030', borderBottom: '1px solid #424242' })
-      }}>
-        <Container maxWidth="xl">
-          <Tabs
-            value={currentTab}
-            onChange={handleTabChange}
-            aria-label="main tabs"
-            sx={{
-              '& .MuiTabs-indicator': {
-                backgroundColor: theme => theme.palette.primary.main,
-                height: 3
-              },
-              '& .MuiTab-root': {
-                color: theme => theme.palette.text.secondary,
-                fontWeight: 500,
-                fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                textTransform: 'none',
-                minWidth: { xs: '100px', sm: '150px' },
-                padding: { xs: '16px 8px', sm: '16px 24px' },
-                transition: 'color 0.3s ease, background-color 0.3s ease',
-                '&:hover': {
-                  color: theme => theme.palette.primary.main,
-                  backgroundColor: 'rgba(0, 0, 0, 0.03)',
-                  ...(isDarkMode && { backgroundColor: 'rgba(255, 255, 255, 0.05)' })
-                },
-                '&.Mui-selected': {
-                  color: theme => theme.palette.primary.main,
-                  fontWeight: 600,
-                },
-                '&.Mui-focusVisible': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                  ...(isDarkMode && { backgroundColor: 'rgba(255, 255, 255, 0.1)' })
-                },
-              },
-            }}
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            <Tab
-              label={t('app.tabs.coupons')}
-              sx={{
-                borderRadius: '4px 4px 0 0',
-              }}
+      {/* Tabs */}
+      <div className={`bg-gray-100 border-b border-gray-200 shadow-sm ${isDarkMode ? "bg-gray-700 border-gray-600" : ""}`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="tabs tabs-boxed bg-transparent border-0">
+            <a 
+              className={`tab ${currentTab === 0 ? 'tab-active bg-green-600 text-white' : 'hover:bg-gray-200'} ${isDarkMode ? 'hover:bg-gray-600' : ''}`}
+              onClick={() => handleTabChange(0)}
               data-testid="nav-coupons"
-            />
-            <Tab
-              label={t('app.tabs.retailers')}
-              sx={{
-                borderRadius: '4px 4px 0 0',
-              }}
+            >
+              {t('app.tabs.coupons')}
+            </a>
+            <a 
+              className={`tab ${currentTab === 1 ? 'tab-active bg-green-600 text-white' : 'hover:bg-gray-200'} ${isDarkMode ? 'hover:bg-gray-600' : ''}`}
+              onClick={() => handleTabChange(1)}
               data-testid="nav-retailers"
-            />
-            {isManager && <Tab
-              label={t('app.tabs.users')}
-              sx={{
-                borderRadius: '4px 4px 0 0',
-              }}
-              data-testid="nav-users"
-            />}
-          </Tabs>
-        </Container>
-      </Box>
+            >
+              {t('app.tabs.retailers')}
+            </a>
+            {isManager && (
+              <a 
+                className={`tab ${currentTab === 2 ? 'tab-active bg-green-600 text-white' : 'hover:bg-gray-200'} ${isDarkMode ? 'hover:bg-gray-600' : ''}`}
+                onClick={() => handleTabChange(2)}
+                data-testid="nav-users"
+              >
+                {t('app.tabs.users')}
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
 
-      {/* Error display */}
       {error && (
-        <Alert severity="error" sx={{ margin: 1 }}>
-          {error}
-        </Alert>
+        <div className="alert alert-error m-4">
+          <span>{error}</span>
+        </div>
       )}
 
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        {/* Display loading indicator when loading */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 mb-4">
         {loading && (
-          <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <CircularProgress />
-          </Box>
+          <div className="flex justify-center">
+            <span className="loading loading-spinner loading-lg"></span>
+          </div>
         )}
 
-        {/* Tab 0: Coupons */}
         {currentTab === 0 && (
-          <Box sx={{ width: '100%' }}>
-            <Paper variant="outlined" sx={{ width: '100%', mb: 2, p: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h5" component="h2">
-                  {t('app.your_coupons')}
-                </Typography>
-                {canAddCoupon && (
-                  <Tooltip title={t('coupon.add_new')}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      startIcon={<AddIcon />}
-                      onClick={handleOpenDialog}
-                      data-testid="create-coupon-button"
-                    >
-                      {t('coupon.add')}
-                    </Button>
-                  </Tooltip>
-                )}
-              </Box>
-            </Paper>
+          <div className="w-full">
+            <div className="card bg-base-100 shadow-xl mb-4">
+              <div className="card-body">
+                <div className="flex justify-between items-center">
+                  <h2 className="card-title text-2xl">
+                    {t('app.your_coupons')}
+                  </h2>
+                  {canAddCoupon && (
+                    <div className="tooltip" data-tip={t('coupon.add_new')}>
+                      <button
+                        className="btn btn-primary"
+                        onClick={handleOpenDialog}
+                        data-testid="create-coupon-button"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        {t('coupon.add')}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
             <CouponList
               coupons={coupons}
               onUpdateCoupon={handleCouponUpdate}
@@ -463,17 +342,18 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
               setRetailerFilter={handleRetailerFilterChange}
               defaultSort={{ field: 'expirationDate', order: 'asc' }}
             />
-          </Box>
+          </div>
         )}
 
-        {/* Tab 1: Retailers */}
         {currentTab === 1 && (
-          <Box sx={{ width: '100%' }}>
-            <Paper variant="outlined" sx={{ width: '100%', mb: 2, p: 2 }}>
-              <Typography variant="h5" component="h2">
-                {t('app.retailer_stats')}
-              </Typography>
-            </Paper>
+          <div className="w-full">
+            <div className="card bg-base-100 shadow-xl mb-4">
+              <div className="card-body">
+                <h2 className="card-title text-2xl">
+                  {t('app.retailer_stats')}
+                </h2>
+              </div>
+            </div>
             <RetailerList 
               coupons={coupons} 
               onRetailerClick={(retailer, sort) => {
@@ -481,23 +361,23 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
                 setCurrentTab(0);
               }}
             />
-          </Box>
+          </div>
         )}
 
-        {/* Tab 2: User Management (for managers) */}
         {currentTab === 2 && isManager && (
-          <Box sx={{ width: '100%' }}>
-            <Paper variant="outlined" sx={{ width: '100%', mb: 2, p: 2 }}>
-              <Typography variant="h5" component="h2">
-                {t('app.user_management')}
-              </Typography>
-            </Paper>
+          <div className="w-full">
+            <div className="card bg-base-100 shadow-xl mb-4">
+              <div className="card-body">
+                <h2 className="card-title text-2xl">
+                  {t('app.user_management')}
+                </h2>
+              </div>
+            </div>
             <UserManagement />
-          </Box>
+          </div>
         )}
-      </Container>
+      </div>
 
-      {/* Add/Edit Coupon Dialog */}
       <AddCouponForm
         open={dialogOpen}
         onClose={handleCloseDialog}
@@ -506,8 +386,8 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
         coupon={selectedCoupon || undefined}
         coupons={coupons}
       />
-    </Box>
+    </div>
   );
 }
 
-export default App; 
+export default App;

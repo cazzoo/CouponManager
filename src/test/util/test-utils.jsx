@@ -1,11 +1,5 @@
 import React, { createContext, useContext } from 'react';
 import { render } from '@testing-library/react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-
-// Create a light theme instance
-const theme = createTheme({
-  palette: { mode: 'light' },
-});
 
 // Create a mock language context that matches the real one
 export const MockLanguageContext = createContext();
@@ -123,17 +117,17 @@ export const mockTranslate = (key, language = 'en', params = {}) => {
       'login.continue_as_guest': 'Continuar como Invitado'
     }
   };
-  
+
   // Get the translation or fall back to the key
   let result = (translations[language] && translations[language][key]) || key;
-  
+
   // Replace any parameters in the translation
   if (params && Object.keys(params).length > 0) {
     Object.keys(params).forEach(paramKey => {
       result = result.replace(`{{${paramKey}}}`, params[paramKey]);
     });
   }
-  
+
   return result;
 };
 
@@ -157,13 +151,13 @@ export const mockUseAuth = () => {
 
 export const MockLanguageProvider = ({ children, initialLanguage = 'en' }) => {
   const [language, setLanguage] = React.useState(initialLanguage);
-  
+
   const value = {
     language,
     changeLanguage: (newLang) => setLanguage(newLang),
     t: (key, params) => mockTranslate(key, language, params)
   };
-  
+
   return (
     <MockLanguageContext.Provider value={value}>
       {children}
@@ -192,21 +186,19 @@ export const MockAuthProvider = ({ children, initialAuthState = {} }) => {
 
 export const renderWithProviders = (ui, options = {}) => {
   const { wrapper: CustomWrapper, initialAuthState, ...rest } = options;
-  
+
   const AllTheProviders = ({ children }) => {
     return (
-      <ThemeProvider theme={theme}>
-        <MockAuthProvider initialAuthState={initialAuthState}>
-          {CustomWrapper ? (
-            <CustomWrapper>{children}</CustomWrapper>
-          ) : (
-            <MockLanguageProvider>{children}</MockLanguageProvider>
-          )}
-        </MockAuthProvider>
-      </ThemeProvider>
+      <MockAuthProvider initialAuthState={initialAuthState}>
+        {CustomWrapper ? (
+          <CustomWrapper>{children}</CustomWrapper>
+        ) : (
+          <MockLanguageProvider>{children}</MockLanguageProvider>
+        )}
+      </MockAuthProvider>
     );
   };
-  
+
   return render(ui, { wrapper: AllTheProviders, ...rest });
 };
 
@@ -225,4 +217,4 @@ export const MockUseAuth = () => ({
   signIn: () => Promise.resolve({ user: { id: 'test-user-id', email: 'test@example.com' }, error: null }),
   signUp: () => Promise.resolve({ user: { id: 'test-user-id', email: 'test@example.com' }, error: null }),
   signOut: () => Promise.resolve({ error: null })
-}); 
+});

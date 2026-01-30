@@ -4,7 +4,6 @@ import CouponList from '../../components/CouponList';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders, MockLanguageProvider } from '../util/test-utils';
 
-// Mock the useLanguage hook to avoid "useLanguage must be used within a LanguageProvider" error
 vi.mock('../../services/LanguageContext', () => ({
   useLanguage: () => ({
     t: (key) => key,
@@ -14,15 +13,6 @@ vi.mock('../../services/LanguageContext', () => ({
   })
 }));
 
-// Simple mock for useMediaQuery - always return false (desktop view)
-vi.mock('@mui/material', async () => {
-  const actual = await vi.importActual('@mui/material');
-  return {
-    ...actual,
-    useMediaQuery: () => false
-  };
-});
-
 describe('CouponList Component', () => {
   const mockCoupons = [
     {
@@ -30,7 +20,7 @@ describe('CouponList Component', () => {
       retailer: 'Amazon',
       initialValue: '50',
       currentValue: '50',
-      expirationDate: '2025-12-31', // String format to match prop type
+      expirationDate: '2027-12-31',
       activationCode: 'AMZN2024',
       pin: '1234'
     },
@@ -39,7 +29,7 @@ describe('CouponList Component', () => {
       retailer: 'Target',
       initialValue: '75',
       currentValue: '75',
-      expirationDate: '2025-09-30', // String format to match prop type
+      expirationDate: '2027-09-30',
       activationCode: 'TGT75FALL',
       pin: '4321'
     },
@@ -47,8 +37,8 @@ describe('CouponList Component', () => {
       id: 3,
       retailer: 'Amazon',
       initialValue: '25',
-      currentValue: '0', // Used coupon
-      expirationDate: '2025-06-30', // String format to match prop type
+      currentValue: '0',
+      expirationDate: '2027-06-30',
       activationCode: 'AMZN25SPRING',
       pin: '9012'
     },
@@ -57,7 +47,7 @@ describe('CouponList Component', () => {
       retailer: 'Best Buy',
       initialValue: '100',
       currentValue: '100',
-      expirationDate: '2023-12-31', // String format to match prop type
+      expirationDate: '2025-12-31',
       activationCode: 'BB100DEC',
       pin: '5678'
     }
@@ -89,24 +79,19 @@ describe('CouponList Component', () => {
 
   it('filters coupons by retailer', () => {
     renderWithProviders(
-      <CouponList 
-        coupons={mockCoupons} 
-        onUpdateCoupon={mockOnUpdateCoupon} 
+      <CouponList
+        coupons={mockCoupons}
+        onUpdateCoupon={mockOnUpdateCoupon}
         onMarkAsUsed={mockOnMarkAsUsed}
         setRetailerFilter={mockSetRetailerFilter}
       />
     );
-    
-    // Find the retailer filter input by its name attribute instead of label
-    const retailerFilter = screen.getByRole('textbox', { name: 'form.retailer' });
-    
-    // Type 'Amazon' into the filter
+
+    const retailerFilter = screen.getByTestId('filter-retailer');
     fireEvent.change(retailerFilter, { target: { value: 'Amazon' } });
-    
-    // Check that Amazon coupons are visible and Target is not in the table
+
     expect(screen.getAllByText(/Amazon/i).length).toBeGreaterThan(0);
-    
-    // Find all table cells and check that none contain 'Target'
+
     const tableCells = screen.getAllByRole('cell');
     const targetCells = tableCells.filter(cell => cell.textContent === 'Target');
     expect(targetCells.length).toBe(0);
@@ -114,22 +99,19 @@ describe('CouponList Component', () => {
 
   it('shows expired coupons when checkbox is checked', () => {
     renderWithProviders(
-      <CouponList 
-        coupons={mockCoupons} 
-        onUpdateCoupon={mockOnUpdateCoupon} 
+      <CouponList
+        coupons={mockCoupons}
+        onUpdateCoupon={mockOnUpdateCoupon}
         onMarkAsUsed={mockOnMarkAsUsed}
         setRetailerFilter={mockSetRetailerFilter}
       />
     );
-    
-    // Initially, expired coupons should not be visible
+
     expect(screen.queryByText(/BB100DEC/i)).not.toBeInTheDocument();
-    
-    // Find and click the 'Show Expired' checkbox by its name
-    const showExpiredCheckbox = screen.getByLabelText('filter.show_expired');
+
+    const showExpiredCheckbox = screen.getByTestId('filter-show-expired');
     fireEvent.click(showExpiredCheckbox);
-    
-    // Now the expired coupon should be visible
+
     expect(screen.getByText(/BB100DEC/i)).toBeInTheDocument();
   });
 
@@ -150,55 +132,44 @@ describe('CouponList Component', () => {
 
   it('filters coupons by amount range', () => {
     renderWithProviders(
-      <CouponList 
-        coupons={mockCoupons} 
-        onUpdateCoupon={mockOnUpdateCoupon} 
+      <CouponList
+        coupons={mockCoupons}
+        onUpdateCoupon={mockOnUpdateCoupon}
         onMarkAsUsed={mockOnMarkAsUsed}
         setRetailerFilter={mockSetRetailerFilter}
       />
     );
-    
-    // Find the min and max amount filters
-    const minAmountFilter = screen.getByLabelText(/filter\.min_amount/i);
-    const maxAmountFilter = screen.getByLabelText(/filter\.max_amount/i);
-    
-    // Set filter values to only show coupons between $40 and $80
+
+    const minAmountFilter = screen.getByTestId('filter-min-amount');
+    const maxAmountFilter = screen.getByTestId('filter-max-amount');
+
     fireEvent.change(minAmountFilter, { target: { value: '40' } });
     fireEvent.change(maxAmountFilter, { target: { value: '80' } });
-    
-    // Check that Amazon coupon ($50) is visible
+
     expect(screen.getByText(/AMZN2024/i)).toBeInTheDocument();
-    
-    // Check that Target coupon ($75) is visible
     expect(screen.getByText(/TGT75FALL/i)).toBeInTheDocument();
-    
-    // Best Buy coupon ($100) should not be visible (filtered out by max amount)
     expect(screen.queryByText(/BB100DEC/i)).not.toBeInTheDocument();
   });
 
   it('sorts coupons by different columns', () => {
     renderWithProviders(
-      <CouponList 
-        coupons={mockCoupons} 
-        onUpdateCoupon={mockOnUpdateCoupon} 
+      <CouponList
+        coupons={mockCoupons}
+        onUpdateCoupon={mockOnUpdateCoupon}
         onMarkAsUsed={mockOnMarkAsUsed}
         setRetailerFilter={mockSetRetailerFilter}
       />
     );
-    
-    // Find and click the retailer column header to sort
-    const retailerHeader = screen.getByRole('button', { name: /form\.retailer/i });
+
+    const retailerHeader = screen.getByTestId('sort-retailer');
     fireEvent.click(retailerHeader);
-    
-    // Find all table cells
+
     const tableCells = screen.getAllByRole('cell');
     expect(tableCells.length).toBeGreaterThan(0);
-    
-    // Now click the value column header to sort by value
-    const valueHeader = screen.getByRole('button', { name: /form\.current_value/i });
+
+    const valueHeader = screen.getByTestId('sort-value');
     fireEvent.click(valueHeader);
-    
-    // Check that the component didn't crash after sorting
+
     expect(screen.getAllByRole('cell').length).toBeGreaterThan(0);
   });
 
@@ -237,19 +208,17 @@ describe('CouponList Component', () => {
 
   it('displays no coupons message when filtered results are empty', () => {
     renderWithProviders(
-      <CouponList 
-        coupons={mockCoupons} 
-        onUpdateCoupon={mockOnUpdateCoupon} 
+      <CouponList
+        coupons={mockCoupons}
+        onUpdateCoupon={mockOnUpdateCoupon}
         onMarkAsUsed={mockOnMarkAsUsed}
         setRetailerFilter={mockSetRetailerFilter}
       />
     );
-    
-    // Set an impossible filter combination
-    const retailerFilter = screen.getByLabelText(/Retailer/i);
+
+    const retailerFilter = screen.getByTestId('filter-retailer');
     fireEvent.change(retailerFilter, { target: { value: 'NonExistentRetailer' } });
-    
-    // Should show the "no coupons found" message
+
     expect(screen.getByText(/messages\.no_coupons_found/i)).toBeInTheDocument();
   });
 

@@ -1,9 +1,4 @@
 import React, { useState, ChangeEvent, FormEvent, FocusEvent } from 'react';
-import { 
-  Box, Button, TextField, Typography, Paper, 
-  CircularProgress, Alert, Container, Divider,
-  Tabs, Tab, FormHelperText
-} from '@mui/material';
 import { useAuth } from '../services/AuthContext';
 import { useLanguage } from '../services/LanguageContext';
 
@@ -153,97 +148,114 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="xs">
-      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
-        <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography component="h1" variant="h5" sx={{ mb: 1 }}>
+    <div className="container mx-auto max-w-xs">
+      <div className="card bg-base-100 shadow-xl p-4 mt-8">
+        <div className="mb-2 flex flex-col items-center">
+          <h1 className="text-2xl font-bold mb-1">
             {t('app.coupon_manager')}
-          </Typography>
-          <Tabs value={tabIndex} onChange={handleTabChange} sx={{ mb: 2 }}>
-            <Tab label={t('login.sign_in')} />
-            <Tab label={t('login.sign_up')} />
-          </Tabs>
-        </Box>
+          </h1>
+          <div className="tabs tabs-boxed mb-2">
+            <a 
+              className={`tab ${tabIndex === 0 ? 'tab-active' : ''}`}
+              onClick={(e) => handleTabChange(e, 0)}
+            >
+              {t('login.sign_in')}
+            </a>
+            <a 
+              className={`tab ${tabIndex === 1 ? 'tab-active' : ''}`}
+              onClick={(e) => handleTabChange(e, 1)}
+            >
+              {t('login.sign_up')}
+            </a>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} data-testid="login-form">
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            name="email"
-            label={t('login.email_label')}
-            autoComplete="email"
-            autoFocus
-            value={email}
-            onChange={handleInputChange}
-            onBlur={() => handleBlur('email')}
-            error={!!validationErrors.email}
-            helperText={validationErrors.email}
-            inputProps={{ 'data-testid': 'username-input' }}
-          />
+          <div className="form-control">
+            <label className="label" htmlFor="email">
+              <span className="label-text">{t('login.email_label')}</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className={`input input-bordered w-full ${validationErrors.email ? 'input-error' : ''}`}
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('email')}
+              data-testid="username-input"
+            />
+            {validationErrors.email && (
+              <label className="label">
+                <span className="label-text-alt text-error">{validationErrors.email}</span>
+              </label>
+            )}
+          </div>
 
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            type="password"
-            id="password"
-            label={t('login.password_label')}
-            autoComplete={isSignUp ? 'new-password' : 'current-password'}
-            value={password}
-            onChange={handleInputChange}
-            onBlur={() => handleBlur('password')}
-            error={!!validationErrors.password}
-            helperText={validationErrors.password}
-            inputProps={{ 'data-testid': 'password-input' }}
-          />
+          <div className="form-control mt-2">
+            <label className="label" htmlFor="password">
+              <span className="label-text">{t('login.password_label')}</span>
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              className={`input input-bordered w-full ${validationErrors.password ? 'input-error' : ''}`}
+              autoComplete={isSignUp ? 'new-password' : 'current-password'}
+              value={password}
+              onChange={handleInputChange}
+              onBlur={() => handleBlur('password')}
+              data-testid="password-input"
+            />
+            {validationErrors.password && (
+              <label className="label">
+                <span className="label-text-alt text-error">{validationErrors.password}</span>
+              </label>
+            )}
+          </div>
 
           {isSignUp && showPasswordRequirements && (
-            <FormHelperText>
-              {t('login.password_requirements')}
-            </FormHelperText>
+            <label className="label">
+              <span className="label-text-alt">{t('login.password_requirements')}</span>
+            </label>
           )}
 
           {error && (
-            <Alert severity="error" sx={{ mt: 2 }} data-testid="login-error-message">
-              {typeof error === 'string' ? error : t('login.error_general')}
-            </Alert>
+            <div className="alert alert-error mt-2" data-testid="login-error-message">
+              <span>{typeof error === 'string' ? error : t('login.error_general')}</span>
+            </div>
           )}
 
-          <Button
+          <button
             type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            className="btn btn-primary w-full mt-3 mb-2"
             disabled={loading}
             data-testid="login-submit-button"
           >
             {loading ? (
-              <CircularProgress size={24} />
+              <span className="loading loading-spinner loading-sm" role="progressbar" aria-label="Loading"></span>
             ) : (
               isSignUp ? t('login.sign_up') : t('login.sign_in')
             )}
-          </Button>
+          </button>
           
-          <Divider sx={{ my: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              {t('login.or_divider')}
-            </Typography>
-          </Divider>
+          <div className="divider my-2">
+            {t('login.or_divider')}
+          </div>
           
-          <Button
-            fullWidth
-            variant="outlined"
+          <button
+            type="button"
+            className="btn btn-outline w-full"
             onClick={handleAnonymousSignIn}
             disabled={loading}
           >
             {t('login.continue_as_guest')}
-          </Button>
+          </button>
         </form>
-      </Paper>
-    </Container>
+      </div>
+    </div>
   );
 };
 

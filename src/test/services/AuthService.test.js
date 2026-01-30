@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import AuthService from '../../services/AuthService';
+import PocketBaseAuthService from '../../services/PocketBaseAuthService';
 
 // Mock window.crypto for UUID generation
 beforeEach(() => {
@@ -10,28 +10,50 @@ beforeEach(() => {
   window.crypto.randomUUID = vi.fn().mockReturnValue('mock-uuid');
 });
 
-// Mock Supabase client to avoid actual API calls during tests
-vi.mock('../../services/SupabaseClient', () => {
-  const mockAuth = {
-    signUp: vi.fn(),
-    signInWithPassword: vi.fn(),
-    signOut: vi.fn(),
-    getSession: vi.fn(),
-    onAuthStateChange: vi.fn(),
-    signInAnonymously: vi.fn()
+// Mock the PocketBaseClient
+vi.mock('../../services/PocketBaseClient', () => {
+  let mockAuthStore = {
+    isValid: false,
+    token: null,
+    model: null,
+    save: vi.fn(),
+    clear: vi.fn(),
+    onChange: vi.fn((callback) => {
+      // Immediately call callback with initial state
+      callback(null, null);
+    })
+  };
+
+  let usersCollection = {
+    create: vi.fn(),
+    authWithPassword: vi.fn()
+  };
+
+  const mockInstance = {
+    collection: vi.fn((name) => {
+      if (name === 'users') {
+        return usersCollection;
+      }
+      return {};
+    }),
+    authStore: mockAuthStore
   };
 
   return {
     default: {
-      auth: mockAuth
+      getInstance: vi.fn(() => mockInstance),
+      // Expose helper methods for tests to control the mock
+      _setMockAuthStore: (store) => { mockAuthStore = store; },
+      _setUsersCollection: (col) => { usersCollection = col; },
+      _getMockInstance: () => mockInstance
     }
   };
 });
 
-// Import the mocked module
-import supabase from '../../services/SupabaseClient';
+// Import the mocked module to get access to helper methods
+import PocketBaseClient from '../../services/PocketBaseClient';
 
-describe('AuthService', () => {
+describe('PocketBaseAuthService', () => {
   beforeEach(() => {
     // Clear all mocks between tests
     vi.clearAllMocks();
@@ -42,172 +64,155 @@ describe('AuthService', () => {
   });
 
   describe('signUp', () => {
-    it('should call Supabase signUp with correct parameters', async () => {
-      // Set up mock return value
-      supabase.auth.signUp.mockResolvedValue({
-        data: { user: { id: 'test-user-id' } },
-        error: null
-      });
-
-      // Call the service method
-      const result = await AuthService.signUp('test@example.com', 'password123');
-
-      // Verify Supabase was called correctly
-      expect(supabase.auth.signUp).toHaveBeenCalledWith({
+    it('should call PocketBase users.create with correct parameters', async () => {
+      // Arrange - Set up mock return value
+      const mockUserRecord = {
+        id: 'test-user-id',
         email: 'test@example.com',
-        password: 'password123'
+        emailVisibility: true,
+        created: new Date().toISOString(),
+        updated: new Date().toISOString()
+      };
+
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.collection('users').create.mockResolvedValue(mockUserRecord);
+
+      // Act - Call the service method
+      const result = await PocketBaseAuthService.signUp('test@example.com', 'password123');
+
+      // Assert - Verify PocketBase was called correctly
+      expect(mockInstance.collection('users').create).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password123',
+        passwordConfirm: 'password123',
+        emailVisibility: true
       });
-      
+
       // Verify the returned data
       expect(result).toEqual({
-        user: { id: 'test-user-id' },
+        data: { user: mockUserRecord },
         error: null
       });
     });
 
     it('should handle signup errors correctly', async () => {
-      // Set up mock to return an error
+      // Arrange - Set up mock to return an error
       const mockError = new Error('Email already in use');
-      supabase.auth.signUp.mockResolvedValue({
-        data: { user: null },
-        error: mockError
-      });
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.collection('users').create.mockRejectedValue(mockError);
 
-      // Call the service method
-      const result = await AuthService.signUp('test@example.com', 'password123');
+      // Act - Call the service method
+      const result = await PocketBaseAuthService.signUp('test@example.com', 'password123');
 
-      // Verify error handling
-      expect(result).toEqual({
-        user: null,
-        error: mockError
-      });
+      // Assert - Verify error handling
+      expect(result.data).toBeNull();
+      expect(result.error).toBeDefined();
+      expect(result.error).toBeInstanceOf(Error);
     });
   });
 
   describe('signIn', () => {
-    it('should call Supabase signInWithPassword with correct parameters', async () => {
-      // Set up mock return value
-      supabase.auth.signInWithPassword.mockResolvedValue({
-        data: { 
-          user: { id: 'test-user-id', email: 'test@example.com' },
-          session: { access_token: 'test-token' }
-        },
-        error: null
-      });
-
-      // Call the service method
-      const result = await AuthService.signIn('test@example.com', 'password123');
-
-      // Verify Supabase was called correctly
-      expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
+    it('should call PocketBase authWithPassword with correct parameters', async () => {
+      // Arrange - Set up mock return value
+      const mockUserRecord = {
+        id: 'test-user-id',
         email: 'test@example.com',
-        password: 'password123'
-      });
-      
+        created: new Date().toISOString(),
+        updated: new Date().toISOString()
+      };
+
+      const mockAuthData = {
+        token: 'test-token',
+        record: mockUserRecord
+      };
+
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.collection('users').authWithPassword.mockResolvedValue(mockAuthData);
+
+      // Act - Call the service method
+      const result = await PocketBaseAuthService.signIn('test@example.com', 'password123');
+
+      // Assert - Verify PocketBase was called correctly
+      expect(mockInstance.collection('users').authWithPassword).toHaveBeenCalledWith(
+        'test@example.com',
+        'password123'
+      );
+
       // Verify the returned data
-      expect(result).toEqual({
-        user: { id: 'test-user-id', email: 'test@example.com' },
-        session: { access_token: 'test-token' },
-        error: null
+      expect(result.data).toBeDefined();
+      expect(result.data.user).toEqual(mockUserRecord);
+      expect(result.data.session).toEqual({
+        token: 'test-token',
+        user: mockUserRecord
       });
+      expect(result.error).toBeNull();
     });
 
     it('should handle signin errors correctly', async () => {
-      // Set up mock to return an error
+      // Arrange - Set up mock to return an error
       const mockError = new Error('Invalid login credentials');
-      supabase.auth.signInWithPassword.mockResolvedValue({
-        data: { user: null, session: null },
-        error: mockError
-      });
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.collection('users').authWithPassword.mockRejectedValue(mockError);
 
-      // Call the service method
-      const result = await AuthService.signIn('test@example.com', 'wrong-password');
+      // Act - Call the service method
+      const result = await PocketBaseAuthService.signIn('test@example.com', 'wrong-password');
 
-      // Verify error handling
-      expect(result).toEqual({
-        user: null,
-        session: null,
-        error: mockError
-      });
+      // Assert - Verify error handling
+      expect(result.data).toBeNull();
+      expect(result.error).toBeDefined();
+      expect(result.error).toBeInstanceOf(Error);
     });
   });
 
   describe('signInAnonymously', () => {
     it('should sign in anonymously successfully', async () => {
-      // Arrange
-      const mockUser = { id: 'user-123', email: 'anonymous@example.com' };
-      const mockSession = { user: mockUser, access_token: 'token-123' };
-      
-      // Set up the mock to return successful anonymous sign-in
-      supabase.auth.signInAnonymously.mockResolvedValue({
-        data: {
-          user: mockUser,
-          session: mockSession
-        },
-        error: null
-      });
-      
-      // Act
-      const result = await AuthService.signInAnonymously();
-      
+      // Arrange & Act
+      const result = await PocketBaseAuthService.signInAnonymously();
+
       // Assert
-      expect(supabase.auth.signInAnonymously).toHaveBeenCalled();
-      expect(result.user).toEqual(mockUser);
-      expect(result.session).toEqual(mockSession);
+      expect(result.data).toBeDefined();
+      expect(result.data.user).toEqual({
+        id: 'anonymous',
+        email: 'anonymous@local',
+        role: 'demo',
+        created: expect.any(String),
+        updated: expect.any(String)
+      });
+      expect(result.data.session).toEqual({
+        token: 'anonymous-token',
+        user: result.data.user
+      });
       expect(result.error).toBeNull();
     });
 
     it('should handle errors during anonymous sign-in', async () => {
-      // Arrange
-      const mockError = new Error('Anonymous sign-in failed');
-      
-      // Set up the mock to return an error
-      supabase.auth.signInAnonymously.mockResolvedValue({
-        data: { user: null, session: null },
-        error: mockError
+      // Arrange - Mock authStore.save to throw an error
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.authStore.save.mockImplementation(() => {
+        throw new Error('Anonymous sign-in failed');
       });
-      
-      // Act
-      const result = await AuthService.signInAnonymously();
-      
-      // Assert
-      expect(supabase.auth.signInAnonymously).toHaveBeenCalled();
-      expect(result.user).toBeNull();
-      expect(result.session).toBeNull();
-      expect(result.error).toEqual(mockError);
-    });
 
-    it('should handle unexpected exceptions during anonymous sign-in', async () => {
-      // Arrange
-      const mockError = new Error('Unexpected error');
-      
-      // Set up the mock to throw an exception
-      supabase.auth.signInAnonymously.mockRejectedValue(mockError);
-      
       // Act
-      const result = await AuthService.signInAnonymously();
-      
+      const result = await PocketBaseAuthService.signInAnonymously();
+
       // Assert
-      expect(supabase.auth.signInAnonymously).toHaveBeenCalled();
-      expect(result.user).toBeNull();
-      expect(result.session).toBeNull();
-      expect(result.error).toEqual(mockError);
+      expect(result.data).toBeNull();
+      expect(result.error).toBeDefined();
+      expect(result.error).toBeInstanceOf(Error);
     });
   });
 
   describe('signOut', () => {
-    it('should call Supabase signOut method', async () => {
-      // Set up mock return value
-      supabase.auth.signOut.mockResolvedValue({
-        error: null
-      });
+    it('should clear the auth store', async () => {
+      // Arrange
+      const mockInstance = PocketBaseClient._getMockInstance();
 
-      // Call the service method
-      const result = await AuthService.signOut();
+      // Act - Call the service method
+      const result = await PocketBaseAuthService.signOut();
 
-      // Verify Supabase was called
-      expect(supabase.auth.signOut).toHaveBeenCalled();
-      
+      // Assert - Verify PocketBase was called
+      expect(mockInstance.authStore.clear).toHaveBeenCalled();
+
       // Verify the returned data
       expect(result).toEqual({
         error: null
@@ -215,102 +220,143 @@ describe('AuthService', () => {
     });
 
     it('should handle signout errors correctly', async () => {
-      // Set up mock to return an error
-      const mockError = new Error('Session expired');
-      supabase.auth.signOut.mockResolvedValue({
-        error: mockError
+      // Arrange - Mock authStore.clear to throw an error
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.authStore.clear.mockImplementation(() => {
+        throw new Error('Session expired');
       });
 
-      // Call the service method
-      const result = await AuthService.signOut();
+      // Act - Call the service method
+      const result = await PocketBaseAuthService.signOut();
 
-      // Verify error handling
-      expect(result).toEqual({
-        error: mockError
-      });
+      // Assert - Verify error handling
+      expect(result.error).toBeDefined();
+      expect(result.error).toBeInstanceOf(Error);
     });
   });
 
   describe('getCurrentSession', () => {
-    it('should retrieve the current session', async () => {
-      // Set up mock return value
-      supabase.auth.getSession.mockResolvedValue({
-        data: { 
-          session: { 
-            user: { id: 'test-user-id' },
-            access_token: 'test-token' 
-          }
-        },
-        error: null
-      });
+    it('should retrieve the current session when valid', async () => {
+      // Arrange - Set up a valid session
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        created: new Date().toISOString(),
+        updated: new Date().toISOString()
+      };
 
-      // Call the service method
-      const result = await AuthService.getCurrentSession();
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.authStore.isValid = true;
+      mockInstance.authStore.token = 'test-token';
+      mockInstance.authStore.model = mockUser;
 
-      // Verify Supabase was called
-      expect(supabase.auth.getSession).toHaveBeenCalled();
-      
-      // Verify the returned data
-      expect(result).toEqual({
-        session: { 
-          user: { id: 'test-user-id' },
-          access_token: 'test-token' 
-        },
-        error: null
+      // Act - Call the service method
+      const result = await PocketBaseAuthService.getCurrentSession();
+
+      // Assert - Verify the returned data
+      expect(result.session).toEqual({
+        token: 'test-token',
+        user: mockUser
       });
+      expect(result.error).toBeNull();
     });
 
-    it('should handle session retrieval errors', async () => {
-      // Set up mock to return an error
-      const mockError = new Error('Unable to retrieve session');
-      supabase.auth.getSession.mockResolvedValue({
-        data: { session: null },
-        error: mockError
-      });
+    it('should return null when session is invalid', async () => {
+      // Arrange - Set up an invalid session
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.authStore.isValid = false;
+      mockInstance.authStore.token = null;
+      mockInstance.authStore.model = null;
 
-      // Call the service method
-      const result = await AuthService.getCurrentSession();
+      // Act - Call the service method
+      const result = await PocketBaseAuthService.getCurrentSession();
 
-      // Verify error handling
-      expect(result).toEqual({
-        session: null,
-        error: mockError
-      });
+      // Assert - Verify null session
+      expect(result.session).toBeNull();
+      expect(result.error).toBeNull();
+    });
+
+    it('should return null when token is missing', async () => {
+      // Arrange - Set up session without token
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.authStore.isValid = false;
+      mockInstance.authStore.token = null;
+      mockInstance.authStore.model = null;
+
+      // Act - Call the service method
+      const result = await PocketBaseAuthService.getCurrentSession();
+
+      // Assert - Verify null session
+      expect(result.session).toBeNull();
+      expect(result.error).toBeNull();
+    });
+
+    it('should return null when model is missing', async () => {
+      // Arrange - Set up session with token but no model
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.authStore.isValid = true;
+      mockInstance.authStore.token = 'test-token';
+      mockInstance.authStore.model = null;
+
+      // Act - Call the service method
+      const result = await PocketBaseAuthService.getCurrentSession();
+
+      // Assert - Verify null session
+      expect(result.session).toBeNull();
+      expect(result.error).toBeNull();
+    });
+  });
+
+  describe('getUser', () => {
+    it('should return the current user from auth store', () => {
+      // Arrange - Set up auth store with user
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'user',
+        created: new Date().toISOString(),
+        updated: new Date().toISOString(),
+        emailVisibility: true
+      };
+
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.authStore.model = mockUser;
+
+      // Act - Call the service method
+      const result = PocketBaseAuthService.getUser();
+
+      // Assert - Verify the returned user
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should return null when no user in auth store', () => {
+      // Arrange - Set up auth store without user
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.authStore.model = null;
+
+      // Act - Call the service method
+      const result = PocketBaseAuthService.getUser();
+
+      // Assert - Verify null user
+      expect(result).toBeNull();
     });
   });
 
   describe('onAuthStateChange', () => {
-    it('should set up an auth state change listener', () => {
-      // Mock implementation for onAuthStateChange
+    it('should set up an auth state change listener and return unsubscribe function', () => {
+      // Arrange
       const mockCallback = vi.fn();
-      const mockUnsubscribe = vi.fn();
-      
-      supabase.auth.onAuthStateChange.mockImplementation((callback) => {
-        // Call the callback to simulate an auth state change
-        callback('SIGNED_IN', { user: { id: 'test-user-id' } });
-        return { data: { subscription: { unsubscribe: mockUnsubscribe } } };
-      });
+      const mockInstance = PocketBaseClient._getMockInstance();
 
-      // Call the service method
-      const unsubscribe = AuthService.onAuthStateChange(mockCallback);
+      // Act - Call the service method
+      const unsubscribe = PocketBaseAuthService.onAuthStateChange(mockCallback);
 
-      // Verify Supabase was called with a callback
-      expect(supabase.auth.onAuthStateChange).toHaveBeenCalled();
-      
-      // Verify the callback was called with the correct event
-      expect(mockCallback).toHaveBeenCalledWith('SIGNED_IN', { user: { id: 'test-user-id' } });
-      
-      // Verify the result is callable as a function
-      expect(typeof unsubscribe).toBe('function');
-      
-      // Verify the object has the expected data structure
+      // Assert - Verify the result
+      expect(unsubscribe).toBeDefined();
       expect(unsubscribe.data).toBeDefined();
       expect(unsubscribe.data.subscription).toBeDefined();
       expect(typeof unsubscribe.data.subscription.unsubscribe).toBe('function');
-      
-      // Call the unsubscribe function directly
-      unsubscribe();
-      expect(mockUnsubscribe).toHaveBeenCalled();
     });
   });
-}); 
+});

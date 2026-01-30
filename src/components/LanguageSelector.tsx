@@ -1,17 +1,5 @@
-import React, { useState, MouseEvent, ChangeEvent } from 'react';
-import {
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Box,
-  useMediaQuery,
-  IconButton,
-  Menu,
-  SelectChangeEvent
-} from '@mui/material';
-import LanguageIcon from '@mui/icons-material/Language';
-import { useTheme } from '@mui/material/styles';
+import React, { useState, MouseEvent, useEffect } from 'react';
+import { Languages } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
 
 interface Language {
@@ -21,14 +9,28 @@ interface Language {
 
 const LanguageSelector: React.FC = () => {
   const { language, changeLanguage, t, getSupportedLanguages } = useLanguage();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
   
   const languages: Language[] = getSupportedLanguages();
   
-  const handleChange = (event: SelectChangeEvent<string>) => {
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.matchMedia('(max-width: 639px)').matches);
+    };
+    
+    checkMobile();
+    
+    const mediaQuery = window.matchMedia('(max-width: 639px)');
+    mediaQuery.addEventListener('change', checkMobile);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', checkMobile);
+    };
+  }, []);
+  
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     changeLanguage(event.target.value);
   };
   
@@ -50,54 +52,54 @@ const LanguageSelector: React.FC = () => {
   
   if (isMobile) {
     return (
-      <Box sx={{ marginLeft: 1 }}>
-        <IconButton
-          onClick={handleMobileClick}
-          color="inherit"
-          size="small"
-          aria-label={t('general.language')}
-          data-testid="language-selector"
-        >
-          <LanguageIcon />
-        </IconButton>
-        <Menu
-          anchorEl={anchorEl}
-          open={open}
-          onClose={() => handleMobileClose()}
-        >
-          {languages.map((lang) => (
-            <MenuItem 
-              key={lang.code} 
-              onClick={() => handleMobileClose(lang.code)}
-              selected={language === lang.code}
-            >
-              {lang.name}
-            </MenuItem>
-          ))}
-        </Menu>
-      </Box>
+      <div className="ml-1" data-testid="language-selector">
+        <div className="dropdown dropdown-end">
+          <button
+            onClick={handleMobileClick}
+            className="btn btn-circle btn-ghost btn-sm"
+            aria-label={t('language')}
+            tabIndex={0}
+          >
+            <Languages size={20} />
+          </button>
+          <ul className={`dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 ${open ? 'menu-open' : ''}`} tabIndex={0}>
+            {languages.map((lang) => (
+              <li key={lang.code}>
+                <a
+                  onClick={() => handleMobileClose(lang.code)}
+                  className={language === lang.code ? 'active' : ''}
+                >
+                  {lang.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     );
   }
   
   return (
-    <Box sx={{ minWidth: 120, marginLeft: 2 }} data-testid="language-selector">
-      <FormControl variant="outlined" size="small" sx={{ m: 1, minWidth: 120 }}>
-        <InputLabel id="language-select-label">{t('general.language')}</InputLabel>
-        <Select
-          labelId="language-select-label"
+    <div className="hidden md:block ml-2" data-testid="language-selector">
+      <div className="form-control min-w-[120px]">
+        <label className="label" htmlFor="language-select">
+          <span className="label-text">{t('language')}</span>
+        </label>
+        <select
           id="language-select"
+          className="select select-bordered select-sm w-full max-w-xs"
           value={language}
           onChange={handleChange}
-          label={t('general.language')}
+          aria-label={t('language')}
         >
           {languages.map((lang) => (
-            <MenuItem key={lang.code} value={lang.code}>
+            <option key={lang.code} value={lang.code}>
               {lang.name}
-            </MenuItem>
+            </option>
           ))}
-        </Select>
-      </FormControl>
-    </Box>
+        </select>
+      </div>
+    </div>
   );
 };
 

@@ -1,52 +1,23 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import App from './App';
 import { LanguageProvider } from './services/LanguageContext';
 import { AuthProvider } from './services/AuthContext';
 
-// Import i18n configuration
+import './index.css';
 import './i18n';
-
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    background: {
-      default: '#303030',
-      paper: '#424242'
-    },
-    primary: {
-      main: '#66bb6a'
-    }
-  },
-});
-
-const lightTheme = createTheme({
-  palette: {
-    mode: 'light',
-    background: {
-      default: '#f5f5f5',
-      paper: '#e8e8e8'
-    },
-    primary: {
-      main: '#2e7d32'
-    }
-  },
-});
 
 function Root(): JSX.Element {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
 
   return (
-    <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
-      <CssBaseline />
+    <div data-theme={isDarkMode ? 'dark' : 'light'}>
       <AuthProvider>
         <LanguageProvider>
           <App isDarkMode={isDarkMode} onThemeChange={setIsDarkMode} />
         </LanguageProvider>
       </AuthProvider>
-    </ThemeProvider>
+    </div>
   );
 }
 

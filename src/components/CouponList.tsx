@@ -1,16 +1,5 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import { 
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton,
-  TextField, Box, TableSortLabel, Button, Autocomplete, Typography, Card,
-  CardContent, Grid, useMediaQuery, useTheme, Chip, Tooltip, FormControlLabel, Checkbox,
-  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar, Alert
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import MoneyOffIcon from '@mui/icons-material/MoneyOff';
-import PaymentIcon from '@mui/icons-material/Payment';
-import CancelIcon from '@mui/icons-material/Cancel';
-import SaveIcon from '@mui/icons-material/Save';
+import { Edit, Copy, CircleX, CreditCard, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { enUS, es, fr, de } from 'date-fns/locale';
 import { useLanguage } from '../services/LanguageContext';
@@ -49,9 +38,38 @@ const CouponList: React.FC<CouponListProps> = ({
   setRetailerFilter, 
   defaultSort 
 }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { t, language } = useLanguage();
+  
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(max-width: 768px)');
+      return mediaQuery?.matches ?? false;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    if (!mediaQuery) return;
+
+    const handleChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+    } else {
+      mediaQuery.addListener(handleChange);
+    }
+    
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleChange);
+      } else {
+        mediaQuery.removeListener(handleChange);
+      }
+    };
+  }, []);
   
   // State management
   const [filters, setFilters] = useState<FilterState>({
@@ -239,339 +257,366 @@ const CouponList: React.FC<CouponListProps> = ({
 
   // Render the component - rendering logic will be preserved from the original JSX
   return (
-    <Box data-testid="coupon-list">
+    <div data-testid="coupon-list" className="w-full">
       {/* Filters Section */}
-      <Paper variant="outlined" sx={{ width: '100%', mb: 2, p: 2 }}>
-        <Box sx={{ width: '100%' }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={3}>
-              <TextField
-                name="retailer"
-                label={t('form.retailer')}
-                variant="outlined"
-                size="small"
-                fullWidth
-                value={filters.retailer}
-                onChange={handleFilterChange}
-              />
-            </Grid>
-            <Grid item xs={6} sm={2}>
-              <TextField
-                name="minAmount"
-                label={t('filter.min_amount')}
-                variant="outlined"
-                size="small"
-                fullWidth
-                type="number"
-                value={filters.minAmount}
-                onChange={handleFilterChange}
-              />
-            </Grid>
-            <Grid item xs={6} sm={2}>
-              <TextField
-                name="maxAmount"
-                label={t('filter.max_amount')}
-                variant="outlined"
-                size="small"
-                fullWidth
-                type="number"
-                value={filters.maxAmount}
-                onChange={handleFilterChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <FormControlLabel
-                control={
-                  <Checkbox
+      <div className="card w-full mb-2 p-4 border border-base-300 bg-base-100">
+        <div className="w-full">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+            <div className="md:col-span-3">
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text">{t('form.retailer')}</span>
+                </label>
+                <input
+                  type="text"
+                  name="retailer"
+                  placeholder={t('form.retailer')}
+                  className="input input-bordered input-sm w-full"
+                  value={filters.retailer}
+                  onChange={handleFilterChange}
+                  data-testid="filter-retailer"
+                />
+              </div>
+            </div>
+            <div className="md:col-span-2">
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text">{t('filter.min_amount')}</span>
+                </label>
+                <input
+                  type="number"
+                  name="minAmount"
+                  placeholder={t('filter.min_amount')}
+                  className="input input-bordered input-sm w-full"
+                  value={filters.minAmount}
+                  onChange={handleFilterChange}
+                  data-testid="filter-min-amount"
+                />
+              </div>
+            </div>
+            <div className="md:col-span-2">
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text">{t('filter.max_amount')}</span>
+                </label>
+                <input
+                  type="number"
+                  name="maxAmount"
+                  placeholder={t('filter.max_amount')}
+                  className="input input-bordered input-sm w-full"
+                  value={filters.maxAmount}
+                  onChange={handleFilterChange}
+                  data-testid="filter-max-amount"
+                />
+              </div>
+            </div>
+            <div className="md:col-span-3">
+              <div className="form-control">
+                <label className="label cursor-pointer">
+                  <span className="label-text">{t('filter.show_expired')}</span>
+                  <input
+                    type="checkbox"
+                    name="showExpired"
+                    className="checkbox checkbox-sm"
                     checked={showExpired}
                     onChange={handleShowExpiredChange}
-                    name="showExpired"
+                    data-testid="filter-show-expired"
                   />
-                }
-                label={t('filter.show_expired')}
-              />
-            </Grid>
+                </label>
+              </div>
+            </div>
             {retailerFilter && (
-              <Grid item xs={12} sm={2}>
-                <Button 
-                  variant="outlined" 
-                  size="small" 
+              <div className="md:col-span-2">
+                <button 
+                  className="btn btn-outline btn-sm w-full"
                   onClick={() => setRetailerFilter && setRetailerFilter('')}
-                  startIcon={<CancelIcon />}
-                  fullWidth
                 >
+                  <X className="w-4 h-4 mr-1" />
                   {t('filter.clear_filters')}
-                </Button>
-              </Grid>
+                </button>
+              </div>
             )}
-          </Grid>
-        </Box>
-      </Paper>
+          </div>
+        </div>
+      </div>
 
       {/* No coupons message */}
       {groupedCoupons.length === 0 && (
-        <Typography variant="body1" sx={{ textAlign: 'center', my: 4 }} data-testid="coupon-empty-state">
-          {t('messages.no_coupons_found')}
-        </Typography>
+        <div className="text-center my-8" data-testid="coupon-empty-state">
+          <p className="text-lg">{t('messages.no_coupons_found')}</p>
+        </div>
       )}
 
       {/* Render coupons in card or table view based on screen size */}
       {groupedCoupons.length > 0 && (
         isMobile ? (
           // Mobile card view
-          <Box sx={{ width: '100%' }}>
-            <Grid container spacing={2}>
+          <div className="w-full">
+            <div className="grid grid-cols-1 gap-2">
               {groupedCoupons.map((coupon) => (
-                <Grid item xs={12} key={`card-${coupon.id}`}>
-                  <Card 
-                    variant="outlined" 
-                    sx={{ 
-                      mb: 1,
-                      backgroundColor: isExpired(coupon.expirationDate) ? 'rgba(211, 47, 47, 0.08)' : 
-                                      isUsed(coupon.currentValue) ? 'rgba(158, 158, 158, 0.15)' : 'inherit' 
-                    }}
+                <div key={`card-${coupon.id}`}>
+                  <div 
+                    className={`card border border-base-300 bg-base-100 mb-2 ${
+                      isExpired(coupon.expirationDate) ? 'bg-error/10' : 
+                      isUsed(coupon.currentValue) ? 'bg-neutral/10' : ''
+                    }`}
                   >
-                    <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="h6" component="div">
+                    <div className="card-body p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="card-title text-lg">
                           {coupon.retailer}
-                        </Typography>
-                        <Box>
+                        </h3>
+                        <div className="flex gap-1">
                           {isExpired(coupon.expirationDate) && (
-                            <Chip label={t('status.expired')} size="small" color="error" sx={{ mr: 0.5 }} />
+                            <div className="badge badge-error badge-sm">
+                              {t('status.expired')}
+                            </div>
                           )}
                           {isUsed(coupon.currentValue) && (
-                            <Chip label={t('status.used')} size="small" color="default" />
+                            <div className="badge badge-neutral badge-sm">
+                              {t('status.used')}
+                            </div>
                           )}
-                        </Box>
-                      </Box>
+                        </div>
+                      </div>
                       
-                      <Typography variant="body2" color="text.secondary">
+                      <p className="text-sm text-base-content/70">
                         {t('form.current_value')}: <strong>${coupon.currentValue}</strong>
                         {coupon.initialValue !== coupon.currentValue && (
                           <span> ({t('form.initial_value')}: ${coupon.initialValue})</span>
                         )}
-                      </Typography>
+                      </p>
                       
-                      <Typography variant="body2" color="text.secondary">
+                      <p className="text-sm text-base-content/70">
                         {t('tables.expires')}: {formatDate(coupon.expirationDate)}
-                      </Typography>
+                      </p>
                       
                       {/* Action buttons for mobile */}
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                      <div className="flex justify-end mt-2">
                         {/* Action buttons here */}
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </Grid>
-          </Box>
+            </div>
+          </div>
         ) : (
           // Desktop table view
-          <TableContainer 
-            component={Paper} 
-            variant="outlined"
-            sx={{ 
-              width: '100%',
-              overflowX: 'auto'
-            }}
-          >
-            <Table size="small" sx={{ minWidth: '100%' }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <TableSortLabel
-                      active={orderBy === 'retailer'}
-                      direction={orderBy === 'retailer' ? order : 'asc'}
+          <div className="overflow-x-auto w-full">
+            <table className="table table-zebra table-compact table-nowrap w-full min-w-full">
+              <thead>
+                <tr>
+                  <th>
+                    <button
+                      className={`btn btn-ghost btn-xs font-bold ${orderBy === 'retailer' ? 'text-primary' : ''}`}
                       onClick={() => handleRequestSort('retailer')}
+                      data-testid="sort-retailer"
                     >
                       {t('form.retailer')}
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      active={orderBy === 'amount'}
-                      direction={orderBy === 'amount' ? order : 'asc'}
+                      {orderBy === 'retailer' && (
+                        <span className="ml-1">
+                          {order === 'asc' ? '↑' : '↓'}
+                        </span>
+                      )}
+                    </button>
+                  </th>
+                  <th>
+                    <button
+                      className={`btn btn-ghost btn-xs font-bold ${orderBy === 'amount' ? 'text-primary' : ''}`}
                       onClick={() => handleRequestSort('amount')}
+                      data-testid="sort-value"
                     >
                       {t('form.current_value')}
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      active={orderBy === 'expirationDate'}
-                      direction={orderBy === 'expirationDate' ? order : 'asc'}
+                      {orderBy === 'amount' && (
+                        <span className="ml-1">
+                          {order === 'asc' ? '↑' : '↓'}
+                        </span>
+                      )}
+                    </button>
+                  </th>
+                  <th>
+                    <button
+                      className={`btn btn-ghost btn-xs font-bold ${orderBy === 'expirationDate' ? 'text-primary' : ''}`}
                       onClick={() => handleRequestSort('expirationDate')}
                     >
                       {t('tables.expires')}
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell>{t('form.activation_code')}</TableCell>
-                  <TableCell>{t('form.pin')}</TableCell>
-                  <TableCell align="right">{t('tables.actions')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+                      {orderBy === 'expirationDate' && (
+                        <span className="ml-1">
+                          {order === 'asc' ? '↑' : '↓'}
+                        </span>
+                      )}
+                    </button>
+                  </th>
+                  <th>{t('form.activation_code')}</th>
+                  <th>{t('form.pin')}</th>
+                  <th className="text-right">{t('tables.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
                 {groupedCoupons.map((coupon) => (
-                  <TableRow 
+                  <tr 
                     key={`table-${coupon.id}`}
-                    sx={{ 
-                      bgcolor: isExpired(coupon.expirationDate) ? 'rgba(211, 47, 47, 0.08)' : 
-                              isUsed(coupon.currentValue) ? 'rgba(158, 158, 158, 0.15)' : 'inherit'
-                    }}
+                    className={`${
+                      isExpired(coupon.expirationDate) ? 'bg-error/10' : 
+                      isUsed(coupon.currentValue) ? 'bg-neutral/10' : ''
+                    }`}
                   >
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <td>
+                      <div className="flex items-center">
                         {coupon.retailer}
-                        {' '}
                         {isExpired(coupon.expirationDate) && (
-                          <Chip label={t('status.expired')} size="small" color="error" sx={{ ml: 1 }} />
+                          <div className="badge badge-error badge-sm ml-2">
+                            {t('status.expired')}
+                          </div>
                         )}
                         {isUsed(coupon.currentValue) && (
-                          <Chip label={t('status.used')} size="small" color="default" sx={{ ml: 1 }} />
+                          <div className="badge badge-neutral badge-sm ml-1">
+                            {t('status.used')}
+                          </div>
                         )}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                      </div>
+                    </td>
+                    <td>
+                      <div>
+                        <span className="font-medium">
                           ${coupon.currentValue}
-                        </Typography>
+                        </span>
                         {coupon.initialValue !== coupon.currentValue && (
-                          <Typography variant="caption" color="text.secondary">
+                          <div className="text-sm text-base-content/50">
                             ({t('form.initial_value')}: ${coupon.initialValue})
-                          </Typography>
+                          </div>
                         )}
-                      </Box>
-                    </TableCell>
-                    <TableCell>{formatDate(coupon.expirationDate)}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography variant="body2" sx={{ mr: 1 }}>
+                      </div>
+                    </td>
+                    <td>{formatDate(coupon.expirationDate)}</td>
+                    <td>
+                      <div className="flex items-center">
+                        <span className="mr-2">
                           {coupon.activationCode || t('general.not_applicable')}
-                        </Typography>
+                        </span>
                         {coupon.activationCode && (
-                          <Tooltip title={t('actions.copy')}>
-                            <IconButton 
-                              size="small" 
+                          <div className="tooltip" data-tip={t('actions.copy')}>
+                            <button 
+                              className="btn btn-ghost btn-xs btn-circle"
                               onClick={() => handleCopyToClipboard(coupon.activationCode || '')}
                               aria-label={t('actions.copy')}
                             >
-                              <ContentCopyIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                              <Copy className="w-3 h-3" />
+                            </button>
+                          </div>
                         )}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography variant="body2" sx={{ mr: 1 }}>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="flex items-center">
+                        <span className="mr-2">
                           {coupon.pin || t('general.not_applicable')}
-                        </Typography>
+                        </span>
                         {coupon.pin && (
-                          <Tooltip title={t('actions.copy')}>
-                            <IconButton 
-                              size="small" 
+                          <div className="tooltip" data-tip={t('actions.copy')}>
+                            <button 
+                              className="btn btn-ghost btn-xs btn-circle"
                               onClick={() => handleCopyToClipboard(coupon.pin || '')}
                               aria-label={t('actions.copy')}
                             >
-                              <ContentCopyIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                              <Copy className="w-3 h-3" />
+                            </button>
+                          </div>
                         )}
-                      </Box>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Tooltip title={t('actions.edit')}>
-                        <span>
-                          <IconButton 
-                            size="small" 
-                            onClick={() => {
-                              // Just trigger the form to update this coupon's details
-                              const updatedCoupon = { ...coupon };
-                              onUpdateCoupon(coupon.id, updatedCoupon);
-                            }}
-                            aria-label={t('actions.edit')}
-                            disabled={isExpired(coupon.expirationDate) || isUsed(coupon.currentValue)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
+                      </div>
+                    </td>
+                    <td className="text-right">
+                      <div className="tooltip" data-tip={t('actions.edit')}>
+                        <button 
+                          className="btn btn-ghost btn-xs btn-circle mr-1"
+                          onClick={() => {
+                            const updatedCoupon = { ...coupon };
+                            onUpdateCoupon(coupon.id, updatedCoupon);
+                          }}
+                          aria-label={t('actions.edit')}
+                          disabled={isExpired(coupon.expirationDate) || isUsed(coupon.currentValue)}
+                        >
+                          <Edit className="w-3 h-3" />
+                        </button>
+                      </div>
                       {!isUsed(coupon.currentValue) && !isExpired(coupon.expirationDate) && (
                         <>
-                          <Tooltip title={t('actions.use_partially')}>
-                            <IconButton 
-                              size="small" 
+                          <div className="tooltip" data-tip={t('actions.use_partially')}>
+                            <button 
+                              className="btn btn-ghost btn-xs btn-circle mr-1"
                               onClick={() => handlePartialUseOpen(coupon.id)}
                               aria-label={t('actions.use_partially')}
-                              sx={{ ml: 1 }}
                             >
-                              <PaymentIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title={t('actions.mark_as_used')}>
-                            <IconButton 
-                              size="small" 
+                              <CreditCard className="w-3 h-3" />
+                            </button>
+                          </div>
+                          <div className="tooltip" data-tip={t('actions.mark_as_used')}>
+                            <button 
+                              className="btn btn-ghost btn-xs btn-circle"
                               onClick={() => onMarkAsUsed(coupon.id)}
                               aria-label={t('actions.mark_as_used')}
-                              sx={{ ml: 1 }}
                             >
-                              <MoneyOffIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                              <CircleX className="w-3 h-3" />
+                            </button>
+                          </div>
                         </>
                       )}
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              </tbody>
+            </table>
+          </div>
         )
       )}
 
       {/* Partial use dialog */}
-      <Dialog open={partialUseDialogOpen} onClose={handlePartialUseClose}>
-        <DialogTitle>{t('dialog.partial_use_title')}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
+      <div className={`modal ${partialUseDialogOpen ? 'modal-open' : ''}`}>
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">{t('dialog.partial_use_title')}</h3>
+          <p className="py-4">
             {t('dialog.partial_use_description')}
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="partialUseAmount"
-            label={t('form.amount')}
-            type="number"
-            fullWidth
-            value={partialUseAmount}
-            onChange={(e) => setPartialUseAmount(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handlePartialUseClose} color="primary">
-            {t('actions.cancel')}
-          </Button>
-          <Button onClick={handlePartialUseSubmit} color="primary">
-            {t('actions.apply')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </p>
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text">{t('form.amount')}</span>
+            </label>
+            <input
+              type="number"
+              id="partialUseAmount"
+              className="input input-bordered w-full"
+              value={partialUseAmount}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPartialUseAmount(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="modal-action">
+            <button 
+              className="btn btn-ghost"
+              onClick={handlePartialUseClose}
+            >
+              {t('actions.cancel')}
+            </button>
+            <button 
+              className="btn btn-primary"
+              onClick={handlePartialUseSubmit}
+            >
+              {t('actions.apply')}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Copy to clipboard notification */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={2000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
-          {t('notifications.copied_to_clipboard')}: {copiedText}
-        </Alert>
-      </Snackbar>
-    </Box>
+      {snackbarOpen && (
+        <div className="toast toast-end">
+          <div className="alert alert-success">
+            <span>{t('notifications.copied_to_clipboard')}: {copiedText}</span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

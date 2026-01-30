@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, Alert } from '@mui/material';
 import { QrReader } from 'react-qr-reader';
 import { useLanguage } from '../services/LanguageContext';
 import { Coupon, CouponData } from '../types';
@@ -59,34 +58,50 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ open, onClose, onScanSu
     }
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('actions.scan_barcode')}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2, width: '100%' }}>
-              {error}
-            </Alert>
-          )}
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, textAlign: 'center' }}>
-            {t('dialog.barcode_scanning_instruction')}
-          </Typography>
-          <Box sx={{ width: '100%', maxWidth: 400, mx: 'auto' }}>
-            <QrReader
-              constraints={{ facingMode: 'environment' }}
-              onResult={handleResult}
-              scanDelay={300}
-              videoStyle={{ width: '100%' }}
-              videoId="qr-video"
-            />
-          </Box>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>{t('actions.cancel')}</Button>
-      </DialogActions>
-    </Dialog>
+    <dialog className="modal modal-open">
+      <div className="modal-box max-w-md">
+        <h3 className="font-bold text-lg" data-testid="dialog-title">
+          {t('actions.scan_barcode')}
+        </h3>
+        
+        <div className="py-4">
+          <div className="flex flex-col items-center mt-2">
+            {error && (
+              <div className="alert alert-error mb-2 w-full" role="alert" data-testid="error-alert">
+                <span>{error}</span>
+              </div>
+            )}
+            
+            <p className="text-sm text-base-content/70 mb-2 text-center" data-testid="scanning-instruction">
+              {t('dialog.barcode_scanning_instruction')}
+            </p>
+            
+            <div className="w-full max-w-md mx-auto">
+              <QrReader
+                constraints={{ facingMode: 'environment' }}
+                onResult={handleResult}
+                scanDelay={300}
+                videoStyle={{ width: '100%' }}
+                videoId="qr-video"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <div className="modal-action">
+          <button 
+            className="btn btn-ghost" 
+            onClick={onClose}
+            data-testid="cancel-button"
+          >
+            {t('actions.cancel')}
+          </button>
+        </div>
+      </div>
+    </dialog>
   );
 };
 

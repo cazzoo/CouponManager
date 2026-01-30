@@ -52,40 +52,36 @@ describe('App with Language Integration', () => {
     renderWithProviders(<App />);
 
     // Find the language selector by its ID or role
-    const languageSelector = screen.getByLabelText(/general.language/i);
+    const languageSelector = screen.getByLabelText(/language/i);
     expect(languageSelector).toBeTruthy();
   });
 
   it('changes language when selector is used', () => {
     renderWithProviders(<App />);
-    
-    // Open language selector
-    const languageSelect = screen.getByLabelText('general.language');
-    fireEvent.mouseDown(languageSelect);
-    
-    // Select Spanish
-    const spanishOption = screen.getByRole('option', { name: 'Spanish' });
-    fireEvent.click(spanishOption);
-    
-    // Verify language changed - check that the language label is now in Spanish
-    expect(screen.getAllByText('general.language')[0]).toBeInTheDocument();
+
+    // Find language selector
+    const languageSelect = screen.getByLabelText('Language');
+
+    // Change language to Spanish using change event (for native select)
+    fireEvent.change(languageSelect, { target: { value: 'es' } });
+
+    // Verify language changed by checking the select value changed
+    expect(languageSelect).toHaveValue('es');
   });
 
   it('preserves language selection on component re-renders', () => {
     const { rerender } = renderWithProviders(<App />);
-    
-    // Open language selector
-    const languageSelect = screen.getByLabelText('general.language');
-    fireEvent.mouseDown(languageSelect);
-    
-    // Select Spanish
-    const spanishOption = screen.getByRole('option', { name: 'Spanish' });
-    fireEvent.click(spanishOption);
-    
+
+    // Find language selector
+    const languageSelect = screen.getByLabelText('Language');
+
+    // Change language to Spanish using change event (for native select)
+    fireEvent.change(languageSelect, { target: { value: 'es' } });
+
     // Re-render the component
     rerender(<App />);
-    
-    // Verify language is still Spanish - check that the language label is now in Spanish
-    expect(screen.getAllByText('general.language')[0]).toBeInTheDocument();
+
+    // Verify language is still Spanish by checking the select value
+    expect(languageSelect).toHaveValue('es');
   });
 }); 

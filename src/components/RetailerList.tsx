@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Link, 
-         Card, CardContent, Typography, Box, Grid, useMediaQuery, useTheme, Divider, Chip, TableSortLabel } from '@mui/material';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../services/LanguageContext';
 import { Coupon, RetailerStat, SortConfig } from '../types';
 
@@ -12,11 +10,22 @@ interface RetailerListProps {
 type Order = 'asc' | 'desc';
 
 const RetailerList: React.FC<RetailerListProps> = ({ coupons, onRetailerClick }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { t } = useLanguage();
   const [orderBy, setOrderBy] = useState<keyof RetailerStat>('name');
   const [order, setOrder] = useState<Order>('asc');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Handle responsive detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640); // sm breakpoint in Tailwind
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleRetailerClick = (retailer: string): void => {
     if (onRetailerClick) {
@@ -104,196 +113,213 @@ const RetailerList: React.FC<RetailerListProps> = ({ coupons, onRetailerClick })
   });
 
   return (
-    <Box data-testid="retailer-list">
-      {isMobile ? (
-        // Card view for mobile devices
-        <Box sx={{ width: '100%' }}>
-          {sortedRetailers.length === 0 ? (
-            <Typography variant="body1" sx={{ textAlign: 'center', my: 4 }} data-testid="retailer-empty-state">
-              {t('messages.no_retailers_found')}
-            </Typography>
-          ) : (
-            <Grid container spacing={2}>
-              {sortedRetailers.map((retailer) => (
-                <Grid item xs={12} key={retailer.name}>
-                  <Card variant="outlined" sx={{ mb: 1 }}>
-                    <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                      <Box 
-                        onClick={() => handleRetailerClick(retailer.name)}
-                        sx={{ cursor: 'pointer' }}
-                      >
-                        <Typography variant="h6" component="div" color="primary" sx={{ mb: 1 }}>
-                          {retailer.name}
-                        </Typography>
+    <div data-testid="retailer-list">
+      {/* Mobile Card View */}
+      <div className="sm:hidden">
+        {sortedRetailers.length === 0 ? (
+          <div className="text-center my-8 text-base-content/70" data-testid="retailer-empty-state">
+            {t('messages.no_retailers_found')}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {sortedRetailers.map((retailer) => (
+              <div key={retailer.name} className="mb-2">
+                <div className="card bg-base-100 shadow-lg border border-base-300">
+                  <div className="card-body p-4">
+                    <div 
+                      onClick={() => handleRetailerClick(retailer.name)}
+                      className="cursor-pointer"
+                    >
+                      <h3 className="card-title text-lg text-primary mb-3">
+                        {retailer.name}
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="col-span-12">
+                          <p className="text-xs text-base-content/60 mb-1">
+                            {t('tables.total_coupons')}: {retailer.couponCount}
+                          </p>
+                          <p className="text-base font-semibold">
+                            {t('general.total_value')}: ${retailer.totalValue.toFixed(2)}
+                          </p>
+                        </div>
                         
-                        <Grid container spacing={2}>
-                          <Grid item xs={12}>
-                            <Typography variant="caption" display="block" color="text.secondary">
-                              {t('tables.total_coupons')}: {retailer.couponCount}
-                            </Typography>
-                            <Typography variant="body1" fontWeight="medium">
-                              {t('general.total_value')}: ${retailer.totalValue.toFixed(2)}
-                            </Typography>
-                          </Grid>
-                          
-                          <Grid item xs={12}>
-                            <Divider sx={{ my: 1 }} />
-                          </Grid>
-                          
-                          <Grid item xs={6}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                              <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                        <div className="col-span-12">
+                          <div className="divider my-2"></div>
+                        </div>
+                        
+                        <div className="col-span-12 grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="flex items-center mb-1">
+                              <span className="text-xs text-base-content/60 mr-2">
                                 {t('status.active')}:
-                              </Typography>
-                              <Chip 
-                                label={retailer.activeCouponCount} 
-                                size="small" 
-                                color="success" 
-                                variant="outlined"
-                              />
-                            </Box>
-                            <Typography variant="body2" fontWeight="medium" color="success.main">
+                              </span>
+                              <span className="badge badge-success badge-outline">
+                                {retailer.activeCouponCount}
+                              </span>
+                            </div>
+                            <p className="text-sm font-semibold text-success">
                               ${retailer.activeTotalValue.toFixed(2)}
-                            </Typography>
-                          </Grid>
+                            </p>
+                          </div>
                           
-                          <Grid item xs={6}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                              <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                          <div>
+                            <div className="flex items-center mb-1">
+                              <span className="text-xs text-base-content/60 mr-2">
                                 {t('status.expired')}:
-                              </Typography>
-                              <Chip 
-                                label={retailer.expiredCouponCount} 
-                                size="small" 
-                                color="error" 
-                                variant="outlined"
-                              />
-                            </Box>
-                            <Typography variant="body2" fontWeight="medium" color="error.main">
+                              </span>
+                              <span className="badge badge-error badge-outline">
+                                {retailer.expiredCouponCount}
+                              </span>
+                            </div>
+                            <p className="text-sm font-semibold text-error">
                               ${retailer.expiredTotalValue.toFixed(2)}
-                            </Typography>
-                          </Grid>
-                        </Grid>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </Box>
-      ) : (
-        // Table view for larger screens
-        <TableContainer 
-          component={Paper} 
-          variant="outlined" 
-          sx={{ 
-            width: '100%',
-            overflowX: 'auto'
-          }}
-        >
-          <Table size="small" sx={{ minWidth: '100%' }}>
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'name'}
-                    direction={orderBy === 'name' ? order : 'asc'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden sm:block">
+        <div className="overflow-x-auto rounded-lg border border-base-300 shadow-lg">
+          <table className="table table-zebra table-compact w-full">
+            <thead>
+              <tr>
+                <th>
+                  <button 
                     onClick={() => handleRequestSort('name')}
+                    className="flex items-center gap-2 hover:text-primary transition-colors"
                   >
                     {t('form.retailer')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'couponCount'}
-                    direction={orderBy === 'couponCount' ? order : 'asc'}
+                    {orderBy === 'name' && (
+                      <span className="text-primary">
+                        {order === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+                <th>
+                  <button 
                     onClick={() => handleRequestSort('couponCount')}
+                    className="flex items-center gap-2 hover:text-primary transition-colors"
                   >
                     {t('tables.total_coupons')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'totalValue'}
-                    direction={orderBy === 'totalValue' ? order : 'asc'}
+                    {orderBy === 'couponCount' && (
+                      <span className="text-primary">
+                        {order === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+                <th>
+                  <button 
                     onClick={() => handleRequestSort('totalValue')}
+                    className="flex items-center gap-2 hover:text-primary transition-colors"
                   >
                     {t('general.total_value')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'activeCouponCount'}
-                    direction={orderBy === 'activeCouponCount' ? order : 'asc'}
+                    {orderBy === 'totalValue' && (
+                      <span className="text-primary">
+                        {order === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+                <th>
+                  <button 
                     onClick={() => handleRequestSort('activeCouponCount')}
+                    className="flex items-center gap-2 hover:text-primary transition-colors"
                   >
                     {t('general.active_coupons')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'activeTotalValue'}
-                    direction={orderBy === 'activeTotalValue' ? order : 'asc'}
+                    {orderBy === 'activeCouponCount' && (
+                      <span className="text-primary">
+                        {order === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+                <th>
+                  <button 
                     onClick={() => handleRequestSort('activeTotalValue')}
+                    className="flex items-center gap-2 hover:text-primary transition-colors"
                   >
                     {t('tables.active_value')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'expiredCouponCount'}
-                    direction={orderBy === 'expiredCouponCount' ? order : 'asc'}
+                    {orderBy === 'activeTotalValue' && (
+                      <span className="text-primary">
+                        {order === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+                <th>
+                  <button 
                     onClick={() => handleRequestSort('expiredCouponCount')}
+                    className="flex items-center gap-2 hover:text-primary transition-colors"
                   >
                     {t('general.expired_coupons')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'expiredTotalValue'}
-                    direction={orderBy === 'expiredTotalValue' ? order : 'asc'}
+                    {orderBy === 'expiredCouponCount' && (
+                      <span className="text-primary">
+                        {order === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+                <th>
+                  <button 
                     onClick={() => handleRequestSort('expiredTotalValue')}
+                    className="flex items-center gap-2 hover:text-primary transition-colors"
                   >
                     {t('tables.expired_value')}
-                  </TableSortLabel>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+                    {orderBy === 'expiredTotalValue' && (
+                      <span className="text-primary">
+                        {order === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
               {sortedRetailers.length > 0 ? (
                 sortedRetailers.map((retailer) => (
-                  <TableRow key={retailer.name} hover>
-                    <TableCell>
-                      <Link
-                        component="button"
-                        color={retailer.activeCouponCount > 0 ? 'primary' : 'error'}
+                  <tr key={retailer.name} className="hover">
+                    <td>
+                      <button
                         onClick={() => handleRetailerClick(retailer.name)}
-                        sx={{ textDecoration: 'none' }}
+                        className={`font-medium hover:underline transition-colors ${
+                          retailer.activeCouponCount > 0 ? 'text-primary' : 'text-error'
+                        }`}
                       >
                         {retailer.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{retailer.couponCount}</TableCell>
-                    <TableCell>${retailer.totalValue.toFixed(2)}</TableCell>
-                    <TableCell>{retailer.activeCouponCount}</TableCell>
-                    <TableCell>${retailer.activeTotalValue.toFixed(2)}</TableCell>
-                    <TableCell>{retailer.expiredCouponCount}</TableCell>
-                    <TableCell>${retailer.expiredTotalValue.toFixed(2)}</TableCell>
-                  </TableRow>
+                      </button>
+                    </td>
+                    <td>{retailer.couponCount}</td>
+                    <td>${retailer.totalValue.toFixed(2)}</td>
+                    <td>{retailer.activeCouponCount}</td>
+                    <td>${retailer.activeTotalValue.toFixed(2)}</td>
+                    <td>{retailer.expiredCouponCount}</td>
+                    <td>${retailer.expiredTotalValue.toFixed(2)}</td>
+                  </tr>
                 ))
               ) : (
-                <TableRow>
-                  <TableCell colSpan={7} align="center">
+                <tr>
+                  <td colSpan={7} className="text-center text-base-content/70">
                     {t('messages.no_retailers_found')}
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-    </Box>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 };
 

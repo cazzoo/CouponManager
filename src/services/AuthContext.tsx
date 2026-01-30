@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getAuthService } from './AuthServiceFactory';
-import { getRoleService, Roles } from './RoleServiceFactory';
-import { User, UserRole } from '../types';
+ import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+ import { getAuthService } from './AuthServiceFactory';
+ import { getRoleService, Roles } from './RoleServiceFactory';
+ import { User, UserRole } from '../types';
 
 // Define interfaces for the context
 interface AuthContextType {
@@ -30,11 +30,11 @@ interface AuthService {
   signInAnonymously?: () => Promise<any>;
 }
 
-interface RoleService {
-  getUserRole: (userId: string) => Promise<{ role: UserRole } | null>;
-  setUserRole: (userId: string, role: UserRole) => Promise<{ role: UserRole } | null>;
-  checkPermission: (role: UserRole, permission: string, resource?: Record<string, any>) => Promise<boolean>;
-}
+ interface RoleService {
+   getUserRole: (userId: string) => Promise<UserRole | null>;
+   setUserRole: (userId: string, role: UserRole) => Promise<{ userId: string; role: string } | null>;
+   checkPermission: (role: UserRole, permission: string, resource?: Record<string, any>) => Promise<boolean>;
+ }
 
 // Define the RolesEnum to ensure correct typing
 enum RolesEnum {
@@ -56,14 +56,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [authService, setAuthService] = useState<AuthService | null>(null);
-  const [roleService, setRoleService] = useState<RoleService | null>(null);
+  const roleServiceRef = useRef<RoleService | null>(null);
   const [initialized, setInitialized] = useState<boolean>(false);
 
   // Helper to load a user's role
   const loadUserRole = async (userId: string): Promise<void> => {
-    if (!userId || !roleService) {
-      console.log('AuthContext: Cannot load role - userId or roleService missing');
+    if (!userId) {
+      console.log('AuthContext: Cannot load role - userId missing');
       setUserRole(null);
+      return;
+    }
+
+    const roleService = roleServiceRef.current;
+    if (!roleService) {
+      console.log('AuthContext: Cannot load role - roleService not initialized yet');
       return;
     }
     
@@ -90,14 +96,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('AuthContext: Role data from service:', roleData);
       
       if (roleData) {
-        console.log('AuthContext: Setting user role to:', roleData.role);
-        setUserRole(roleData.role);
+        console.log('AuthContext: Setting user role to:', roleData);
+        setUserRole(roleData);
       } else {
         console.log('AuthContext: No role found, setting default USER role');
         // Set default role if none exists
         const newRole = await roleService.setUserRole(userId, RolesEnum.USER as UserRole);
         if (newRole) {
-          setUserRole(newRole.role);
+          setUserRole(newRole.role as UserRole);
         }
       }
     } catch (err) {
@@ -117,11 +123,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Get the appropriate auth service (real or mock) based on environment
         const service = await getAuthService() as unknown as AuthService;
         setAuthService(service);
-        
+
         // Get the appropriate role service
         const roles = await getRoleService() as unknown as RoleService;
-        setRoleService(roles);
-        
+        roleServiceRef.current = roles;
+
         // Get initial auth state
         const initialUser = service.getUser?.() || null;
         if (initialUser) {
@@ -129,7 +135,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(initialUser);
           await loadUserRole(initialUser.id);
         }
-        
+
         // Subscribe to auth changes
         console.log('AuthContext: Setting up auth state change subscription');
         const { data } = service.onAuthStateChange((event: string, session: any) => {
@@ -357,13 +363,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * Check if the current user has a specific permission
    */
   const hasPermission = async (permission: string, resource: Record<string, any> = {}): Promise<boolean> => {
-    if (!userRole || !roleService) {
+    if (!userRole || !roleServiceRef.current) {
       console.log('AuthContext: Permission check failed - no user role or role service');
       return false;
     }
-    
+
     try {
-      const allowed = await roleService.checkPermission(userRole, permission, resource);
+      const allowed = await roleServiceRef.current.checkPermission(userRole, permission, resource);
       console.log(`AuthContext: Permission check for ${permission}:`, allowed ? 'GRANTED' : 'DENIED');
       return allowed;
     } catch (err) {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import CouponList from '../../components/CouponList';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { renderWithProviders } from '../util/test-utils';
 
 // Mock the useLanguage hook to avoid "useLanguage must be used within a LanguageProvider" error
 vi.mock('../../services/LanguageContext', () => ({
@@ -13,31 +13,19 @@ vi.mock('../../services/LanguageContext', () => ({
   })
 }));
 
-// Mock theme for testing with mobile breakpoint
-const theme = createTheme();
-
-// Mock the theme and useMediaQuery to simulate mobile view
-vi.mock('@mui/material', async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    useMediaQuery: () => true, // Always return true to simulate mobile view
-    useTheme: () => ({
-      ...actual.createTheme(),
-      breakpoints: {
-        down: () => true,
-        up: () => false
-      }
-    })
-  };
+// Simulate mobile viewport by default for these tests
+beforeEach(() => {
+  window.matchMedia.mockImplementation(query => ({
+    matches: query.includes('max-width'),
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
 });
-
-// Wrapper component to provide theme context
-const TestWrapper = ({ children }) => (
-  <ThemeProvider theme={theme}>
-    {children}
-  </ThemeProvider>
-);
 
 describe('CouponList Component (Mobile View)', () => {
   const mockCoupons = [
@@ -46,7 +34,7 @@ describe('CouponList Component (Mobile View)', () => {
       retailer: 'Amazon',
       initialValue: '50',
       currentValue: '50',
-      expirationDate: '2025-12-31', // String format to match prop type
+      expirationDate: '2027-12-31',
       activationCode: 'AMZN2024',
       pin: '1234'
     },
@@ -55,7 +43,7 @@ describe('CouponList Component (Mobile View)', () => {
       retailer: 'Target',
       initialValue: '75',
       currentValue: '75',
-      expirationDate: '2025-09-30', // String format to match prop type
+      expirationDate: '2027-09-30',
       activationCode: 'TGT75FALL',
       pin: '4321'
     },
@@ -63,8 +51,8 @@ describe('CouponList Component (Mobile View)', () => {
       id: 3,
       retailer: 'Amazon',
       initialValue: '25',
-      currentValue: '0', // Used coupon
-      expirationDate: '2025-06-30', // String format to match prop type
+      currentValue: '0',
+      expirationDate: '2027-06-30',
       activationCode: 'AMZN25SPRING',
       pin: '9012'
     },
@@ -73,7 +61,7 @@ describe('CouponList Component (Mobile View)', () => {
       retailer: 'Best Buy',
       initialValue: '100',
       currentValue: '100',
-      expirationDate: '2023-12-31', // Expired coupon
+      expirationDate: '2025-12-31',
       activationCode: 'BB100DEC',
       pin: '5678'
     }
@@ -84,15 +72,13 @@ describe('CouponList Component (Mobile View)', () => {
   const mockSetRetailerFilter = vi.fn();
 
   it('renders coupon information', () => {
-    render(
-      <TestWrapper>
-        <CouponList 
-          coupons={mockCoupons} 
-          onUpdateCoupon={mockOnUpdateCoupon} 
-          onMarkAsUsed={mockOnMarkAsUsed}
-          setRetailerFilter={mockSetRetailerFilter}
-        />
-      </TestWrapper>
+    renderWithProviders(
+      <CouponList
+        coupons={mockCoupons}
+        onUpdateCoupon={mockOnUpdateCoupon}
+        onMarkAsUsed={mockOnMarkAsUsed}
+        setRetailerFilter={mockSetRetailerFilter}
+      />
     );
     
     // Check that coupon information is displayed
@@ -103,14 +89,12 @@ describe('CouponList Component (Mobile View)', () => {
   });
 
   it('shows expired and used status chips in mobile view', () => {
-    render(
-      <TestWrapper>
-        <CouponList
-          coupons={mockCoupons}
-          onUpdateCoupon={mockOnUpdateCoupon}
-          setRetailerFilter={mockSetRetailerFilter}
-        />
-      </TestWrapper>
+    renderWithProviders(
+      <CouponList
+        coupons={mockCoupons}
+        onUpdateCoupon={mockOnUpdateCoupon}
+        setRetailerFilter={mockSetRetailerFilter}
+      />
     );
     
     // Check for status chips - need to make sure the expired coupon is shown
@@ -132,29 +116,27 @@ describe('CouponList Component (Mobile View)', () => {
     // based on the retailerFilter prop, which might not be available in the mobile view test
     // The button is only rendered when retailerFilter is truthy
     // This test needs to be revisited with a proper setup that ensures the button is rendered
-    
+
     // Render with initial filters
-    render(
-      <TestWrapper>
-        <CouponList 
-          coupons={mockCoupons} 
-          onUpdateCoupon={vi.fn()} 
-          onMarkAsUsed={vi.fn()}
-          retailerFilter="Amazon"
-          setRetailerFilter={vi.fn()}
-        />
-      </TestWrapper>
+    renderWithProviders(
+      <CouponList
+        coupons={mockCoupons}
+        onUpdateCoupon={vi.fn()}
+        onMarkAsUsed={vi.fn()}
+        retailerFilter="Amazon"
+        setRetailerFilter={vi.fn()}
+      />
     );
     
     // Verify filters are applied
-    const retailerFilter = screen.getByRole('textbox', { name: 'form.retailer' });
+    const retailerFilter = screen.getByTestId('filter-retailer');
     expect(retailerFilter.value).toBe('Amazon');
-    
+
     // Set min and max amount filters
-    const minAmountFilter = screen.getByRole('spinbutton', { name: 'filter.min_amount' });
+    const minAmountFilter = screen.getByTestId('filter-min-amount');
     fireEvent.change(minAmountFilter, { target: { value: '40' } });
-    
-    const maxAmountFilter = screen.getByRole('spinbutton', { name: 'filter.max_amount' });
+
+    const maxAmountFilter = screen.getByTestId('filter-max-amount');
     fireEvent.change(maxAmountFilter, { target: { value: '80' } });
     
     // Since we can't reliably test the Clear Filters button in the mobile view,
@@ -165,15 +147,13 @@ describe('CouponList Component (Mobile View)', () => {
 
   // Skip the edit mode test for now as it's difficult to find the edit button in mobile view
   it.skip('opens edit mode when edit button is clicked', () => {
-    render(
-      <TestWrapper>
-        <CouponList
-          coupons={mockCoupons}
-          onUpdateCoupon={mockOnUpdateCoupon}
-          onMarkAsUsed={mockOnMarkAsUsed}
-          setRetailerFilter={mockSetRetailerFilter}
-        />
-      </TestWrapper>
+    renderWithProviders(
+      <CouponList
+        coupons={mockCoupons}
+        onUpdateCoupon={mockOnUpdateCoupon}
+        onMarkAsUsed={mockOnMarkAsUsed}
+        setRetailerFilter={mockSetRetailerFilter}
+      />
     );
     
     // This test is skipped for now
