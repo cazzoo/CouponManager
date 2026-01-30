@@ -142,5 +142,15 @@
   "coupon": {
     "add_new": "Ajouter un Nouveau Coupon",
     "add": "Ajouter un Coupon"
+  },
+  "devUserSwitcher": {
+    "switch_user": "Changer d'Utilisateur",
+    "select_dev_user": "Sélectionner un Utilisateur de Dév",
+    "current": "Actuel",
+    "role_manager": "Administrateur",
+    "role_user": "Utilisateur",
+    "role_demo": "Démo",
+    "switching": "Basculement vers {email}...",
+    "switched": "Basculé vers {email}"
   }
-} 
+}

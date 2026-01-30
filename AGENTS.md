@@ -11,11 +11,11 @@
 
 ### Essential Commands
 ```bash
-# Development (in-memory DB with mock data)
+# Development (requires PocketBase running)
 pnpm dev
 
-# Development with Supabase
-pnpm dev:supabase
+# Fresh development environment (reset + setup + seed + dev)
+pnpm dev:fresh
 
 # Testing
 pnpm test
@@ -25,10 +25,12 @@ pnpm test:coverage
 # Build
 pnpm build
 
-# Database operations
-pnpm db:test
-pnpm migrate:up
-pnpm db:mock
+# PocketBase operations
+pnpm pb:start        # Start PocketBase server
+pnpm pb:setup        # Setup admin user
+pnpm pb:create-collections  # Create database collections
+pnpm db:seed         # Seed test data
+pnpm pb:reset        # Reset all data
 ```
 
 ### Critical Constraints
@@ -49,7 +51,7 @@ pnpm db:mock
 - **Purpose:** Manage vouchers and coupons with role-based access control
 - **Package Manager:** pnpm
 - **Build Tool:** Vite
-- **Backend:** Supabase (PostgreSQL with RLS)
+- **Backend:** PocketBase (v0.36.1)
 
 ### Technology Stack
 | Category | Technology | Version |
@@ -60,7 +62,8 @@ pnpm db:mock
 | Build Tool | Vite | 5.0.0 |
 | Testing | Vitest | 3.0.7 |
 | Testing Library | React Testing Library | 16.2.0 |
-| Backend | Supabase | 2.49.1 |
+| Backend | PocketBase | 0.36.1 |
+| Database | SQLite | 3 |
 | i18n | i18next | 24.2.2 |
 | Barcode Scanning | react-qr-reader | 3.0.0-beta-1 |
 
@@ -70,8 +73,8 @@ pnpm db:mock
 - Role-based access control (user, manager, demo)
 - Multi-language support (en, fr, de, es)
 - Retailer statistics and filtering
-- In-memory DB for development, Supabase for production
-- Row-Level Security (RLS) for data access control
+- PocketBase backend with SQLite storage
+- Role-based access control with admin authentication
 
 ---
 
@@ -85,7 +88,7 @@ Context Layer (AuthContext, LanguageContext)
     ↓
 Service Layer (AuthService, CouponService, RoleService + Factories)
     ↓
-Data Layer (In-Memory DB / Supabase PostgreSQL + RLS)
+Data Layer (PocketBase SQLite)
 ```
 
 ### Design Patterns
@@ -148,10 +151,8 @@ CouponManager/
 │   │   ├── AuthContext.tsx
 │   │   ├── CouponService.ts
 │   │   ├── CouponServiceFactory.ts
-│   │   ├── SupabaseCouponService.ts
 │   │   ├── RoleService.ts
 │   │   ├── RoleServiceFactory.ts
-│   │   ├── SupabaseClient.ts
 │   │   ├── LanguageService.ts
 │   │   └── LanguageContext.tsx
 │   ├── types/              # Type definitions
@@ -163,7 +164,7 @@ CouponManager/
 │       ├── services/
 │       └── util/
 ├── docs/                   # Documentation
-├── migrations/             # SQL migrations
+├── migrations/             # PocketBase migrations
 ├── scripts/                # Utility scripts
 └── public/                 # Static assets
 ```
@@ -356,25 +357,25 @@ if (user.role === 'user' && coupon.userId !== user.id) {
 
 ### Development Mode
 ```bash
-# In-memory database with mock data
+# Start development server (requires PocketBase running)
 pnpm dev
-# Equivalent to: VITE_USE_MEMORY_DB=true VITE_AUTO_MOCK_DATA=true
+
+# Or start fresh environment (reset + setup + seed + dev)
+pnpm dev:fresh
 ```
 
 ### Production Mode
 ```bash
-# Supabase connection required
-pnpm dev:supabase
+# PocketBase is required
+pnpm pb:start
 ```
 
 ### Environment Variables
 | Variable | Purpose | Required | Default |
 |----------|---------|----------|---------|
-| `VITE_USE_MEMORY_DB` | Enable in-memory database | No | false |
-| `VITE_AUTO_MOCK_DATA` | Auto-inject mock data | No | false |
-| `VITE_SUPABASE_URL` | Supabase project URL | Yes (prod) | - |
-| `VITE_SUPABASE_KEY` | Supabase anon key | Yes (prod) | - |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key | Yes (prod) | - |
+| `VITE_POCKETBASE_URL` | PocketBase URL | Yes | http://127.0.0.1:8090 |
+| `PB_ADMIN_EMAIL` | Admin email for setup | Yes | admin@example.com |
+| `PB_ADMIN_PASSWORD` | Admin password for setup | Yes | admin12345 |
 
 ---
 
@@ -382,35 +383,42 @@ pnpm dev:supabase
 
 ### Migration Commands
 ```bash
-# Test database connection
+# Test PocketBase connection
 pnpm db:test
 
-# Run all pending migrations
-pnpm migrate:up
+# Create collections via migration
+pnpm pb:create-collections
 
-# List all migrations
-pnpm migrate:list
+# Seed test data (users, roles, coupons)
+pnpm db:seed
 
-# Check migration status
-pnpm migrate:status
+# Reset PocketBase (stop, delete data, start)
+pnpm pb:reset
 
-# Create new migration
-pnpm migrate:create migration_name "Optional description"
+# Start PocketBase server
+pnpm pb:start
 
-# Add mock data
-pnpm db:mock
+# Stop PocketBase server
+pnpm pb:stop
 ```
 
 ### Migration Format
 ```
-migrations/sql/YYYYMMDDHHMMSS-description.sql
+migrations/NNN_description.js
 ```
 
-### RLS Policies
-- Row-Level Security enabled for production
-- Users can only access their own data
-- Managers have full system access
-- Defined in: `migrations/sql/`
+### Seed Data
+The `pnpm db:seed` command creates:
+- **3 test users** with credentials `password123`
+  - `user@example.com` (regular user)
+  - `manager@example.com` (manager role)
+  - `another@example.com` (regular user)
+- **User roles** assigned via `user_roles` collection
+- **7 sample coupons** distributed across the 3 users
+
+### Permissions
+- Admin access required for collection creation and seeding
+- Configured via PocketBase Admin UI: `http://127.0.0.1:8090/_/`
 
 ---
 
@@ -558,10 +566,10 @@ try {
 |-------|----------|
 | Build fails with TypeScript errors | Check tsconfig.json and ensure strict mode compliance |
 | Tests fail with coverage < 80% | Add tests for uncovered code paths |
-| Supabase connection fails | Verify environment variables in `.env` file |
+| PocketBase connection fails | Verify environment variables in `.env` file |
 | Mock data not loading | Ensure `VITE_AUTO_MOCK_DATA=true` is set |
 | Translations not showing | Check translation files in `src/locales/` |
-| RLS policies blocking access | Verify policies in `migrations/sql/` |
+| Collections not accessible | Run `pnpm pb:create-collections` then convert fields manually |
 | Factory returns wrong service | Check `VITE_USE_MEMORY_DB` environment variable |
 
 ### Where to Look for Help
@@ -573,8 +581,7 @@ try {
 | Permission system | `docs/permission-matrix.md` |
 | Migration system | `docs/migration-system.md` |
 | Testing practices | `docs/testing-standards.md` |
-| Supabase setup | `docs/supabase-setup.md` |
-| RLS policies | `docs/supabase-rls.md` |
+| PocketBase setup | `docs/pocketbase-setup.md` |
 | i18n system | `docs/i18n-system.md` |
 
 ---
@@ -595,9 +602,9 @@ try {
 
 ### ❌ DO NOT:
 - Modify .gitignore, package.json, tsconfig.json, vite.config.ts
-- Create new database migrations
+- Modify SQL migrations (only JavaScript migrations allowed)
 - Modify CI/CD workflows
-- Access external APIs directly (only via Supabase)
+- Access external APIs directly (only via services)
 - Modify environment files (.env)
 - Bypass factory pattern
 - Create new design patterns
@@ -662,7 +669,7 @@ See `src/types/index.ts` for complete type definitions.
 - **Permission Matrix:** `docs/permission-matrix.md`
 - **Migration System:** `docs/migration-system.md`
 - **Testing Standards:** `docs/testing-standards.md`
-- **Supabase Setup:** `docs/supabase-setup.md`
+- **PocketBase Setup:** `docs/pocketbase-setup.md`
 - **i18n System:** `docs/i18n-system.md`
 
 ---

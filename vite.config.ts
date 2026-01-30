@@ -34,6 +34,12 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
+    },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: ['./src/test/setup.js'],
+      css: true
     }
   }
 })

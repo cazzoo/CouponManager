@@ -134,15 +134,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('AuthContext: Setting up auth state change subscription');
         const { data } = service.onAuthStateChange((event: string, session: any) => {
           console.log('AuthContext: Auth state change event:', event, session ? 'with session' : 'no session');
-          
-          if (event === 'SIGNED_IN' && session) {
+
+          // Handle various authentication events
+          if ((event === 'SIGNED_IN' || event === 'tokenRefreshed' || event === 'signedIn' || event === 'tokenRefreshed') && session) {
             const sessionUser = service.getUser();
             if (sessionUser) {
               console.log('AuthContext: User signed in:', sessionUser.email);
               setUser(sessionUser);
               loadUserRole(sessionUser.id);
+            } else {
+              // If getUser() returns null but we have a session, use the session user
+              console.log('AuthContext: Using session user directly:', session.user?.email);
+              if (session.user) {
+                setUser(session.user);
+                loadUserRole(session.user.id);
+              }
             }
-          } else if (event === 'SIGNED_OUT') {
+          } else if (event === 'SIGNED_OUT' || event === 'signedOut') {
             console.log('AuthContext: User signed out');
             setUser(null);
             setUserRole(null);

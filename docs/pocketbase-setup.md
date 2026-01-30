@@ -71,8 +71,17 @@ pnpm pb:setup
 
 This will:
 - Check PocketBase connection
-- Create default admin user (credentials from `.env` or defaults)
+- **Automatically create the first admin user** if it doesn't exist (using credentials from `.env`)
+- Verify admin credentials are correct
 - Prepare for collection creation
+
+**Note:** The setup script handles both scenarios automatically:
+- **Fresh PocketBase instance**: Creates admin using CLI command
+- **Existing admin**: Validates credentials from `.env`
+
+Admin credentials (from `.env`):
+- Email: `admin@example.com` (default)
+- Password: `admin12345` (default)
 
 ### 4. Create Collections
 
@@ -196,6 +205,7 @@ The application will be available at: http://localhost:3000
 | `pnpm pb:create-collections` | Generate collection config (see above) |
 | `pnpm pb:create-collections --api` | Create collections via API |
 | `pnpm db:seed` | Seed test data |
+| `pnpm pb:reset` | Reset PocketBase (delete all data, preserves .env) |
 
 ## Database Schema
 
@@ -274,6 +284,25 @@ Key differences:
 - Supabase snake_case → PocketBase camelCase
 
 ## Troubleshooting
+
+### Resetting PocketBase
+
+If you need to start fresh with a clean PocketBase instance:
+
+```bash
+# Stop PocketBase (Ctrl+C)
+# Run the reset script
+pnpm pb:reset
+```
+
+The reset script will:
+1. Check if PocketBase is running on port 8090
+2. Prompt you to confirm the reset action
+3. Delete all PocketBase data (`pb_data/`, `pb_public/`, `pb_migrations/`)
+4. **Preserve** your `.env` configuration (admin credentials, URL settings)
+5. Display next steps for setting up a fresh instance
+
+**Note:** This will permanently delete all users, coupons, and roles. Use with caution.
 
 ### PocketBase won't start
 

@@ -17,13 +17,17 @@ export interface Session {
 }
 
 export interface AuthResponse {
-  user: User | null;
-  session: Session | null;
+  data: {
+    user: User;
+    session?: Session;
+  } | null;
   error: Error | null;
 }
 
 export interface SignUpResponse {
-  user: User | null;
+  data: {
+    user: User;
+  } | null;
   error: Error | null;
 }
 
@@ -90,7 +94,7 @@ class PocketBaseAuthService {
       const user = this.mapPocketBaseUser(record);
 
       return {
-        user,
+        data: { user },
         error: null
       };
     } catch (error) {
@@ -98,7 +102,7 @@ class PocketBaseAuthService {
       const dbError = handlePocketBaseError(error);
 
       return {
-        user: null,
+        data: null,
         error: dbError
       };
     }
@@ -111,14 +115,14 @@ class PocketBaseAuthService {
         password
       );
 
+      const user = this.mapPocketBaseUser(authData.record);
       const session: Session = {
         token: authData.token,
-        user: this.mapPocketBaseUser(authData.record)
+        user
       };
 
       return {
-        user: session.user,
-        session,
+        data: { user, session },
         error: null
       };
     } catch (error) {
@@ -126,8 +130,7 @@ class PocketBaseAuthService {
       const dbError = handlePocketBaseError(error);
 
       return {
-        user: null,
-        session: null,
+        data: null,
         error: dbError
       };
     }
@@ -139,7 +142,7 @@ class PocketBaseAuthService {
 
   async signInAnonymously(): Promise<AuthResponse> {
     try {
-      const anonymousUser = {
+      const anonymousUser: User = {
         id: 'anonymous',
         email: 'anonymous@local',
         role: 'demo',
@@ -152,9 +155,11 @@ class PocketBaseAuthService {
         user: anonymousUser
       };
 
+      // Manually set the auth store to simulate authentication
+      this.pb.authStore.save(session.token, anonymousUser);
+
       return {
-        user: session.user,
-        session,
+        data: { user: anonymousUser, session },
         error: null
       };
     } catch (error) {
@@ -162,8 +167,7 @@ class PocketBaseAuthService {
       const dbError = handlePocketBaseError(error);
 
       return {
-        user: null,
-        session: null,
+        data: null,
         error: dbError
       };
     }

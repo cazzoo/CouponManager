@@ -142,5 +142,15 @@
   "coupon": {
     "add_new": "Neuen Gutschein hinzufügen",
     "add": "Gutschein hinzufügen"
+  },
+  "devUserSwitcher": {
+    "switch_user": "Benutzer Wechseln",
+    "select_dev_user": "Dev-Benutzer Auswählen",
+    "current": "Aktuell",
+    "role_manager": "Administrator",
+    "role_user": "Benutzer",
+    "role_demo": "Demo",
+    "switching": "Wechsle zu {email}...",
+    "switched": "Zu {email} gewechselt"
   }
-} 
+}

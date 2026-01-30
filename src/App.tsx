@@ -22,10 +22,10 @@ import CouponList from "./components/CouponList";
 import RetailerList from "./components/RetailerList";
 import AddCouponForm from "./components/AddCouponForm";
 import LanguageSelector from "./components/LanguageSelector";
+import DevUserSwitcher from "./components/DevUserSwitcher";
 import LoginForm from "./components/LoginForm";
 import UserManagement from "./components/UserManagement";
 import couponService from "./services/CouponServiceFactory";
-import { StorageType } from "./services/CouponServiceFactory";
 import { useLanguage } from "./services/LanguageContext";
 import { useAuth } from "./services/AuthContext";
 import { Permissions } from "./services/RoleServiceFactory";
@@ -60,9 +60,6 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
   const [retailerFilter, setRetailerFilter] = useState<string>('');
   const [canAddCoupon, setCanAddCoupon] = useState<boolean>(false);
   
-  // For development mode alert about memory database
-  const [showDbAlert, setShowDbAlert] = useState<boolean>(true);
-  
   // Debug log for auth state
   console.log('App: Current auth state:', { 
     isAuthenticated: !!user, 
@@ -72,8 +69,6 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
 
   // Check development environment flag
   const isDevelopment = import.meta.env.DEV === true;
-  const isUsingMemoryDb = import.meta.env.VITE_USE_MEMORY_DB === 'true';
-  const isAutoMockData = import.meta.env.VITE_AUTO_MOCK_DATA === 'true';
 
   // Load coupons when component mounts or user changes
   useEffect(() => {
@@ -276,6 +271,7 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
               {t('app.coupon_manager')}
             </Typography>
             <LanguageSelector />
+            {isDevelopment && <DevUserSwitcher />}
             <IconButton
               sx={{ ml: 1 }}
               onClick={() => onThemeChange(!isDarkMode)}
@@ -312,6 +308,7 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
             {t('app.coupon_manager')}
           </Typography>
           <LanguageSelector />
+          {isDevelopment && <DevUserSwitcher />}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Typography variant="body2" sx={{ 
               mr: 2, 
@@ -419,19 +416,6 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
           </Tabs>
         </Container>
       </Box>
-
-      {/* Alert for memory database in development mode */}
-      {isDevelopment && isUsingMemoryDb && (
-        <Collapse in={showDbAlert}>
-          <Alert 
-            severity="info" 
-            onClose={() => setShowDbAlert(false)}
-            sx={{ margin: 1 }}
-          >
-            {t('app.using_memory_db')} {isAutoMockData ? t('app.with_mock_data') : ''}
-          </Alert>
-        </Collapse>
-      )}
 
       {/* Error display */}
       {error && (

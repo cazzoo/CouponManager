@@ -59,7 +59,7 @@ const UserManagement: React.FC = () => {
   const [usingMockData, setUsingMockData] = useState<boolean>(false);
   
   // For development environment
-  const isDevelopment = import.meta.env.DEV || import.meta.env.VITE_USE_MEMORY_DB === 'true';
+  const isDevelopment = import.meta.env.DEV;
 
   // Permission constants
   const VIEW_USERS_PERMISSION = 'viewUsers';
