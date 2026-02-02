@@ -1,20 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { LanguageProvider } from './services/LanguageContext';
 import { AuthProvider } from './services/AuthContext';
+import { useThemeStore } from './stores/themeStore';
 
 import './index.css';
 import './i18n';
 
 function Root(): JSX.Element {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const theme = useThemeStore((state) => state.theme);
 
   return (
-    <div data-theme={isDarkMode ? 'dark' : 'light'}>
+    <div data-theme={theme}>
       <AuthProvider>
         <LanguageProvider>
-          <App isDarkMode={isDarkMode} onThemeChange={setIsDarkMode} />
+          <App />
         </LanguageProvider>
       </AuthProvider>
     </div>

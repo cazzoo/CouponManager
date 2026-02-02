@@ -11,14 +11,14 @@ import couponService from "./services/CouponServiceFactory";
 import { useLanguage } from "./services/LanguageContext";
 import { useAuth } from "./services/AuthContext";
 import { Permissions } from "./services/RoleServiceFactory";
-import { Coupon, CouponFormData, ThemeConfig } from "./types";
+import { Coupon, CouponFormData } from "./types";
+import { useThemeStore } from "./stores/themeStore";
 
-interface AppProps extends ThemeConfig {}
-
-function App({ isDarkMode, onThemeChange }: AppProps) {
+function App() {
   const { t } = useLanguage();
   const { user, loading: authLoading, signOut, userRole, hasPermission } = useAuth();
-  
+  const { theme, toggleTheme } = useThemeStore();
+
   const isManager = userRole === 'manager';
   
   console.log('App: User role:', userRole, 'isManager:', isManager);
@@ -211,20 +211,20 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
   if (!user) {
     console.log('App: User is not authenticated, showing login form');
     return (
-      <div className={`min-h-screen ${isDarkMode ? "bg-gray-800" : "bg-gray-50"}`}>
-        <nav className="navbar bg-green-600 text-white">
-          <div className="container mx-auto">
+      <div className="min-h-screen bg-base-200">
+        <nav className="navbar bg-primary text-primary-content shadow-lg">
+          <div className="flex w-full px-4">
             <div className="flex-1">
               <a className="btn btn-ghost text-xl normal-case">{t('app.coupon_manager')}</a>
             </div>
-            <div className="flex-none gap-2">
+            <div className="flex flex-none gap-2 items-center">
               <LanguageSelector />
               {isDevelopment && <DevUserSwitcher />}
               <button
                 className="btn btn-ghost btn-circle"
-                onClick={() => onThemeChange(!isDarkMode)}
+                onClick={toggleTheme}
               >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
             </div>
           </div>
@@ -237,27 +237,27 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
   console.log('App: User is authenticated, showing main application');
   return (
     <div className="min-h-screen bg-base-200" data-testid="dashboard-container">
-      <nav className="navbar bg-green-600 text-white shadow-lg border-b border-green-700">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="navbar bg-primary text-primary-content shadow-lg">
+        <div className="flex w-full px-4">
           <div className="flex-1">
             <a className="btn btn-ghost text-xl normal-case font-semibold tracking-wide">
               {t('app.coupon_manager')}
             </a>
           </div>
-          <div className="flex-none gap-2 items-center">
+          <div className="flex flex-none gap-2 items-center">
             <LanguageSelector />
             {isDevelopment && <DevUserSwitcher />}
-            <div className="hidden sm:block text-sm mr-2 text-green-100">
+            <div className="hidden sm:block text-sm mr-2 text-primary-content opacity-80">
               {user.email}
             </div>
             <button
-              className="btn btn-ghost btn-circle mr-1 hover:bg-green-700"
-              onClick={() => onThemeChange(!isDarkMode)}
+              className="btn btn-ghost btn-circle mr-1"
+              onClick={toggleTheme}
             >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <button
-              className="btn btn-ghost hover:bg-green-700 normal-case"
+              className="btn btn-ghost normal-case"
               onClick={handleSignOut}
               data-testid="logout-button"
             >
@@ -268,26 +268,26 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
       </nav>
 
       {/* Tabs */}
-      <div className={`bg-gray-100 border-b border-gray-200 shadow-sm ${isDarkMode ? "bg-gray-700 border-gray-600" : ""}`}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-base-300 border-b border-base-300 shadow-sm">
+        <div className="w-full px-4">
           <div className="tabs tabs-boxed bg-transparent border-0">
-            <a 
-              className={`tab ${currentTab === 0 ? 'tab-active bg-green-600 text-white' : 'hover:bg-gray-200'} ${isDarkMode ? 'hover:bg-gray-600' : ''}`}
+            <a
+              className={`tab ${currentTab === 0 ? 'tab-active' : ''}`}
               onClick={() => handleTabChange(0)}
               data-testid="nav-coupons"
             >
               {t('app.tabs.coupons')}
             </a>
-            <a 
-              className={`tab ${currentTab === 1 ? 'tab-active bg-green-600 text-white' : 'hover:bg-gray-200'} ${isDarkMode ? 'hover:bg-gray-600' : ''}`}
+            <a
+              className={`tab ${currentTab === 1 ? 'tab-active' : ''}`}
               onClick={() => handleTabChange(1)}
               data-testid="nav-retailers"
             >
               {t('app.tabs.retailers')}
             </a>
             {isManager && (
-              <a 
-                className={`tab ${currentTab === 2 ? 'tab-active bg-green-600 text-white' : 'hover:bg-gray-200'} ${isDarkMode ? 'hover:bg-gray-600' : ''}`}
+              <a
+                className={`tab ${currentTab === 2 ? 'tab-active' : ''}`}
                 onClick={() => handleTabChange(2)}
                 data-testid="nav-users"
               >
@@ -304,7 +304,7 @@ function App({ isDarkMode, onThemeChange }: AppProps) {
         </div>
       )}
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-4 mb-4">
+      <div className="w-full px-4 mt-4 mb-4">
         {loading && (
           <div className="flex justify-center">
             <span className="loading loading-spinner loading-lg"></span>
