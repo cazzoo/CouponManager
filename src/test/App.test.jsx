@@ -9,8 +9,12 @@ import { useThemeStore } from '../stores/themeStore';
 vi.mock('../stores/themeStore', () => ({
   useThemeStore: vi.fn(() => ({
     theme: 'dark',
-    toggleTheme: vi.fn(),
+    setTheme: vi.fn(),
   })),
+  THEME_OPTIONS: [
+    { value: 'light', label: 'Light' },
+    { value: 'dark', label: 'Dark' },
+  ],
 }));
 
 // Mock the components directly before import in App.jsx
@@ -40,6 +44,10 @@ vi.mock('../components/LoginForm', () => ({
 
 vi.mock('../components/LanguageSelector', () => ({
   default: () => <div data-testid="language-selector">LanguageSelector Component</div>
+}));
+
+vi.mock('../components/ThemeSelector', () => ({
+  default: () => <div data-testid="theme-selector">ThemeSelector Component</div>
 }));
 
 // Mock services
@@ -181,8 +189,7 @@ describe('App Component', () => {
     // This test would be better implemented once we add a data-testid to the add coupon button
   });
 
-  it('toggles theme when theme button is clicked', async () => {
-    const user = userEvent.setup();
+  it('displays theme selector in the app bar', async () => {
     render(<App />);
 
     // Wait for loading to complete
@@ -190,15 +197,8 @@ describe('App Component', () => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
 
-    // Find and click the theme toggle button (the button with an SVG icon)
-    const themeButtons = screen.getAllByRole('button');
-    const themeButton = themeButtons.find(btn => btn.querySelector('svg'));
-
-    expect(themeButton).toBeDefined();
-    if (themeButton) {
-      // Just verify clicking doesn't throw an error
-      await user.click(themeButton);
-    }
+    // Verify ThemeSelector component is present
+    expect(screen.getByTestId('theme-selector')).toBeInTheDocument();
   });
 
   it('includes LanguageSelector in the app bar', async () => {

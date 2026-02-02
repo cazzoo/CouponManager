@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Plus, Sun, Moon } from "lucide-react";
+import { Plus } from "lucide-react";
 import CouponList from "./components/CouponList";
 import RetailerList from "./components/RetailerList";
 import AddCouponForm from "./components/AddCouponForm";
 import LanguageSelector from "./components/LanguageSelector";
+import ThemeSelector from "./components/ThemeSelector";
 import DevUserSwitcher from "./components/DevUserSwitcher";
 import LoginForm from "./components/LoginForm";
 import UserManagement from "./components/UserManagement";
@@ -17,7 +18,7 @@ import { useThemeStore } from "./stores/themeStore";
 function App() {
   const { t } = useLanguage();
   const { user, loading: authLoading, signOut, userRole, hasPermission } = useAuth();
-  const { theme, toggleTheme } = useThemeStore();
+  const { theme } = useThemeStore();
 
   const isManager = userRole === 'manager';
   
@@ -219,13 +220,8 @@ function App() {
             </div>
             <div className="flex flex-none gap-2 items-center">
               <LanguageSelector />
+              <ThemeSelector />
               {isDevelopment && <DevUserSwitcher />}
-              <button
-                className="btn btn-ghost btn-circle"
-                onClick={toggleTheme}
-              >
-                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
             </div>
           </div>
         </nav>
@@ -246,16 +242,11 @@ function App() {
           </div>
           <div className="flex flex-none gap-2 items-center">
             <LanguageSelector />
+            <ThemeSelector />
             {isDevelopment && <DevUserSwitcher />}
             <div className="hidden sm:block text-sm mr-2 text-primary-content opacity-80">
               {user.email}
             </div>
-            <button
-              className="btn btn-ghost btn-circle mr-1"
-              onClick={toggleTheme}
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
             <button
               className="btn btn-ghost normal-case"
               onClick={handleSignOut}
