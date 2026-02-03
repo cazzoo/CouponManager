@@ -45,57 +45,81 @@ const ThemeSelector: React.FC = () => {
   const currentTheme = THEME_OPTIONS[selectedIndex];
 
   return (
-    <div className="dropdown dropdown-end">
+    <div className="dropdown dropdown-end relative">
       <div
         tabIndex={0}
         role="button"
-        className="btn btn-ghost btn-circle"
-        aria-label="Select theme"
+        className="btn btn-primary btn-sm text-primary-content w-32 h-12 flex items-center justify-between gap-2 px-3"
+        aria-label={`Current theme: ${currentTheme.label}. Click to change theme`}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <Palette size={20} />
-        <div className="badge badge-primary badge-xs absolute -top-0 -right-0 w-3 h-3">
-          {currentTheme.label.charAt(0)}
-        </div>
+        <Palette size={16} />
+        <span className="text-sm font-medium truncate flex-1">{currentTheme.label}</span>
+        <ChevronRight size={14} />
       </div>
       
       {isOpen && (
         <div
           tabIndex={0}
-          className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-64"
-          onKeyDown={handleKeyDown}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={() => setIsOpen(false)}
         >
-          <div className="text-center mb-2">
-            <div className="font-bold text-lg mb-2">{currentTheme.label}</div>
-            <div className="text-sm opacity-70">
-              Theme {selectedIndex + 1} of {THEME_OPTIONS.length}
+          <div
+            tabIndex={0}
+            className="dropdown-content menu p-4 shadow-2xl bg-base-100 rounded-box w-80 max-h-96 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleKeyDown}
+          >
+            <div className="text-center mb-4">
+              <div className="font-bold text-lg mb-2">{currentTheme.label}</div>
+              <div className="text-sm opacity-70">
+                Theme {selectedIndex + 1} of {THEME_OPTIONS.length}
+              </div>
             </div>
-          </div>
-          
-          <div className="grid grid-cols-1 gap-2">
-            {THEME_OPTIONS.map((option, index) => (
-              <button
-                key={option.value}
-                className={`btn btn-sm w-full justify-start ${
-                  option.value === theme
-                    ? 'btn-primary text-primary-content'
-                    : 'btn-ghost hover:bg-base-200'
-                }`}
-                onClick={() => selectTheme(option.value, index)}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="flex-1 text-left">{option.label}</span>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {THEME_OPTIONS.map((option, index) => (
+                <button
+                  key={option.value}
+                  className={`btn btn-md w-full justify-start h-16 ${
+                    option.value === theme
+                      ? 'btn-primary text-primary-content shadow-lg scale-105'
+                      : 'btn-ghost hover:bg-base-200'
+                  } transition-all duration-200`}
+                  onClick={() => selectTheme(option.value, index)}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="text-2xl mb-1">
+                      {option.label.substring(0, 1).toUpperCase()}
+                    </div>
+                    <div className="text-sm opacity-80 text-center">
+                      {option.label}
+                    </div>
+                  </div>
                   {option.value === theme && (
-                    <span className="text-primary-content text-xs">✓</span>
+                    <div className="mt-2">
+                      <div className="badge badge-success badge-lg px-3 py-1 text-success-content">
+                        ✓ Active
+                      </div>
+                    </div>
                   )}
-                </div>
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex justify-between gap-2 mt-2">
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setIsOpen(false)}
+              >
+                Cancel
               </button>
-            ))}
+            </div>
           </div>
         </div>
       )}
 
-      <div className="hidden md:flex md:flex-col md:items-center md:gap-1 ml-2">
+      <div className="hidden md:flex md:flex-col md:items-center md:gap-2 ml-2">
         <button
           className="btn btn-ghost btn-circle btn-sm"
           onClick={handlePrevious}
