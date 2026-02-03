@@ -11,14 +11,17 @@ import './i18n';
 function Root(): JSX.Element {
   const theme = useThemeStore((state) => state.theme);
 
+  React.useEffect(() => {
+    // Apply theme to document element for DaisyUI components to respect
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
   return (
-    <div data-theme={theme}>
-      <AuthProvider>
-        <LanguageProvider>
-          <App />
-        </LanguageProvider>
-      </AuthProvider>
-    </div>
+    <AuthProvider>
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
+    </AuthProvider>
   );
 }
 
