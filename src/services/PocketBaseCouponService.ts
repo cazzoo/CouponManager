@@ -1,5 +1,6 @@
+import PocketBase from 'pocketbase';
 import PocketBaseClient from './PocketBaseClient';
-import PocketBaseAuthService from './PocketBaseAuthService';
+import PocketBaseAuthService, { User } from './PocketBaseAuthService';
 import PocketBaseRoleService, { Permissions } from './PocketBaseRoleService';
 import { handlePocketBaseError } from './DatabaseError';
 import { Coupon, CouponFormData, RetailerStat } from '../types';
@@ -74,7 +75,7 @@ class PocketBaseCouponService implements ICouponService {
 
   async getAllCoupons(): Promise<Coupon[]> {
     try {
-      const user = PocketBaseAuthService.getUser();
+      const user = PocketBaseClient.getInstance().authStore.record as unknown as User;
 
       if (!user) {
         console.error('No authenticated user found');
@@ -83,11 +84,13 @@ class PocketBaseCouponService implements ICouponService {
 
       const canViewAll = await PocketBaseRoleService.hasPermission(Permissions.VIEW_ANY_COUPON);
 
-      const filter = canViewAll ? '' : `userId = "${user.id}"`;
+      // Use single quotes for PocketBase filter syntax
+      const filter = canViewAll ? '' : `userId = '${user.id}'`;
 
       const records = await this.pb.collection(this.collectionName).getList<PocketBaseCoupon>(1, 500, {
         filter: filter,
-        sort: '-created'
+        sort: '-created',
+        $cancelKey: 'getAllCoupons'
       });
 
       return records.items.map(item => this.#mapToCoupon(item));
@@ -100,7 +103,7 @@ class PocketBaseCouponService implements ICouponService {
 
   async addCoupon(coupon: CouponFormData, userId: string | null = null): Promise<Coupon> {
     try {
-      const user = PocketBaseAuthService.getUser();
+      const user = PocketBaseClient.getInstance().authStore.record as unknown as User;
 
       if (!userId && user) {
         userId = user.id;
@@ -117,7 +120,9 @@ class PocketBaseCouponService implements ICouponService {
 
       const pbCoupon = this.#mapToPBCoupon(couponWithUser);
 
-      const record = await this.pb.collection(this.collectionName).create<PocketBaseCoupon>(pbCoupon);
+      const record = await this.pb.collection(this.collectionName).create<PocketBaseCoupon>(pbCoupon, {
+        $cancelKey: 'addCoupon'
+      });
 
       return this.#mapToCoupon(record);
     } catch (error) {
@@ -146,7 +151,8 @@ class PocketBaseCouponService implements ICouponService {
 
       await this.pb.collection(this.collectionName).update<PocketBaseCoupon>(
         updatedCoupon.id,
-        pbCoupon
+        pbCoupon,
+        { $cancelKey: `updateCoupon-${updatedCoupon.id}` }
       );
 
       return true;
@@ -171,7 +177,7 @@ class PocketBaseCouponService implements ICouponService {
       await this.pb.collection(this.collectionName).update<PocketBaseCoupon>(couponId, {
         currentValue: '0',
         updated: new Date().toISOString()
-      });
+      }, { $cancelKey: `markAsUsed-${couponId}` });
 
       return true;
     } catch (error) {
@@ -182,7 +188,9 @@ class PocketBaseCouponService implements ICouponService {
 
   async partiallyUseCoupon(couponId: string, amount: number): Promise<boolean> {
     try {
-      const record = await this.pb.collection(this.collectionName).getOne<PocketBaseCoupon>(couponId);
+      const record = await this.pb.collection(this.collectionName).getOne<PocketBaseCoupon>(couponId, {
+        $cancelKey: `getCouponForPartialUse-${couponId}`
+      });
 
       const hasPermission = await PocketBaseRoleService.hasPermission(
         Permissions.EDIT_COUPON,
@@ -200,7 +208,7 @@ class PocketBaseCouponService implements ICouponService {
       await this.pb.collection(this.collectionName).update<PocketBaseCoupon>(couponId, {
         currentValue: newValue,
         updated: new Date().toISOString()
-      });
+      }, { $cancelKey: `partiallyUse-${couponId}` });
 
       return true;
     } catch (error) {
@@ -211,7 +219,7 @@ class PocketBaseCouponService implements ICouponService {
 
   async getUniqueRetailers(): Promise<string[]> {
     try {
-      const user = PocketBaseAuthService.getUser();
+      const user = PocketBaseClient.getInstance().authStore.record as unknown as User;
 
       if (!user) {
         console.error('No authenticated user found');
@@ -220,11 +228,13 @@ class PocketBaseCouponService implements ICouponService {
 
       const canViewAll = await PocketBaseRoleService.hasPermission(Permissions.VIEW_ANY_COUPON);
 
-      const filter = canViewAll ? '' : `userId = "${user.id}"`;
+      // Use single quotes for PocketBase filter syntax
+      const filter = canViewAll ? '' : `userId = '${user.id}'`;
 
       const records = await this.pb.collection(this.collectionName).getList<PocketBaseCoupon>(1, 500, {
         filter: filter,
-        fields: 'retailer'
+        fields: 'retailer',
+        $cancelKey: 'getUniqueRetailers'
       });
 
       const retailers = records.items.map(item => item.retailer);

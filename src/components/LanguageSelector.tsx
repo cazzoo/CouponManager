@@ -67,7 +67,7 @@ const LanguageSelector: React.FC = () => {
               <li key={lang.code}>
                 <a
                   onClick={() => handleMobileClose(lang.code)}
-                  className={language === lang.code ? 'active' : ''}
+                  className={`text-base-content hover:bg-base-200 ${language === lang.code ? 'active' : ''}`}
                 >
                   {lang.name}
                 </a>
@@ -87,7 +87,7 @@ const LanguageSelector: React.FC = () => {
         </label>
         <select
           id="language-select"
-          className="select select-bordered select-sm w-full max-w-xs"
+          className="select select-bordered select-sm w-full max-w-xs text-base-content"
           value={language}
           onChange={handleChange}
           aria-label={t('language')}

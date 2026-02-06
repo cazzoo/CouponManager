@@ -1,5 +1,6 @@
-import PocketBaseClient from './PocketBaseClient';
 import { handlePocketBaseError, AuthenticationError } from './DatabaseError';
+import PocketBase, { RecordModel } from 'pocketbase';
+import PocketBaseClient from './PocketBaseClient';
 
 export interface User {
   id: string;
@@ -31,19 +32,6 @@ export interface SignUpResponse {
   error: Error | null;
 }
 
-export interface SignOutResponse {
-  error: Error | null;
-}
-
-export interface SessionResponse {
-  session: Session | null;
-  error: Error | null;
-}
-
-export type AuthStateChangeCallback = (event: string, session: Session | null) => void;
-
-type AuthStateChangeEvent = 'signedIn' | 'signedOut' | 'tokenRefreshed' | 'unauthorized';
-
 class PocketBaseAuthService {
   private pb: PocketBase;
   private authChangeListeners: Set<AuthStateChangeCallback> = new Set();
@@ -55,7 +43,7 @@ class PocketBaseAuthService {
 
   private subscribeToAuthChanges(): void {
     this.pb.authStore.onChange((token, model) => {
-      const session = token && model ? { token, user: model as User } : null;
+      const session = token && model ? { token, user: model as unknown as User } : null;
       const event = this.getAuthEvent(token, model);
 
       this.notifyAuthChange(event, session);
@@ -82,30 +70,15 @@ class PocketBaseAuthService {
     });
   }
 
-  async signUp(email: string, password: string): Promise<SignUpResponse> {
-    try {
-      const record = await this.pb.collection('users').create({
-        email,
-        password,
-        passwordConfirm: password,
-        emailVisibility: true
-      });
-
-      const user = this.mapPocketBaseUser(record);
-
-      return {
-        data: { user },
-        error: null
-      };
-    } catch (error) {
-      console.error('Error in signUp:', error);
-      const dbError = handlePocketBaseError(error);
-
-      return {
-        data: null,
-        error: dbError
-      };
-    }
+  private mapPocketBaseUser(record: RecordModel): User {
+    return {
+      id: record.id,
+      email: record.email || '',
+      name: record.name,
+      created: record.created || new Date().toISOString(),
+      updated: record.updated || new Date().toISOString(),
+      emailVisibility: record.emailVisibility || false
+    };
   }
 
   async signIn(email: string, password: string): Promise<AuthResponse> {
@@ -115,11 +88,22 @@ class PocketBaseAuthService {
         password
       );
 
-      const user = this.mapPocketBaseUser(authData.record);
+      const { token, record } = authData;
+      const user = {
+        id: record.id,
+        email: record.email,
+        name: record.name,
+        role: record.role,
+        created: record.created,
+        updated: record.updated,
+        emailVisibility: record.emailVisibility
+      } as unknown as User;
       const session: Session = {
-        token: authData.token,
+        token,
         user
       };
+
+      this.pb.authStore.save(session.token, user as unknown as RecordModel);
 
       return {
         data: { user, session },
@@ -140,30 +124,32 @@ class PocketBaseAuthService {
     return this.signIn(credentials.email, credentials.password);
   }
 
-  async signInAnonymously(): Promise<AuthResponse> {
+  async signUp(email: string, password: string): Promise<SignUpResponse> {
     try {
-      const anonymousUser: User = {
-        id: 'anonymous',
-        email: 'anonymous@local',
-        role: 'demo',
-        created: new Date().toISOString(),
-        updated: new Date().toISOString()
-      };
+      const record = await this.pb.collection('users').create({
+        email,
+        password,
+        passwordConfirm: password,
+        name: 'Regular User',
+        emailVisibility: true
+      });
 
-      const session: Session = {
-        token: 'anonymous-token',
-        user: anonymousUser
-      };
-
-      // Manually set the auth store to simulate authentication
-      this.pb.authStore.save(session.token, anonymousUser);
-
+      const user = {
+        id: record.id,
+        email: record.email,
+        name: record.name,
+        role: record.role,
+        created: record.created,
+        updated: record.updated,
+        emailVisibility: record.emailVisibility
+      } as unknown as User;
+      
       return {
-        data: { user: anonymousUser, session },
+        data: { user },
         error: null
       };
     } catch (error) {
-      console.error('Error in signInAnonymously:', error);
+      console.error('Error in signUp:', error);
       const dbError = handlePocketBaseError(error);
 
       return {
@@ -173,97 +159,76 @@ class PocketBaseAuthService {
     }
   }
 
-  async signOut(): Promise<SignOutResponse> {
+  async signOut(): Promise<boolean> {
     try {
       this.pb.authStore.clear();
-
-      return { error: null };
+      this.notifyAuthChange('signedOut', null);
+      return true;
     } catch (error) {
-      console.error('Error in signOut:', error);
-      const dbError = handlePocketBaseError(error);
-
-      return { error: dbError };
+      console.error('Error signing out:', error);
+      return false;
     }
   }
 
-  async getCurrentSession(): Promise<SessionResponse> {
-    try {
-      const isValid = this.pb.authStore.isValid;
+  get isAuthenticated(): boolean {
+    return this.pb.authStore.isValid && !!this.pb.authStore.token;
+  }
 
-      if (!isValid || !this.pb.authStore.token) {
-        return {
-          session: null,
-          error: null
-        };
-      }
-
-      const model = this.pb.authStore.model;
-      if (!model) {
-        return {
-          session: null,
-          error: null
-        };
-      }
-
-      const session: Session = {
-        token: this.pb.authStore.token,
-        user: model as User
-      };
-
-      return {
-        session,
-        error: null
-      };
-    } catch (error) {
-      console.error('Error in getCurrentSession:', error);
-      const dbError = handlePocketBaseError(error);
-
-      return {
-        session: null,
-        error: dbError
-      };
-    }
+  get currentUser(): User | null {
+    const model = this.pb.authStore.model;
+    return model ? {
+        id: model.id,
+        email: model.email,
+        name: model.name,
+        role: model.role,
+        created: model.created,
+        updated: model.updated,
+        emailVisibility: model.emailVisibility
+      } as User : null;
   }
 
   getUser(): User | null {
-    try {
-      const model = this.pb.authStore.model;
-
-      if (!model) {
-        return null;
-      }
-
-      return this.mapPocketBaseUser(model);
-    } catch (error) {
-      console.error('Error getting current user:', error);
-      return null;
-    }
+    return this.currentUser;
   }
 
-  onAuthStateChange(callback: AuthStateChangeCallback): any {
+  get currentToken(): string | null {
+    return this.pb.authStore.token || null;
+  }
+
+  addAuthChangeListener(callback: AuthStateChangeCallback): void {
     this.authChangeListeners.add(callback);
+  }
 
-    const unsubscribe = () => {
-      this.authChangeListeners.delete(callback);
-    };
+  removeAuthChangeListener(callback: AuthStateChangeCallback): void {
+    this.authChangeListeners.delete(callback);
+  }
 
+  onAuthStateChange(callback: AuthStateChangeCallback): { data: { unsubscribe: () => void } } {
+    this.addAuthChangeListener(callback);
     return {
-      data: { subscription: { unsubscribe } },
-      error: null
+      data: {
+        unsubscribe: () => {
+          this.removeAuthChangeListener(callback);
+        }
+      }
     };
   }
 
-  private mapPocketBaseUser(record: any): User {
-    return {
-      id: record.id,
-      email: record.email,
-      name: record.name,
-      role: record.role,
-      created: record.created,
-      updated: record.updated,
-      emailVisibility: record.emailVisibility
-    };
+  async getSession(): Promise<{ session: Session | null; error: Error | null }> {
+    try {
+      const session = this.pb.authStore.token && this.currentUser ? {
+        token: this.pb.authStore.token,
+        user: this.currentUser
+      } : null;
+      return { session, error: null };
+    } catch (error) {
+      return { session: null, error: error as Error };
+    }
   }
 }
 
 export default new PocketBaseAuthService();
+
+export type AuthStateChangeCallback = (event: string, session: Session | null) => void;
+
+type AuthStateChangeEvent = 'signedIn' | 'signedOut' | 'tokenRefreshed' | 'unauthorized';

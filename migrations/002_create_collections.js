@@ -1,10 +1,8 @@
-/// <reference path="../pb_data/types.d.ts" />
-
 migrate((app) => {
   const snapshot = [
     {
-      "createRule": "@request.auth.id != \"\" && userId = @request.auth.id",
-      "deleteRule": "@request.auth.id != \"\" && (userId = @request.auth.id || @request.auth.data.role = 'manager')",
+      "createRule": "@request.auth.id != \"\"",
+      "deleteRule": "@request.auth.id != \"\" && @request.auth.data.role = 'manager'",
       "fields": [
         {
           "name": "created",
@@ -38,12 +36,12 @@ migrate((app) => {
         }
       ],
       "indexes": [],
-      "listRule": "@request.auth.id != \"\" && (userId = @request.auth.id || @request.auth.data.role = 'manager')",
+      "listRule": "@request.auth.id != \"\"",
       "name": "user_roles",
       "system": false,
       "type": "base",
       "updateRule": "@request.auth.id != \"\" && (userId = @request.auth.id || @request.auth.data.role = 'manager')",
-      "viewRule": "@request.auth.id != \"\" && (userId = @request.auth.id || @request.auth.data.role = 'manager')"
+      "viewRule": "@request.auth.id != \"\""
     },
     {
       "createRule": "@request.auth.data.role = 'manager'",
@@ -97,7 +95,7 @@ migrate((app) => {
     },
     {
       "createRule": "@request.auth.id != \"\"",
-      "deleteRule": "userId = @request.auth.id",
+      "deleteRule": "userId = @request.auth.id || @request.auth.data.role = 'manager'",
       "fields": [
         {
           "name": "created",
@@ -194,12 +192,12 @@ migrate((app) => {
         }
       ],
       "indexes": [],
-      "listRule": "userId = @request.auth.id",
+      "listRule": "(userId = @request.auth.id) || (@request.auth.data.role = 'manager')",
       "name": "coupons",
       "system": false,
       "type": "base",
-      "updateRule": "userId = @request.auth.id",
-      "viewRule": "userId = @request.auth.id"
+      "updateRule": "(userId = @request.auth.id) || (@request.auth.data.role = 'manager')",
+      "viewRule": "(userId = @request.auth.id) || (@request.auth.data.role = 'manager')"
     }
   ];
 

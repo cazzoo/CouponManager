@@ -28,6 +28,35 @@ function createDateFromNow(days) {
   return date.toISOString();
 }
 
+async function fixPermissions(pb) {
+  console.log(`${colors.blue}Fixing collection permissions...${colors.reset}`);
+
+  try {
+    await pb.collections.update('user_roles', {
+      listRule: '@request.auth.id != ""',
+      viewRule: '@request.auth.id != ""',
+      createRule: '@request.auth.id != ""',
+      updateRule: '@request.auth.id != "" && (userId = @request.auth.id || @request.auth.data.role = \'manager\')',
+      deleteRule: '@request.auth.id != "" && @request.auth.data.role = \'manager\''
+    });
+    console.log(`${colors.green}✓ Updated user_roles collection rules${colors.reset}`);
+
+    await pb.collections.update('coupons', {
+      listRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')',
+      viewRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')',
+      updateRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')',
+      deleteRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')'
+    });
+    console.log(`${colors.green}✓ Updated coupons collection rules${colors.reset}`);
+  } catch (error) {
+    console.error(`${colors.red}✗ Failed to fix permissions: ${error.message}${colors.reset}`);
+    if (error.data) {
+      console.error(`${colors.gray}Error data: ${JSON.stringify(error.data, null, 2)}${colors.reset}`);
+    }
+    throw error;
+  }
+}
+
 async function createTestUsers(pb) {
   console.log(`${colors.blue}Creating test users...${colors.reset}`);
 
@@ -37,35 +66,40 @@ async function createTestUsers(pb) {
       password: 'password123',
       passwordConfirm: 'password123',
       name: 'Regular User',
-      emailVisibility: true
+      emailVisibility: true,
+      role: 'user'
     },
     {
       email: 'manager@example.com',
       password: 'password123',
       passwordConfirm: 'password123',
       name: 'Manager User',
-      emailVisibility: true
+      emailVisibility: true,
+      role: 'manager'
     },
     {
       email: 'another@example.com',
       password: 'password123',
       passwordConfirm: 'password123',
       name: 'Another User',
-      emailVisibility: true
+      emailVisibility: true,
+      role: 'user'
     },
     {
       email: 'demo@example.com',
       password: 'demo12345',
       passwordConfirm: 'demo12345',
       name: 'Demo User',
-      emailVisibility: true
+      emailVisibility: true,
+      role: 'demo'
     },
     {
       email: 'test4@example.com',
       password: 'password123',
       passwordConfirm: 'password123',
       name: 'Test User 4',
-      emailVisibility: true
+      emailVisibility: true,
+      role: 'user'
     }
   ];
 
@@ -78,7 +112,8 @@ async function createTestUsers(pb) {
         password: userData.password,
         passwordConfirm: userData.passwordConfirm,
         name: userData.name,
-        emailVisibility: userData.emailVisibility
+        emailVisibility: userData.emailVisibility,
+        role: userData.role
       });
 
       userIds.push({ email: userData.email, id: user.id });
@@ -709,6 +744,9 @@ async function main() {
       process.exit(1);
       return;
     }
+
+    await fixPermissions(pb);
+    console.log();
 
     console.log(`${colors.blue}${'='.repeat(50)}${colors.reset}`);
 

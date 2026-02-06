@@ -13,6 +13,13 @@ export default defineConfig(({ mode }) => {
       },
       watch: {
         ignored: ['**/pocketbase/**', '**/pb_data/**', '**/pb_migrations/**', 'pocketbase']
+      },
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:8090',
+          changeOrigin: true,
+          secure: false
+        }
       }
     },
     optimizeDeps: {

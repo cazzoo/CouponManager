@@ -58,9 +58,18 @@ echo -e "${BLUE}PocketBase Full Setup + Dev Server${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo
 
-# Step 1: Reset PocketBase
+# Step 1: Reset PocketBase (this also stops it)
 echo -e "${YELLOW}Step 1: Resetting PocketBase...${NC}"
 echo -e "${GRAY}----------------------------------------${NC}"
+# First stop any running PocketBase
+if [ -f "$PB_PID_FILE" ]; then
+    PB_PID=$(cat "$PB_PID_FILE")
+    if ps -p "$PB_PID" > /dev/null 2>&1; then
+        echo -e "${YELLOW}Stopping running PocketBase...${NC}"
+        kill "$PB_PID" 2>/dev/null || true
+        sleep 2
+    fi
+fi
 # Pipe 'yes' to make it non-interactive
 if echo 'yes' | pnpm pb:reset > /dev/null 2>&1; then
     echo -e "${GREEN}✓ Reset complete${NC}"
@@ -77,7 +86,8 @@ echo -e "${GRAY}Note: PocketBase must be STOPPED for migrations${NC}"
 if pnpm pb:create-collections > /dev/null 2>&1; then
     echo -e "${GREEN}✓ Collections created successfully${NC}"
 else
-    echo -e "${YELLOW}⚠ Migration had issues, will continue...${NC}"
+    echo -e "${RED}✗ Migration failed${NC}"
+    exit 1
 fi
 echo
 

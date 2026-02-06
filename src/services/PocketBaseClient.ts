@@ -11,7 +11,7 @@ interface PocketBaseConfig {
 class PocketBaseClient {
   private static instance: PocketBase | null = null;
   private static config: PocketBaseConfig = {
-    url: 'http://127.0.0.1:8090',
+    url: '',
     enableAutoAuth: true,
     authMethod: 'password'
   };
@@ -55,10 +55,12 @@ class PocketBaseClient {
       const storeData = localStorage.getItem('pocketbase_auth');
       if (storeData && PocketBaseClient.instance) {
         const authData = JSON.parse(storeData);
+        console.log('​PocketBaseClient: Loading auth from store - token:', authData.token);
+        console.log('​PocketBaseClient: Loading auth from store - model:', authData.model);
         PocketBaseClient.instance.authStore.save(authData.token, authData.model);
       }
     } catch (error) {
-      console.error('Error loading auth from store:', error);
+      console.error('​PocketBaseClient: Error loading auth from store:', error);
     }
   }
 }

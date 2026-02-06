@@ -309,7 +309,7 @@ const AddCouponForm: React.FC<AddCouponFormProps> = ({
                       }
                     </span>
                   </div>
-                  <div id="date-picker-dropdown" className="dropdown-content z-10 p-2 shadow bg-base-100 rounded-box w-full">
+                  <div id="date-picker-dropdown" className="dropdown-content z-10 p-2 shadow bg-base-100 text-base-content rounded-box w-full">
                     <DayPicker
                       mode="single"
                       selected={formData.expirationDate || undefined}

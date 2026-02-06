@@ -356,7 +356,7 @@ const UserManagement: React.FC = () => {
                 <td>
                   <div className="form-control">
                     <select 
-                      className="select select-bordered select-sm"
+                      className="select select-bordered select-sm text-base-content"
                       value={userRoles[userItem.id] || USER_ROLE}
                       disabled={loading || userItem.id === user?.id}
                       onChange={(e) => {

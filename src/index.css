@@ -1,3 +1,67 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* React DayPicker theme overrides for DaisyUI compatibility */
+.rdp {
+  --rdp-cell-color: hsl(var(--bc));
+  --rdp-background-color: hsl(var(--b1));
+  --rdp-accent-color: hsl(var(--p));
+  --rdp-accent-background-color: hsl(var(--pf));
+  --rdp-selected-color: hsl(var(--pc));
+  --rdp-selected-background-color: hsl(var(--p));
+  --rdp-range-start-background-color: hsl(var(--p));
+  --rdp-range-end-background-color: hsl(var(--p));
+  --rdp-outside-color: hsl(var(--bc) / 0.5);
+  --rdp-disabled-color: hsl(var(--bc) / 0.3);
+  --rdp-hover-background-color: hsl(var(--b2));
+  --rdp-day-font: inherit;
+  --rdp-day-font-size: 0.875rem;
+}
+
+.rdp-day {
+  color: hsl(var(--bc));
+}
+
+.rdp-day:hover {
+  background-color: hsl(var(--b2));
+}
+
+.rdp-day_selected {
+  background-color: hsl(var(--p));
+  color: hsl(var(--pc));
+}
+
+.rdp-day_selected:hover {
+  background-color: hsl(var(--pf));
+}
+
+.rdp-head_cell {
+  color: hsl(var(--bc));
+  font-weight: 600;
+}
+
+.rdp-button {
+  color: hsl(var(--bc));
+}
+
+.rdp-button:hover {
+  background-color: hsl(var(--b2));
+}
+
+.rdp-nav_button {
+  color: hsl(var(--bc));
+}
+
+.rdp-nav_button:hover {
+  background-color: hsl(var(--b2));
+}
+
+.rdp-month_caption {
+  color: hsl(var(--bc));
+  font-weight: 600;
+}
+
+.rdp-weekday {
+  color: hsl(var(--bc) / 0.75);
+}

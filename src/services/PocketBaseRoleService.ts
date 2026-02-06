@@ -1,5 +1,6 @@
+import PocketBase from 'pocketbase';
 import PocketBaseClient from './PocketBaseClient';
-import PocketBaseAuthService from './PocketBaseAuthService';
+import PocketBaseAuthService, { User } from './PocketBaseAuthService';
 import { handlePocketBaseError } from './DatabaseError';
 import { IRoleService } from './RoleServiceFactory';
 
@@ -36,13 +37,30 @@ class PocketBaseRoleService implements IRoleService {
     this.pb = PocketBaseClient.getInstance();
   }
 
+  // Helper to get role from user auth record (faster, no extra request)
+  private getRoleFromUserRecord(): string | null {
+    const user = this.pb.authStore.record as unknown as User;
+    if (user && user.role) {
+      return user.role;
+    }
+    return null;
+  }
+
   async getUserRole(userId: string): Promise<string | null> {
     if (!userId) return null;
 
+    // First check the user auth record (fastest, no network request)
+    const roleFromRecord = this.getRoleFromUserRecord();
+    if (roleFromRecord) {
+      return roleFromRecord;
+    }
+
     try {
-      const filter = `userId = "${userId}"`;
+      // Use single quotes for PocketBase filter syntax
+      const filter = `userId = '${userId}'`;
       const records = await this.pb.collection(this.collectionName).getList<PocketBaseUserRole>(1, 1, {
-        filter: filter
+        filter: filter,
+        $cancelKey: `getUserRole-${userId}` // Prevent auto-cancellation
       });
 
       if (records.items.length === 0) {
@@ -70,9 +88,11 @@ class PocketBaseRoleService implements IRoleService {
       if (existingRole) {
         console.log(`Updating role for user ${userId} to ${role}`);
 
-        const filter = `userId = "${userId}"`;
+        // Find the role record first
+        const filter = `userId = '${userId}'`;
         const records = await this.pb.collection(this.collectionName).getList<PocketBaseUserRole>(1, 1, {
-          filter: filter
+          filter: filter,
+          $cancelKey: `findRoleForUpdate-${userId}`
         });
 
         if (records.items.length > 0) {
@@ -82,10 +102,16 @@ class PocketBaseRoleService implements IRoleService {
               userId,
               role,
               updated: new Date().toISOString()
-            }
+            },
+            { $cancelKey: `updateRole-${userId}` }
           );
         } else {
-          return null;
+          // Role exists in user record but not in user_roles collection
+          // Just create it
+          result = await this.pb.collection(this.collectionName).create<PocketBaseUserRole>({
+            userId,
+            role
+          }, { $cancelKey: `createRole-${userId}` });
         }
       } else {
         console.log(`Creating new role for user ${userId}: ${role}`);
@@ -93,7 +119,7 @@ class PocketBaseRoleService implements IRoleService {
         result = await this.pb.collection(this.collectionName).create<PocketBaseUserRole>({
           userId,
           role
-        });
+        }, { $cancelKey: `createRole-${userId}` });
       }
 
       return {
@@ -108,7 +134,7 @@ class PocketBaseRoleService implements IRoleService {
 
   async hasPermission(permission: string, context: Record<string, any> = {}): Promise<boolean> {
     try {
-      const user = PocketBaseAuthService.getUser();
+      const user = this.pb.authStore.record as unknown as User;
 
       if (!user) {
         return false;
@@ -125,11 +151,22 @@ class PocketBaseRoleService implements IRoleService {
     if (!userId) return false;
 
     try {
-      const userRole = await this.getUserRole(userId);
+      // Get role from user auth record first (fastest)
+      let userRole = this.getRoleFromUserRecord();
+      
+      // If not in auth record, try user_roles collection
+      if (!userRole) {
+        userRole = await this.getUserRole(userId);
+      }
 
-      console.log(`Checking permission ${permission} for user ${userId} with role ${userRole || 'no role'}`);
+      // If still no role, default to 'user' for permission checking
+      // Don't try to create a role record here - just use the default
+      if (!userRole) {
+        console.log(`No role found for user ${userId}, defaulting to 'user' for permission check`);
+        userRole = PocketBaseRoleService.Roles.USER;
+      }
 
-      if (!userRole) return false;
+      console.log(`Checking permission ${permission} for user ${userId} with role ${userRole}`);
 
       if (userRole === PocketBaseRoleService.Roles.MANAGER) {
         return true;
@@ -137,14 +174,19 @@ class PocketBaseRoleService implements IRoleService {
 
       switch (userRole) {
         case PocketBaseRoleService.Roles.USER:
+          // Users can view their own coupons and create new ones
           if (permission === PocketBaseRoleService.Permissions.VIEW_OWN_COUPONS ||
               permission === PocketBaseRoleService.Permissions.CREATE_COUPON) {
             return true;
           }
 
+          // Users can edit/delete their own coupons
           if ((permission === PocketBaseRoleService.Permissions.EDIT_COUPON || 
-               permission === PocketBaseRoleService.Permissions.DELETE_COUPON) && 
-              context.couponId) {
+               permission === PocketBaseRoleService.Permissions.DELETE_COUPON)) {
+            // If no couponId provided, check if user is trying to edit in general
+            if (!context.couponId) {
+              return true; // Allow general edit permission check
+            }
             return await this.isOwner(userId, context.couponId);
           }
 
@@ -166,7 +208,10 @@ class PocketBaseRoleService implements IRoleService {
     if (!userId || !couponId) return false;
 
     try {
-      const record = await this.pb.collection('coupons').getOne<{ userId: string }>(couponId);
+      const record = await this.pb.collection('coupons').getOne<{ userId: string }>(couponId, {
+        $cancelKey: `checkOwner-${couponId}`,
+        fields: 'userId'
+      });
 
       return record.userId === userId;
     } catch (error) {
@@ -182,7 +227,7 @@ class PocketBaseRoleService implements IRoleService {
 
   async updateUserRole(userId: string, newRole: string): Promise<boolean> {
     try {
-      const currentUser = PocketBaseAuthService.getUser();
+      const currentUser = this.pb.authStore.record as unknown as User;
 
       if (!currentUser) {
         return false;

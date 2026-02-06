@@ -20,6 +20,9 @@ export type ThemeMode =
   | 'pastel'
   | 'fantasy'
   | 'wireframe'
+  | 'black'
+  | 'luxury'
+  | 'dracula'
   | 'cmyk'
   | 'autumn'
   | 'business'
@@ -27,7 +30,13 @@ export type ThemeMode =
   | 'lemonade'
   | 'night'
   | 'coffee'
-  | 'winter';
+  | 'winter'
+  | 'dim'
+  | 'nord'
+  | 'sunset'
+  | 'caramellatte'
+  | 'abyss'
+  | 'silk';
 
 export const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'light', label: 'Light' },
@@ -48,6 +57,9 @@ export const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'pastel', label: 'Pastel' },
   { value: 'fantasy', label: 'Fantasy' },
   { value: 'wireframe', label: 'Wireframe' },
+  { value: 'black', label: 'Black' },
+  { value: 'luxury', label: 'Luxury' },
+  { value: 'dracula', label: 'Dracula' },
   { value: 'cmyk', label: 'CMYK' },
   { value: 'autumn', label: 'Autumn' },
   { value: 'business', label: 'Business' },
@@ -56,6 +68,12 @@ export const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'night', label: 'Night' },
   { value: 'coffee', label: 'Coffee' },
   { value: 'winter', label: 'Winter' },
+  { value: 'dim', label: 'Dim' },
+  { value: 'nord', label: 'Nord' },
+  { value: 'sunset', label: 'Sunset' },
+  { value: 'caramellatte', label: 'Caramel Latte' },
+  { value: 'abyss', label: 'Abyss' },
+  { value: 'silk', label: 'Silk' },
 ];
 
 interface ThemeStore {
@@ -63,14 +81,48 @@ interface ThemeStore {
   setTheme: (theme: ThemeMode) => void;
 }
 
+/**
+ * Apply theme to document element for DaisyUI
+ * DaisyUI themes are activated by setting data-theme attribute on <html>
+ */
+const applyTheme = (theme: ThemeMode): void => {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+};
+
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({
       theme: 'dark',
-      setTheme: (theme: ThemeMode) => set({ theme }),
+      setTheme: (theme: ThemeMode) => {
+        applyTheme(theme);
+        set({ theme });
+      },
     }),
     {
       name: 'coupon-manager-theme',
+      onRehydrateStorage: () => (state) => {
+        // Apply theme when store is rehydrated from localStorage
+        if (state) {
+          applyTheme(state.theme);
+        }
+      },
     }
   )
 );
+
+// Apply initial theme on module load
+if (typeof document !== 'undefined') {
+  const storedTheme = localStorage.getItem('coupon-manager-theme');
+  if (storedTheme) {
+    try {
+      const parsed = JSON.parse(storedTheme);
+      applyTheme(parsed.state?.theme || 'dark');
+    } catch {
+      applyTheme('dark');
+    }
+  } else {
+    applyTheme('dark');
+  }
+}

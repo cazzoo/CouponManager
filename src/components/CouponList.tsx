@@ -16,10 +16,12 @@ const localeMap: Record<string, Locale> = {
 interface CouponListProps {
   coupons: Coupon[];
   onUpdateCoupon: (couponId: string, updatedData: Partial<Coupon>) => void;
+  onEditCoupon?: (coupon: Coupon) => void;
   onMarkAsUsed: (couponId: string, newValue?: string) => void;
   retailerFilter?: string;
   setRetailerFilter?: (retailer: string) => void;
   defaultSort?: SortConfig;
+  userRole?: string | null;
 }
 
 interface FilterState {
@@ -30,13 +32,15 @@ interface FilterState {
 
 type SortOrder = 'asc' | 'desc';
 
-const CouponList: React.FC<CouponListProps> = ({ 
-  coupons, 
-  onUpdateCoupon, 
-  onMarkAsUsed, 
-  retailerFilter, 
-  setRetailerFilter, 
-  defaultSort 
+const CouponList: React.FC<CouponListProps> = ({
+  coupons,
+  onUpdateCoupon,
+  onEditCoupon,
+  onMarkAsUsed,
+  retailerFilter,
+  setRetailerFilter,
+  defaultSort,
+  userRole
 }) => {
   const { t, language } = useLanguage();
   
@@ -392,8 +396,56 @@ const CouponList: React.FC<CouponListProps> = ({
                       </p>
                       
                       {/* Action buttons for mobile */}
-                      <div className="flex justify-end mt-2">
-                        {/* Action buttons here */}
+                      <div className="flex justify-end gap-1 mt-2">
+                        {userRole !== 'demo' && (
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => onEditCoupon && onEditCoupon(coupon)}
+                            aria-label={t('actions.edit')}
+                            disabled={isExpired(coupon.expirationDate) || isUsed(coupon.currentValue)}
+                          >
+                            <Edit className="w-4 h-4" />
+                            {t('actions.edit')}
+                          </button>
+                        )}
+                        {userRole !== 'demo' && !isUsed(coupon.currentValue) && !isExpired(coupon.expirationDate) && (
+                          <>
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => handlePartialUseOpen(coupon.id)}
+                              aria-label={t('actions.use_partially')}
+                            >
+                              <CreditCard className="w-4 h-4" />
+                              {t('actions.use_partially')}
+                            </button>
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => onMarkAsUsed(coupon.id)}
+                              aria-label={t('actions.mark_as_used')}
+                            >
+                              <CircleX className="w-4 h-4" />
+                              {t('actions.mark_as_used')}
+                            </button>
+                          </>
+                        )}
+                        {coupon.activationCode && (
+                          <button
+                            className="btn btn-ghost btn-sm btn-circle"
+                            onClick={() => handleCopyToClipboard(coupon.activationCode || '')}
+                            aria-label={`${t('actions.copy')} ${t('form.activation_code')}`}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        )}
+                        {coupon.pin && (
+                          <button
+                            className="btn btn-ghost btn-sm btn-circle"
+                            onClick={() => handleCopyToClipboard(coupon.pin || '')}
+                            aria-label={`${t('actions.copy')} ${t('form.pin')}`}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -527,23 +579,22 @@ const CouponList: React.FC<CouponListProps> = ({
                       </div>
                     </td>
                     <td className="text-right">
-                      <div className="tooltip" data-tip={t('actions.edit')}>
-                        <button 
-                          className="btn btn-ghost btn-xs btn-circle mr-1"
-                          onClick={() => {
-                            const updatedCoupon = { ...coupon };
-                            onUpdateCoupon(coupon.id, updatedCoupon);
-                          }}
-                          aria-label={t('actions.edit')}
-                          disabled={isExpired(coupon.expirationDate) || isUsed(coupon.currentValue)}
-                        >
-                          <Edit className="w-3 h-3" />
-                        </button>
-                      </div>
-                      {!isUsed(coupon.currentValue) && !isExpired(coupon.expirationDate) && (
+                      {userRole !== 'demo' && (
+                        <div className="tooltip" data-tip={t('actions.edit')}>
+                          <button
+                            className="btn btn-ghost btn-xs btn-circle mr-1"
+                            onClick={() => onEditCoupon && onEditCoupon(coupon)}
+                            aria-label={t('actions.edit')}
+                            disabled={isExpired(coupon.expirationDate) || isUsed(coupon.currentValue)}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                      {userRole !== 'demo' && !isUsed(coupon.currentValue) && !isExpired(coupon.expirationDate) && (
                         <>
                           <div className="tooltip" data-tip={t('actions.use_partially')}>
-                            <button 
+                            <button
                               className="btn btn-ghost btn-xs btn-circle mr-1"
                               onClick={() => handlePartialUseOpen(coupon.id)}
                               aria-label={t('actions.use_partially')}
@@ -552,7 +603,7 @@ const CouponList: React.FC<CouponListProps> = ({
                             </button>
                           </div>
                           <div className="tooltip" data-tip={t('actions.mark_as_used')}>
-                            <button 
+                            <button
                               className="btn btn-ghost btn-xs btn-circle"
                               onClick={() => onMarkAsUsed(coupon.id)}
                               aria-label={t('actions.mark_as_used')}

@@ -66,7 +66,7 @@ const ThemeSelector: React.FC = () => {
         >
           <div
             tabIndex={0}
-            className="dropdown-content menu p-4 shadow-2xl bg-base-100 rounded-box w-80 max-h-96 overflow-y-auto"
+            className="dropdown-content menu p-4 shadow-2xl bg-base-100 text-base-content rounded-box w-80 max-h-96 overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={handleKeyDown}
           >

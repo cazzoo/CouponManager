@@ -107,24 +107,21 @@ const DevUserSwitcher: React.FC = () => {
       <div className="ml-1" data-testid="dev-user-switcher">
         <div className="tooltip tooltip-bottom" data-tip={t('devUserSwitcher.switch_user')}>
           <div className="relative">
-            <div 
-              className="badge badge-secondary badge-xs absolute -bottom-1 -right-1 z-10"
+            <div
+              className="badge badge-primary badge-xs absolute -bottom-1 -right-1 z-10"
               style={{
                 fontSize: '0.6rem',
                 height: '18px',
                 minWidth: '18px',
-                padding: '0 4px',
-                backgroundColor: '#673ab7'
+                padding: '0 4px'
               }}
             >
               {getUserInitials(currentUserEmail)}
             </div>
             <div className="relative">
-              <div 
-                className="badge badge-xs absolute -top-1 -right-1 z-20"
+              <div
+                className="badge badge-primary badge-xs absolute -top-1 -right-1 z-20"
                 style={{
-                  backgroundColor: '#673ab7',
-                  color: 'white',
                   fontSize: '0.5rem',
                   height: '14px',
                   minWidth: '14px',
@@ -156,7 +153,7 @@ const DevUserSwitcher: React.FC = () => {
                 <li key={devUser.email}>
                   <a
                     onClick={() => handleMobileClose(devUser)}
-                    className={`flex items-center gap-2 min-w-[200px] ${
+                    className={`text-base-content hover:bg-base-200 flex items-center gap-2 min-w-[200px] ${
                       devUser.email === currentUserEmail ? 'active' : ''
                     } ${switching ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
@@ -182,11 +179,9 @@ const DevUserSwitcher: React.FC = () => {
   return (
     <div className="relative ml-2" data-testid="dev-user-switcher">
       <div className="relative">
-        <div 
-          className="badge badge-xs absolute -top-1 -right-1 z-10"
+        <div
+          className="badge badge-primary badge-xs absolute -top-1 -right-1 z-10"
           style={{
-            backgroundColor: '#673ab7',
-            color: 'white',
             fontSize: '0.6rem',
             height: '16px',
             minWidth: '16px',
@@ -201,7 +196,7 @@ const DevUserSwitcher: React.FC = () => {
           </label>
           <select
             id="dev-user-select"
-            className="select select-bordered select-sm min-w-[200px]"
+            className="select select-bordered select-sm min-w-[200px] text-base-content"
             value={currentUserEmail}
             onChange={handleDesktopChange}
             disabled={switching}

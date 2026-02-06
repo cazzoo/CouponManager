@@ -5,18 +5,11 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {
-      colors: {
-        // Custom colors to match MUI theme
-        primary: {
-          DEFAULT: '#2e7d32', // MUI green primary
-          dark: '#1b5e20',
-          light: '#66bb6a',
-        },
-      },
-    },
+    extend: {},
   },
-  plugins: [require("daisyui")],
+  plugins: [
+    require("daisyui"),
+  ],
   daisyui: {
     themes: [
       "light",
@@ -37,6 +30,9 @@ export default {
       "pastel",
       "fantasy",
       "wireframe",
+      "black",
+      "luxury",
+      "dracula",
       "cmyk",
       "autumn",
       "business",
@@ -44,11 +40,13 @@ export default {
       "lemonade",
       "night",
       "coffee",
-      "winter"
+      "winter",
+      "dim",
+      "nord",
+      "sunset",
+      "caramellatte",
+      "abyss",
+      "silk",
     ],
-    darkTheme: "dark",
-    base: true,
-    styled: true,
-    utils: true,
   },
 }

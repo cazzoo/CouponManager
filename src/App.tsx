@@ -48,6 +48,7 @@ function App() {
     if (user) {
       const fetchCoupons = async (): Promise<void> => {
         try {
+          console.log('App: Fetching coupons for user:', user.email);
           setLoading(true);
           const allCoupons = await couponService.getAllCoupons();
           console.log('Coupons loaded:', allCoupons);
@@ -70,7 +71,7 @@ function App() {
     const checkPermissions = async (): Promise<void> => {
       if (user) {
         try {
-          const canAdd = await hasPermission('create:coupon');
+          const canAdd = await hasPermission(Permissions.CREATE_COUPON);
           setCanAddCoupon(canAdd);
           
           console.log('User has manager role:', userRole === 'manager');
@@ -328,10 +329,12 @@ function App() {
             <CouponList
               coupons={coupons}
               onUpdateCoupon={handleCouponUpdate}
+              onEditCoupon={handleEditCoupon}
               onMarkAsUsed={handleMarkAsUsed}
               retailerFilter={retailerFilter}
               setRetailerFilter={handleRetailerFilterChange}
               defaultSort={{ field: 'expirationDate', order: 'asc' }}
+              userRole={userRole}
             />
           </div>
         )}
