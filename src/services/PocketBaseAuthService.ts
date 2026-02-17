@@ -124,6 +124,13 @@ class PocketBaseAuthService {
     return this.signIn(credentials.email, credentials.password);
   }
 
+  async signInAnonymously(): Promise<AuthResponse> {
+    // Anonymous sign-in uses the demo user account
+    // This allows users to explore the app without registering
+    // Password from seed script: demo12345
+    return this.signIn('demo@example.com', 'demo12345');
+  }
+
   async signUp(email: string, password: string): Promise<SignUpResponse> {
     try {
       const record = await this.pb.collection('users').create({

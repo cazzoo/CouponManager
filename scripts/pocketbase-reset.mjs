@@ -177,7 +177,7 @@ async function showNextSteps() {
 
   console.log();
   console.log(`6. ${colors.gray}Access application:${colors.reset}`);
-  console.log(`   ${colors.blue}http://localhost:3000${colors.reset}`);
+  console.log(`   ${colors.blue}http://localhost:3009${colors.reset}`);
 
   console.log();
   console.log(`${colors.blue}${'─'.repeat(50)}${colors.reset}`);

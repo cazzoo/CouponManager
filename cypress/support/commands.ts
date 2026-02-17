@@ -30,11 +30,11 @@ import type {
  * cy.login('testuser@example.com', 'password123')
  */
 Cypress.Commands.add('login', (username: string, password: string) => {
-  // Navigate to login page if not already there
-  cy.visit('/').then(() => {
-    // Check if we're on the login page
-    cy.getByTestId('login-form').should('exist');
-  });
+  // Navigate to login page
+  cy.visit('/');
+  
+  // Wait for login form to be visible (with extended timeout for slow networks)
+  cy.getByTestId('login-form', { timeout: 10000 }).should('be.visible');
 
   // Fill in login credentials
   cy.getByTestId('username-input').clear().type(username);
@@ -43,11 +43,12 @@ Cypress.Commands.add('login', (username: string, password: string) => {
   // Submit the login form
   cy.getByTestId('login-submit-button').click();
 
-  // Wait for authentication to complete
-  cy.waitForApi({ timeout: 5000 });
-
-  // Verify successful login by checking for dashboard or authenticated elements
-  cy.getByTestId('dashboard-container').should('be.visible');
+  // Wait for auth loading to complete and dashboard to appear
+  // The dashboard-container only appears when user is authenticated AND authLoading is false
+  cy.getByTestId('dashboard-container', { timeout: 15000 }).should('be.visible');
+  
+  // Also verify logout button is present as additional confirmation
+  cy.getByTestId('logout-button', { timeout: 5000 }).should('be.visible');
 });
 
 /**
@@ -63,11 +64,8 @@ Cypress.Commands.add('logout', () => {
   // Click logout button
   cy.getByTestId('logout-button').click();
 
-  // Wait for logout API call to complete
-  cy.waitForApi({ timeout: 5000 });
-
   // Verify we're redirected to login page
-  cy.getByTestId('login-form').should('be.visible');
+  cy.getByTestId('login-form', { timeout: 10000 }).should('be.visible');
 
   // Clear local storage to ensure clean state
   cy.clearLocalStorage();
@@ -119,8 +117,8 @@ Cypress.Commands.add('createCoupon', (couponData: CouponData) => {
   // Submit the form
   cy.getByTestId('coupon-submit-button').click();
 
-  // Wait for API call to complete
-  cy.waitForApi({ timeout: 5000 });
+  // Wait for dialog to close (form submission complete)
+  cy.getByTestId('coupon-form').should('not.exist');
 
   // Verify coupon was created successfully
   cy.getByTestId('coupon-list').should('contain', couponData.code);
@@ -143,8 +141,8 @@ Cypress.Commands.add('selectLanguage', (lang: LanguageCode) => {
   // Select the specified language option
   cy.getByTestId(`language-option-${lang}`).click();
 
-  // Wait for language change to apply
-  cy.waitForApi({ timeout: 3000 });
+  // Wait briefly for language change to apply
+  cy.wait(500);
 
   // Verify language was changed by checking for language-specific content
   // This will depend on how the app indicates the current language

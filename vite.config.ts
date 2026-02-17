@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     server: {
-      port: 3000,
+      port: 3009,
       fs: {
         strict: true,
         allow: ['src', 'public', 'node_modules']
@@ -46,7 +46,30 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.js'],
-      css: true
+      css: true,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html', 'lcov'],
+        exclude: [
+          'node_modules/',
+          'src/test/',
+          '**/*.test.{js,jsx,ts,tsx}',
+          '**/*.config.{js,ts}',
+          'src/types/',
+          'src/vite-env.d.ts',
+          'dist/',
+          'build/',
+          'coverage/',
+          'scripts/',
+          'migrations/',
+          'public/'
+        ],
+        all: true,
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80
+      }
     }
   }
 })

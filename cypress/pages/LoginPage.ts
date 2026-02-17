@@ -31,10 +31,12 @@ export class LoginPage {
     submitButton: '[data-testid="login-submit-button"]',
     /** Error message container */
     errorMessage: '[data-testid="login-error-message"]',
-    /** Forgot password link */
-    forgotPasswordLink: '[data-testid="forgot-password-link"]',
-    /** Register link */
-    registerLink: '[data-testid="register-link"]'
+    /** Sign in tab */
+    signInTab: '[data-testid="signin-tab"]',
+    /** Sign up tab */
+    signUpTab: '[data-testid="signup-tab"]',
+    /** Anonymous sign in button */
+    anonymousButton: '[data-testid="anonymous-signin-button"]'
   };
 
   /**
@@ -107,22 +109,32 @@ export class LoginPage {
   }
 
   /**
-   * Clicks the forgot password link
-   * 
+   * Clicks the sign up tab to switch to registration mode
+   *
    * @returns The LoginPage instance for method chaining
    */
-  clickForgotPassword(): this {
-    cy.get(this.selectors.forgotPasswordLink).click();
+  clickRegister(): this {
+    cy.get(this.selectors.signUpTab).click();
     return this;
   }
 
   /**
-   * Clicks the register link
-   * 
+   * Clicks the sign in tab to switch to login mode
+   *
    * @returns The LoginPage instance for method chaining
    */
-  clickRegister(): this {
-    cy.get(this.selectors.registerLink).click();
+  clickSignIn(): this {
+    cy.get(this.selectors.signInTab).click();
+    return this;
+  }
+
+  /**
+   * Clicks the anonymous sign in button
+   *
+   * @returns The LoginPage instance for method chaining
+   */
+  clickAnonymousSignIn(): this {
+    cy.get(this.selectors.anonymousButton).click();
     return this;
   }
 

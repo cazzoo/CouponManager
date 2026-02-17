@@ -16,6 +16,16 @@ import './commands';
 // Import type definitions for TypeScript support
 import './types';
 
+// Import page objects and re-export them
+import { loginPage } from '../pages/LoginPage';
+import { dashboardPage } from '../pages/DashboardPage';
+import { couponPage } from '../pages/CouponPage';
+import { retailerPage } from '../pages/RetailerPage';
+import { userManagementPage } from '../pages/UserManagementPage';
+
+// Re-export page objects
+export { loginPage, dashboardPage, couponPage, retailerPage, userManagementPage };
+
 // Re-export commonly used types for convenience
 export type {
   LanguageCode,

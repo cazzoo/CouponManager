@@ -155,15 +155,17 @@ const LoginForm: React.FC = () => {
             {t('app.coupon_manager')}
           </h1>
           <div className="tabs tabs-boxed mb-2">
-            <a 
+            <a
               className={`tab ${tabIndex === 0 ? 'tab-active' : ''}`}
               onClick={(e) => handleTabChange(e, 0)}
+              data-testid="signin-tab"
             >
               {t('login.sign_in')}
             </a>
-            <a 
+            <a
               className={`tab ${tabIndex === 1 ? 'tab-active' : ''}`}
               onClick={(e) => handleTabChange(e, 1)}
+              data-testid="signup-tab"
             >
               {t('login.sign_up')}
             </a>
@@ -250,6 +252,7 @@ const LoginForm: React.FC = () => {
             className="btn btn-outline w-full"
             onClick={handleAnonymousSignIn}
             disabled={loading}
+            data-testid="anonymous-signin-button"
           >
             {t('login.continue_as_guest')}
           </button>

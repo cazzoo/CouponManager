@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supportedLanguages } from '../i18n';
 import { Language } from '../types';
@@ -39,6 +39,11 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   
   // Get the current language
   const language = i18n.language || 'en';
+  
+  // Set document lang attribute on mount and when language changes
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
   
   // Set document title when language changes
   document.title = t('app.coupon_manager');

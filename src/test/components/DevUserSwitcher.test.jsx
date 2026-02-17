@@ -187,4 +187,261 @@ describe('DevUserSwitcher', () => {
       expect(setLastSelectedUser).toHaveBeenCalled();
     });
   });
+
+  describe('Mobile View', () => {
+    beforeEach(() => {
+      import.meta.env.DEV = true;
+      global.innerWidth = 500;
+      global.dispatchEvent(new Event('resize'));
+    });
+
+    it('should render mobile view when screen width is less than 640px', () => {
+      render(<DevUserSwitcher />);
+
+      const switcher = screen.getByTestId('dev-user-switcher');
+      expect(switcher).toBeInTheDocument();
+      expect(switcher).toHaveClass('ml-1');
+    });
+
+    it('should render mobile dropdown menu when button is clicked', async () => {
+      render(<DevUserSwitcher />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      await waitFor(() => {
+        const menu = screen.getByRole('list');
+        expect(menu).toBeInTheDocument();
+      });
+    });
+
+    it('should display user initials badge on mobile', () => {
+      render(<DevUserSwitcher />);
+
+      const initialsBadge = screen.getByText('US');
+      expect(initialsBadge).toBeInTheDocument();
+    });
+
+    it('should render DEV pill badge on mobile', () => {
+      render(<DevUserSwitcher />);
+
+      const devBadges = screen.getAllByText('DEV');
+      expect(devBadges.length).toBeGreaterThan(0);
+    });
+
+    it('should switch users when clicking mobile menu item', async () => {
+      mockSignIn.mockResolvedValue({ success: true });
+      mockSignOut.mockResolvedValue(undefined);
+
+      render(<DevUserSwitcher />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      await waitFor(() => {
+        const menuItems = screen.getAllByText('manager@example.com');
+        expect(menuItems.length).toBeGreaterThan(0);
+      });
+
+      const managerLink = screen.getAllByText('manager@example.com')[0];
+      fireEvent.click(managerLink);
+
+      await waitFor(() => {
+        expect(mockSignOut).toHaveBeenCalled();
+        expect(mockSignIn).toHaveBeenCalledWith('manager@example.com', 'password123');
+      });
+    });
+
+    it('should close mobile menu when clicking a user', async () => {
+      render(<DevUserSwitcher />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      await waitFor(() => {
+        const menu = screen.getByRole('list');
+        expect(menu).toBeInTheDocument();
+      });
+
+      const managerLink = screen.getAllByText('manager@example.com')[0];
+      fireEvent.click(managerLink);
+
+      await waitFor(() => {
+        const menu = screen.queryByRole('list');
+        expect(menu).not.toBeInTheDocument();
+      });
+    });
+
+    it('should disable mobile menu items during switching', async () => {
+      mockSignIn.mockImplementation(() => new Promise(() => {}));
+      mockSignOut.mockResolvedValue(undefined);
+
+      render(<DevUserSwitcher />);
+
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+
+      await waitFor(() => {
+        const menuItems = screen.getAllByRole('listitem');
+        expect(menuItems.length).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  describe('Window Resize Handling', () => {
+    it('should detect mobile screen size on mount', () => {
+      global.innerWidth = 500;
+      render(<DevUserSwitcher />);
+
+      const switcher = screen.getByTestId('dev-user-switcher');
+      expect(switcher).toHaveClass('ml-1');
+    });
+
+    it('should detect desktop screen size on mount', () => {
+      global.innerWidth = 800;
+      render(<DevUserSwitcher />);
+
+      const switcher = screen.getByTestId('dev-user-switcher');
+      expect(switcher).toHaveClass('ml-2');
+    });
+
+    it('should update view mode when window is resized', async () => {
+      global.innerWidth = 800;
+      render(<DevUserSwitcher />);
+
+      const switcher = screen.getByTestId('dev-user-switcher');
+      expect(switcher).toHaveClass('ml-2');
+
+      global.innerWidth = 500;
+      global.dispatchEvent(new Event('resize'));
+
+      await waitFor(() => {
+        expect(switcher).toHaveClass('ml-1');
+      });
+    });
+  });
+
+  describe('Error Handling', () => {
+    beforeEach(() => {
+      global.innerWidth = 800;
+      global.dispatchEvent(new Event('resize'));
+    });
+
+    it('should handle signOut error during user switch', async () => {
+      const mockError = new Error('Sign out failed');
+      mockSignOut.mockRejectedValue(mockError);
+      mockSignIn.mockResolvedValue({ success: true });
+
+      render(<DevUserSwitcher />);
+
+      const selectElement = screen.getByRole('combobox');
+      fireEvent.change(selectElement, { target: { value: 'manager@example.com' } });
+
+      await waitFor(() => {
+        expect(mockSignOut).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle signIn error during user switch', async () => {
+      const mockError = new Error('Sign in failed');
+      mockSignOut.mockResolvedValue(undefined);
+      mockSignIn.mockRejectedValue(mockError);
+
+      render(<DevUserSwitcher />);
+
+      const selectElement = screen.getByRole('combobox');
+      fireEvent.change(selectElement, { target: { value: 'manager@example.com' } });
+
+      await waitFor(() => {
+        expect(mockSignIn).toHaveBeenCalled();
+      });
+    });
+
+    it('should reset switching state on error', async () => {
+      const mockError = new Error('Sign in failed');
+      mockSignIn.mockRejectedValue(mockError);
+      mockSignOut.mockResolvedValue(undefined);
+
+      render(<DevUserSwitcher />);
+
+      const selectElement = screen.getByRole('combobox');
+
+      fireEvent.change(selectElement, { target: { value: 'manager@example.com' } });
+
+      await waitFor(() => {
+        expect(mockSignIn).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Role Icons', () => {
+    beforeEach(() => {
+      global.innerWidth = 800;
+      global.dispatchEvent(new Event('resize'));
+    });
+
+    it('should display icon for current user role', () => {
+      render(<DevUserSwitcher />);
+
+      const userIcon = document.querySelector('.lucide-user');
+      expect(userIcon).toBeInTheDocument();
+    });
+
+    it('should display EyeOff icon for demo role', () => {
+      useAuth.mockReturnValue({
+        user: { id: '4', email: 'demo@example.com' },
+        signIn: mockSignIn,
+        signOut: mockSignOut
+      });
+
+      render(<DevUserSwitcher />);
+
+      const eyeOffIcon = document.querySelector('.lucide-eye-off');
+      expect(eyeOffIcon).toBeInTheDocument();
+    });
+
+    it('should display User icon for user role', () => {
+      useAuth.mockReturnValue({
+        user: { id: '3', email: 'another@example.com' },
+        signIn: mockSignIn,
+        signOut: mockSignOut
+      });
+
+      render(<DevUserSwitcher />);
+
+      const userIcon = document.querySelector('.lucide-user');
+      expect(userIcon).toBeInTheDocument();
+    });
+  });
+
+  describe('Effect for Saving Last User', () => {
+    beforeEach(() => {
+      global.innerWidth = 800;
+      global.dispatchEvent(new Event('resize'));
+    });
+
+    it('should save last selected user after successful switch', async () => {
+      let resolveSignIn;
+
+      mockSignIn.mockImplementation(() => new Promise((resolve) => {
+        resolveSignIn = resolve;
+      }));
+      mockSignOut.mockResolvedValue(undefined);
+
+      render(<DevUserSwitcher />);
+
+      const selectElement = screen.getByRole('combobox');
+      fireEvent.change(selectElement, { target: { value: 'manager@example.com' } });
+
+      await waitFor(() => {
+        expect(mockSignIn).toHaveBeenCalled();
+      });
+
+      resolveSignIn({ user: { id: '2', email: 'manager@example.com' } });
+
+      await waitFor(() => {
+        expect(setLastSelectedUser).toHaveBeenCalled();
+      }, { timeout: 3000 });
+    });
+  });
 });

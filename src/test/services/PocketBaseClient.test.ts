@@ -33,7 +33,7 @@ describe('PocketBaseClient', () => {
       const instance = PocketBaseClient.initialize({
         url: 'http://localhost:8090'
       });
-      
+
       expect(instance).toBeDefined();
       expect(instance).toBe(PocketBaseClient.getInstance());
     });
@@ -41,10 +41,9 @@ describe('PocketBaseClient', () => {
     it('should initialize with custom config', () => {
       const instance = PocketBaseClient.initialize({
         url: 'http://custom:8090',
-        enableAutoAuth: false,
         authMethod: 'oauth'
       });
-      
+
       expect(instance).toBeDefined();
     });
 
@@ -55,7 +54,7 @@ describe('PocketBaseClient', () => {
       const instance2 = PocketBaseClient.initialize({
         url: 'http://custom:8090'
       });
-      
+
       expect(instance1).toBe(instance2);
     });
   });
@@ -95,35 +94,7 @@ describe('PocketBaseClient', () => {
     });
   });
 
-  describe('Auto Auth Loading', () => {
-    it('should load auth from localStorage when enableAutoAuth is true', () => {
-      const authData = {
-        token: 'test-token',
-        model: { id: 'user-123', email: 'test@example.com' }
-      };
-      localStorage.setItem('pocketbase_auth', JSON.stringify(authData));
-      
-      const instance = PocketBaseClient.initialize({
-        url: 'http://localhost:8090',
-        enableAutoAuth: true
-      });
-      
-      expect(instance.authStore.token).toBeDefined();
-    });
-
-    it('should not load auth when enableAutoAuth is false', () => {
-      const authData = {
-        token: 'test-token',
-        model: { id: 'user-123' }
-      };
-      localStorage.setItem('pocketbase_auth', JSON.stringify(authData));
-      
-      const instance = PocketBaseClient.initialize({
-        url: 'http://localhost:8090',
-        enableAutoAuth: false
-      });
-      
-      expect(instance.authStore.token).toBe("");
-    });
-  });
+  // PocketBase SDK natively handles localStorage persistence
+  // The authStore automatically loads from localStorage on initialization
+  // No need for custom loadFromStore() logic
 });
