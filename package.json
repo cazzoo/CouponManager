@@ -25,7 +25,7 @@
     "migrate:list": "node scripts/run-sql-migrations.js list",
     "migrate:status": "node scripts/run-sql-migrations.js status",
     "migrate:create": "node scripts/create-migration.js",
-    "pb:start": "./thirdparty/pocketbase/pocketbase-darwin-arm64 serve --http=0.0.0.0:8090",
+    "pb:start": "node scripts/pb-start.js",
     "pb:setup": "node scripts/pocketbase-setup.mjs",
     "pb:create-collections": "node scripts/pocketbase-create-collections.mjs",
     "pb:reset": "node scripts/pocketbase-reset.mjs",

@@ -95,29 +95,8 @@ echo
 echo -e "${YELLOW}Step 3: Starting PocketBase in background...${NC}"
 echo -e "${GRAY}----------------------------------------${NC}"
 
-# Check if platform-specific binary exists
-PB_BINARY=""
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    if [[ $(uname -m) == "arm64" ]]; then
-        PB_BINARY="./thirdparty/pocketbase/pocketbase-darwin-arm64"
-    else
-        PB_BINARY="./thirdparty/pocketbase/pocketbase-darwin-amd64"
-    fi
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    PB_BINARY="./thirdparty/pocketbase/pocketbase-linux-amd64"
-else
-    echo -e "${RED}✗ Unsupported platform: $OSTYPE${NC}"
-    exit 1
-fi
-
-if [ ! -f "$PB_BINARY" ]; then
-    echo -e "${RED}✗ PocketBase binary not found: $PB_BINARY${NC}"
-    echo -e "${YELLOW}Run: pnpm setup:thirdparty${NC}"
-    exit 1
-fi
-
-# Start PocketBase in background
-nohup "$PB_BINARY" serve --http=0.0.0.0:8090 > "$LOG_DIR/pocketbase.log" 2>&1 &
+# Use the pnpm target for cross-platform starting
+nohup pnpm pb:start > "$LOG_DIR/pocketbase.log" 2>&1 &
 PB_PID=$!
 echo $PB_PID > "$PB_PID_FILE"
 
