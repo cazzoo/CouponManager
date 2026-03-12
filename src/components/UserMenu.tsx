@@ -67,6 +67,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
   const { theme, setTheme } = useThemeStore();
   const [isOpen, setIsOpen] = useState(false);
   const [isThemeSectionOpen, setIsThemeSectionOpen] = useState(false);
+  const [isLanguageSectionOpen, setIsLanguageSectionOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const languages = getSupportedLanguages();
 
@@ -75,6 +76,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setIsThemeSectionOpen(false);
+        setIsLanguageSectionOpen(false);
       }
     };
 
@@ -87,6 +89,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
       if (event.key === 'Escape') {
         setIsOpen(false);
         setIsThemeSectionOpen(false);
+        setIsLanguageSectionOpen(false);
       }
     };
 
@@ -192,6 +195,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
             <div className="collapse collapse-arrow bg-base-200 rounded-lg">
               <input
                 type="checkbox"
+                checked={isLanguageSectionOpen}
+                onChange={() => setIsLanguageSectionOpen(!isLanguageSectionOpen)}
                 aria-label="Language settings"
               />
               <div className="collapse-title pr-8 min-h-0 py-2 flex items-center gap-2">
