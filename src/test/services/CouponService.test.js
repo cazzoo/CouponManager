@@ -18,7 +18,10 @@ vi.mock('../../services/PocketBaseClient', () => {
         return couponsCollection;
       }
       return {};
-    })
+    }),
+    authStore: {
+      record: null
+    }
   };
 
   return {
@@ -98,6 +101,9 @@ describe('PocketBaseCouponService', () => {
     mockInstance = PocketBaseClient._getMockInstance();
     couponsCollection = mockInstance.collection('coupons');
 
+    // Set authStore.record so PocketBaseCouponService can access the user
+    mockInstance.authStore.record = mockUser;
+
     // Default auth mock - user is authenticated
     PocketBaseAuthService.getUser.mockReturnValue(mockUser);
 
@@ -124,10 +130,12 @@ describe('PocketBaseCouponService', () => {
         retailer: 'Amazon',
         initialValue: '50'
       }));
-      expect(couponsCollection.getList).toHaveBeenCalledWith(1, 500, {
-        filter: 'userId = "test-user-id"',
-        sort: '-created'
-      });
+      expect(couponsCollection.getList).toHaveBeenCalledWith(1, 500,
+        expect.objectContaining({
+          filter: "userId = 'test-user-id'",
+          sort: '-created'
+        })
+      );
     });
 
     it('should return all coupons for manager with viewAnyCoupon permission', async () => {
@@ -145,14 +153,17 @@ describe('PocketBaseCouponService', () => {
       const result = await PocketBaseCouponService.getAllCoupons();
 
       // Assert - Verify no filter is applied (can view all)
-      expect(couponsCollection.getList).toHaveBeenCalledWith(1, 500, {
-        filter: '',
-        sort: '-created'
-      });
+      expect(couponsCollection.getList).toHaveBeenCalledWith(1, 500,
+        expect.objectContaining({
+          filter: '',
+          sort: '-created'
+        })
+      );
     });
 
     it('should return empty array when no user is authenticated', async () => {
-      // Arrange - No authenticated user
+      // Arrange - No authenticated user (service uses authStore.record, not PocketBaseAuthService.getUser)
+      mockInstance.authStore.record = null;
       PocketBaseAuthService.getUser.mockReturnValue(null);
 
       // Act - Call the service method
@@ -198,7 +209,8 @@ describe('PocketBaseCouponService', () => {
           initialValue: '25',
           currentValue: '25',
           userId: 'test-user-id'
-        })
+        }),
+        expect.any(Object)
       );
     });
 
@@ -286,7 +298,7 @@ describe('PocketBaseCouponService', () => {
       expect(couponsCollection.update).toHaveBeenCalledWith('1', expect.objectContaining({
         currentValue: '25',
         activationCode: 'AMZN2024-UPDATED'
-      }));
+      }), expect.any(Object));
     });
 
     it('should return false when user lacks permission', async () => {
@@ -338,7 +350,7 @@ describe('PocketBaseCouponService', () => {
       expect(couponsCollection.update).toHaveBeenCalledWith('1', {
         currentValue: '0',
         updated: expect.any(String)
-      });
+      }, expect.any(Object));
     });
 
     it('should return false when user lacks permission', async () => {
@@ -374,11 +386,11 @@ describe('PocketBaseCouponService', () => {
 
       // Assert - Verify currentValue was reduced
       expect(result).toBe(true);
-      expect(couponsCollection.getOne).toHaveBeenCalledWith('1');
+      expect(couponsCollection.getOne).toHaveBeenCalledWith('1', expect.any(Object));
       expect(couponsCollection.update).toHaveBeenCalledWith('1', {
         currentValue: '45',
         updated: expect.any(String)
-      });
+      }, expect.any(Object));
     });
 
     it('should mark coupon as used if amount equals currentValue', async () => {
@@ -402,7 +414,7 @@ describe('PocketBaseCouponService', () => {
       expect(couponsCollection.update).toHaveBeenCalledWith('1', {
         currentValue: '0',
         updated: expect.any(String)
-      });
+      }, expect.any(Object));
     });
 
     it('should return false when user lacks permission', async () => {
@@ -452,10 +464,12 @@ describe('PocketBaseCouponService', () => {
       expect(result.length).toBe(2); // Only 2 unique retailers
       expect(result).toContain('Amazon');
       expect(result).toContain('Target');
-      expect(couponsCollection.getList).toHaveBeenCalledWith(1, 500, {
-        filter: 'userId = "test-user-id"',
-        fields: 'retailer'
-      });
+      expect(couponsCollection.getList).toHaveBeenCalledWith(1, 500,
+        expect.objectContaining({
+          filter: "userId = 'test-user-id'",
+          fields: 'retailer'
+        })
+      );
     });
   });
 

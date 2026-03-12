@@ -73,6 +73,18 @@ vi.mock('react-qr-reader', () => {
       >
         Simulate Result No Text
       </button>
+      <button
+        data-testid="simulate-json-extra-fields"
+        onClick={() => onResult({ text: '{"retailer":"Amazon","initialValue":"50","notes":"test","pin":"1234"}' }, null)}
+      >
+        Simulate JSON Extra Fields
+      </button>
+      <button
+        data-testid="simulate-json-numeric-value"
+        onClick={() => onResult({ text: '{"retailer":"BestBuy","initialValue":75}' }, null)}
+      >
+        Simulate JSON Numeric Value
+      </button>
     </div>
   );
 
@@ -362,7 +374,7 @@ describe('BarcodeScanner Component - Error Handling', () => {
     expect(screen.getByText(/Error accessing camera.*string-error/)).toBeInTheDocument();
   });
 
-  it.skip('should clear error on successful scan', () => {
+  it('should not clear error on successful scan (error persists until component closes)', () => {
     // Component does not automatically clear errors on successful scan
     // The error state persists until the component is closed and reopened
     // This is the expected behavior - error shows last error encountered
@@ -380,7 +392,8 @@ describe('BarcodeScanner Component - Error Handling', () => {
 
     // Then a successful scan - error persists because that's the component design
     fireEvent.click(screen.getByTestId('simulate-json-scan'));
-    // Error state is not cleared on successful scan
+    // Error state is not cleared on successful scan - verify it still shows
+    expect(screen.getByTestId('error-alert')).toBeInTheDocument();
   });
 });
 
@@ -410,10 +423,21 @@ describe('BarcodeScanner Component - User Interactions', () => {
     expect(mockOnScanSuccess).not.toHaveBeenCalled();
   });
 
-  it.skip('should handle multiple sequential scans correctly', () => {
-    // In actual use, onClose closes the dialog preventing sequential scans
-    // This test would require remounting the component to simulate reopening
-    // Sequential scan behavior is covered by individual scan tests
+  it('should call onClose after each successful scan (sequential scan model)', () => {
+    // After each scan, onClose is called — a new scan would require remounting.
+    // This verifies the first scan triggers both onScanSuccess and onClose.
+    render(
+      <BarcodeScanner
+        open={true}
+        onScanSuccess={mockOnScanSuccess}
+        onClose={mockOnClose}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('simulate-json-scan'));
+
+    expect(mockOnScanSuccess).toHaveBeenCalledTimes(1);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -465,15 +489,41 @@ describe('BarcodeScanner Component - Edge Cases', () => {
     mockOnClose.mockClear();
   });
 
-  it.skip('should handle JSON with additional fields beyond required ones', () => {
-    // Skipping: Cannot dynamically update mock with custom data in vi.mock
-    // The JSON parsing logic is tested by simulate-json-scan test
-    // Additional field handling is implicit in the JSON.parse behavior
+  it('should handle JSON with additional fields beyond required ones', () => {
+    render(
+      <BarcodeScanner
+        open={true}
+        onScanSuccess={mockOnScanSuccess}
+        onClose={mockOnClose}
+      />
+    );
+
+    // Scan JSON that includes extra fields beyond retailer+initialValue
+    fireEvent.click(screen.getByTestId('simulate-json-extra-fields'));
+
+    // Extra fields (notes, pin) are passed through to the parent
+    expect(mockOnScanSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({ retailer: 'Amazon', initialValue: '50', notes: 'test', pin: '1234' })
+    );
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it.skip('should handle numeric initialValue in JSON', () => {
-    // Skipping: Cannot dynamically update mock with custom data in vi.mock
-    // Numeric handling is implicit in JSON.parse behavior
-    // The simulate-json-scan test covers the parsing logic
+  it('should handle numeric initialValue in JSON', () => {
+    render(
+      <BarcodeScanner
+        open={true}
+        onScanSuccess={mockOnScanSuccess}
+        onClose={mockOnClose}
+      />
+    );
+
+    // Scan JSON where initialValue is a number (not string)
+    fireEvent.click(screen.getByTestId('simulate-json-numeric-value'));
+
+    // JSON.parse preserves the numeric type; component passes it through
+    expect(mockOnScanSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({ retailer: 'BestBuy', initialValue: 75 })
+    );
+    expect(mockOnClose).toHaveBeenCalled();
   });
 });

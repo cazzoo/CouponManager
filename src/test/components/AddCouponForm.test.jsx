@@ -262,7 +262,9 @@ describe('AddCouponForm Component', () => {
     expect(screen.getByTestId('mock-barcode-scanner')).toBeInTheDocument();
   });
 
-  it.skip('updates activation code field when barcode is scanned', async () => {
+  it('updates barcode field when a string barcode is scanned', async () => {
+    // The mock BarcodeScanner calls onScanSuccess('scanned-code-123')
+    // The component's handleScanSuccess sets formData.barcode for string scans
     renderWithProviders(
       <AddCouponForm
         open={true}
@@ -271,9 +273,19 @@ describe('AddCouponForm Component', () => {
       />
     );
 
-    // Skip this test for now as it requires a more complex mock implementation
-    // The mock BarcodeScanner component doesn't properly update the form field
-    expect(true).toBe(true);
+    // Open the scanner
+    const formElements = getFormElements();
+    await user.click(formElements.scanButton);
+    
+    // Simulate a string barcode scan (mock fires 'scanned-code-123')
+    const simulateScanButton = screen.getByTestId('mock-scan-button');
+    await user.click(simulateScanButton);
+
+    // After scan, barcode field should be populated with the scanned value
+    await waitFor(() => {
+      const barcodeInput = screen.getByTestId('barcode-input');
+      expect(barcodeInput.value).toBe('scanned-code-123');
+    });
   });
 
   it('does not display when open is false', () => {

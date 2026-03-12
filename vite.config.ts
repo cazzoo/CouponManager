@@ -1,10 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
+import istanbul from 'vite-plugin-istanbul'
+
+const useCoverage = process.env.CYPRESS_COVERAGE === 'true'
 
 export default defineConfig(({ mode }) => {
   return {
-    plugins: [react()],
+    plugins: [
+      react(),
+      useCoverage && istanbul({
+        cypress: true,
+        requireEnv: false,
+        forceBuildInstrument: true,
+      }),
+    ].filter(Boolean),
     server: {
       port: 3009,
       fs: {

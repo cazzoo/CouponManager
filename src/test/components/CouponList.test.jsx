@@ -115,8 +115,7 @@ describe('CouponList Component', () => {
     expect(screen.getByText(/BB100DEC/i)).toBeInTheDocument();
   });
 
-  // Skip this test for now as the buttons might not have the expected title attribute
-  it.skip('calls onMarkAsUsed when Mark as Used button is clicked', () => {
+  it('calls onMarkAsUsed when Mark as Used button is clicked', () => {
     renderWithProviders(
       <CouponList 
         coupons={mockCoupons} 
@@ -126,8 +125,11 @@ describe('CouponList Component', () => {
       />
     );
     
-    // For now, just make the test pass
-    expect(true).toBe(true);
+    // The "Mark as Used" button has aria-label="actions.mark_as_used"
+    const markAsUsedButtons = screen.getAllByRole('button', { name: 'actions.mark_as_used' });
+    fireEvent.click(markAsUsedButtons[0]);
+    
+    expect(mockOnMarkAsUsed).toHaveBeenCalled();
   });
 
   it('filters coupons by amount range', () => {
@@ -173,8 +175,7 @@ describe('CouponList Component', () => {
     expect(screen.getAllByRole('cell').length).toBeGreaterThan(0);
   });
 
-  // Skip this test for now as the buttons might not have the expected title attribute
-  it.skip('opens partial use dialog when Partial Use button is clicked', async () => {
+  it('opens partial use dialog when Partial Use button is clicked', async () => {
     renderWithProviders(
       <CouponList 
         coupons={mockCoupons} 
@@ -184,26 +185,75 @@ describe('CouponList Component', () => {
       />
     );
     
-    // For now, just make the test pass
-    expect(true).toBe(true);
+    // The "Partial Use" button has aria-label="actions.use_partially"
+    const partialUseButtons = screen.getAllByRole('button', { name: 'actions.use_partially' });
+    fireEvent.click(partialUseButtons[0]);
+    
+    // The partial use dialog should appear
+    expect(screen.getByText('dialog.partial_use_title')).toBeInTheDocument();
   });
 
-  // Skip this test for now as the buttons might not have the expected title attribute
-  it.skip('copies activation code to clipboard when copy button is clicked', async () => {
-    // For now, just make the test pass
-    expect(true).toBe(true);
+  it('copies activation code to clipboard when copy button is clicked', async () => {
+    const mockWriteText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: mockWriteText },
+      writable: true
+    });
+
+    renderWithProviders(
+      <CouponList 
+        coupons={mockCoupons} 
+        onUpdateCoupon={mockOnUpdateCoupon} 
+        onMarkAsUsed={mockOnMarkAsUsed}
+        setRetailerFilter={mockSetRetailerFilter}
+      />
+    );
+    
+    // In desktop mode: copy buttons have aria-label="actions.copy" (just the key, no field name).
+    // The first matching button is the activation code copy for the first visible coupon.
+    const copyButtons = screen.getAllByRole('button', { name: 'actions.copy' });
+    fireEvent.click(copyButtons[0]);
+
+    await waitFor(() => {
+      expect(mockWriteText).toHaveBeenCalled();
+    });
   });
 
-  // Skip this test for now as the buttons might not have the expected title attribute
-  it.skip('handles edit button clicks', () => {
-    // For now, just make the test pass
-    expect(true).toBe(true);
+  it('handles edit button clicks', () => {
+    const mockOnEditCoupon = vi.fn();
+    renderWithProviders(
+      <CouponList 
+        coupons={mockCoupons} 
+        onUpdateCoupon={mockOnUpdateCoupon} 
+        onMarkAsUsed={mockOnMarkAsUsed}
+        setRetailerFilter={mockSetRetailerFilter}
+        onEditCoupon={mockOnEditCoupon}
+      />
+    );
+    
+    // Edit buttons have aria-label="actions.edit"
+    const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
+    fireEvent.click(editButtons[0]);
+    
+    expect(mockOnEditCoupon).toHaveBeenCalled();
   });
 
-  // Skip this test for now as it's difficult to mock useMediaQuery properly
-  it.skip('displays mobile view on small screens', () => {
-    // For now, just make the test pass
-    expect(true).toBe(true);
+  it('displays coupon list in responsive layout', () => {
+    // The component renders both mobile cards (.sm:hidden) and desktop table (.hidden.sm:block)
+    // JSDOM has innerWidth=0, so isMobile state is true, but both views are in the DOM
+    renderWithProviders(
+      <CouponList 
+        coupons={mockCoupons} 
+        onUpdateCoupon={mockOnUpdateCoupon} 
+        onMarkAsUsed={mockOnMarkAsUsed}
+        setRetailerFilter={mockSetRetailerFilter}
+      />
+    );
+    
+    // Component renders the coupon list container
+    expect(screen.getByTestId('coupon-list')).toBeInTheDocument();
+    // Coupon data appears in the DOM regardless of view mode
+    expect(screen.getAllByText('Amazon').length).toBeGreaterThan(0);
   });
 
   it('displays no coupons message when filtered results are empty', () => {
@@ -222,8 +272,19 @@ describe('CouponList Component', () => {
     expect(screen.getByText(/messages\.no_coupons_found/i)).toBeInTheDocument();
   });
 
-  it.skip('supports i18n with different languages', () => {
-    // This test is skipped because it's difficult to test with the current mock setup
-    expect(true).toBe(true);
+  it('supports i18n - uses translation keys for all UI text', () => {
+    // The mock t function returns the key, so all UI strings should be translation keys
+    renderWithProviders(
+      <CouponList 
+        coupons={mockCoupons} 
+        onUpdateCoupon={mockOnUpdateCoupon} 
+        onMarkAsUsed={mockOnMarkAsUsed}
+        setRetailerFilter={mockSetRetailerFilter}
+      />
+    );
+    
+    // Column headers use translation keys from form namespace
+    expect(screen.getAllByText('form.retailer').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('form.current_value').length).toBeGreaterThan(0);
   });
 });

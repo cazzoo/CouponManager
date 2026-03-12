@@ -85,6 +85,7 @@ describe('PocketBaseAuthService', () => {
         email: 'test@example.com',
         password: 'password123',
         passwordConfirm: 'password123',
+        name: 'Regular User',
         emailVisibility: true
       });
 
@@ -166,23 +167,31 @@ describe('PocketBaseAuthService', () => {
 
   describe('signInAnonymously', () => {
     it('should sign in anonymously successfully', async () => {
-      // Arrange & Act
+      // Arrange - mock authWithPassword for the demo account
+      const mockDemoUser = {
+        id: 'demo-user-id',
+        email: 'demo@example.com',
+        role: 'demo',
+        created: new Date().toISOString(),
+        updated: new Date().toISOString()
+      };
+      const mockAuthData = {
+        token: 'demo-token',
+        record: mockDemoUser
+      };
+      const mockInstance = PocketBaseClient._getMockInstance();
+      mockInstance.collection('users').authWithPassword.mockResolvedValue(mockAuthData);
+
+      // Act
       const result = await PocketBaseAuthService.signInAnonymously();
 
-      // Assert
+      // Assert - signInAnonymously delegates to signIn with demo credentials
       expect(result.data).toBeDefined();
-      expect(result.data.user).toEqual({
-        id: 'anonymous',
-        email: 'anonymous@local',
-        role: 'demo',
-        created: expect.any(String),
-        updated: expect.any(String)
-      });
-      expect(result.data.session).toEqual({
-        token: 'anonymous-token',
-        user: result.data.user
-      });
       expect(result.error).toBeNull();
+      expect(mockInstance.collection('users').authWithPassword).toHaveBeenCalledWith(
+        'demo@example.com',
+        'demo12345'
+      );
     });
 
     it('should handle errors during anonymous sign-in', async () => {
@@ -213,10 +222,8 @@ describe('PocketBaseAuthService', () => {
       // Assert - Verify PocketBase was called
       expect(mockInstance.authStore.clear).toHaveBeenCalled();
 
-      // Verify the returned data
-      expect(result).toEqual({
-        error: null
-      });
+      // Verify the returned data (signOut returns boolean)
+      expect(result).toBe(true);
     });
 
     it('should handle signout errors correctly', async () => {
@@ -229,13 +236,12 @@ describe('PocketBaseAuthService', () => {
       // Act - Call the service method
       const result = await PocketBaseAuthService.signOut();
 
-      // Assert - Verify error handling
-      expect(result.error).toBeDefined();
-      expect(result.error).toBeInstanceOf(Error);
+      // Assert - Verify error handling (signOut returns false on error)
+      expect(result).toBe(false);
     });
   });
 
-  describe('getCurrentSession', () => {
+  describe('getSession', () => {
     it('should retrieve the current session when valid', async () => {
       // Arrange - Set up a valid session
       const mockUser = {
@@ -250,13 +256,13 @@ describe('PocketBaseAuthService', () => {
       mockInstance.authStore.token = 'test-token';
       mockInstance.authStore.model = mockUser;
 
-      // Act - Call the service method
-      const result = await PocketBaseAuthService.getCurrentSession();
+      // Act - Call the service method (renamed from getCurrentSession to getSession)
+      const result = await PocketBaseAuthService.getSession();
 
       // Assert - Verify the returned data
       expect(result.session).toEqual({
         token: 'test-token',
-        user: mockUser
+        user: expect.objectContaining({ id: 'test-user-id', email: 'test@example.com' })
       });
       expect(result.error).toBeNull();
     });
@@ -269,7 +275,7 @@ describe('PocketBaseAuthService', () => {
       mockInstance.authStore.model = null;
 
       // Act - Call the service method
-      const result = await PocketBaseAuthService.getCurrentSession();
+      const result = await PocketBaseAuthService.getSession();
 
       // Assert - Verify null session
       expect(result.session).toBeNull();
@@ -284,7 +290,7 @@ describe('PocketBaseAuthService', () => {
       mockInstance.authStore.model = null;
 
       // Act - Call the service method
-      const result = await PocketBaseAuthService.getCurrentSession();
+      const result = await PocketBaseAuthService.getSession();
 
       // Assert - Verify null session
       expect(result.session).toBeNull();
@@ -299,7 +305,7 @@ describe('PocketBaseAuthService', () => {
       mockInstance.authStore.model = null;
 
       // Act - Call the service method
-      const result = await PocketBaseAuthService.getCurrentSession();
+      const result = await PocketBaseAuthService.getSession();
 
       // Assert - Verify null session
       expect(result.session).toBeNull();
@@ -347,16 +353,15 @@ describe('PocketBaseAuthService', () => {
     it('should set up an auth state change listener and return unsubscribe function', () => {
       // Arrange
       const mockCallback = vi.fn();
-      const mockInstance = PocketBaseClient._getMockInstance();
 
       // Act - Call the service method
-      const unsubscribe = PocketBaseAuthService.onAuthStateChange(mockCallback);
+      const result = PocketBaseAuthService.onAuthStateChange(mockCallback);
 
-      // Assert - Verify the result
-      expect(unsubscribe).toBeDefined();
-      expect(unsubscribe.data).toBeDefined();
-      expect(unsubscribe.data.subscription).toBeDefined();
-      expect(typeof unsubscribe.data.subscription.unsubscribe).toBe('function');
+      // Assert - Verify the result (service returns { data: { unsubscribe: fn } })
+      expect(result).toBeDefined();
+      expect(result.data).toBeDefined();
+      expect(result.data.unsubscribe).toBeDefined();
+      expect(typeof result.data.unsubscribe).toBe('function');
     });
   });
 });

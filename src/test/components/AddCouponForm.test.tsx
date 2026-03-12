@@ -170,16 +170,20 @@ describe('AddCouponForm - Add Mode', () => {
     expect(screen.getByTestId('coupon-submit-button')).toHaveTextContent('Add');
   });
 
-  it.skip('should have empty form fields initially in add mode when DEV mode is disabled', () => {
+  it('should pre-fill form with example values in DEV mode', async () => {
+    // In DEV mode (which is active during tests), the form is pre-filled with example values.
+    // The pre-fill uses retailer: 'Example Store', initialValue: '10', currentValue: '10'.
+    // Since no coupons are passed, 'Example Store' won't appear in the select options,
+    // but the input values ARE pre-filled.
     renderComponent();
     
-    const retailerSelect = screen.getByTestId('retailer-select') as HTMLSelectElement;
-    const initialValueInput = screen.getByTestId('initial-value-input') as HTMLInputElement;
-    const currentValueInput = screen.getByTestId('current-value-input') as HTMLInputElement;
-    
-    expect(retailerSelect.value).toBe('');
-    expect(initialValueInput.value).toBe('');
-    expect(currentValueInput.value).toBe('');
+    await waitFor(() => {
+      const initialValueInput = screen.getByTestId('initial-value-input') as HTMLInputElement;
+      const currentValueInput = screen.getByTestId('current-value-input') as HTMLInputElement;
+      
+      expect(initialValueInput.value).toBe('10');
+      expect(currentValueInput.value).toBe('10');
+    });
   });
 
   it('should populate retailer options from existing coupons', () => {
@@ -220,7 +224,7 @@ describe('AddCouponForm - Edit Mode', () => {
     expect(screen.getByTestId('coupon-submit-button')).toHaveTextContent('Update');
   });
 
-  it.skip('should populate form with existing coupon data', async () => {
+  it('should populate form with existing coupon data', async () => {
     const mockCoupon: Coupon = {
       id: '123',
       userId: 'user1',
@@ -235,7 +239,8 @@ describe('AddCouponForm - Edit Mode', () => {
       reference: 'REF123'
     };
     
-    renderComponent({ coupon: mockCoupon });
+    // Pass coupons so 'Amazon' appears as an option in the retailer select
+    renderComponent({ coupon: mockCoupon, coupons: [mockCoupon] });
     
     await waitFor(() => {
       const retailerSelect = screen.getByTestId('retailer-select') as HTMLSelectElement;

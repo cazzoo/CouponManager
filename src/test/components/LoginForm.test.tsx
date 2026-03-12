@@ -36,12 +36,13 @@ const mockSignInAnonymously = vi.fn();
 const mockSignOut = vi.fn();
 const mockHasPermission = vi.fn().mockResolvedValue(false);
 let mockAuthError: string | null = null;
+let mockLoading = false;
 
 vi.mock('../../services/AuthContext', () => ({
   useAuth: () => ({
     user: null,
     userRole: null,
-    loading: false,
+    loading: mockLoading,
     error: mockAuthError,
     signIn: mockSignIn,
     signUp: mockSignUp,
@@ -56,6 +57,7 @@ describe('LoginForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAuthError = null;
+    mockLoading = false;
   });
 
   function renderLoginForm() {
@@ -244,7 +246,12 @@ describe('LoginForm', () => {
       });
     });
 
-    it.skip('should show loading spinner during sign in (requires complex mock setup)', async () => {
+    it('should show loading spinner during sign in', async () => {
+      mockLoading = true;
+      renderLoginForm();
+
+      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+      expect(screen.getByTestId('login-submit-button')).toBeDisabled();
     });
 
     it('should display error message when sign in fails', async () => {
@@ -297,7 +304,16 @@ describe('LoginForm', () => {
       });
     });
 
-    it.skip('should show loading spinner during sign up (requires complex mock setup)', async () => {
+    it('should show loading spinner during sign up', async () => {
+      mockLoading = true;
+      renderLoginForm();
+      const user = userEvent.setup();
+
+      // Switch to sign-up tab first
+      await user.click(screen.getByText('Sign Up'));
+
+      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+      expect(screen.getByTestId('login-submit-button')).toBeDisabled();
     });
 
     it('should display error message when sign up fails', async () => {
@@ -327,7 +343,11 @@ describe('LoginForm', () => {
       });
     });
 
-    it.skip('should disable guest button during loading (requires complex mock setup)', () => {
+    it('should disable guest button during loading', () => {
+      mockLoading = true;
+      renderLoginForm();
+
+      expect(screen.getByTestId('anonymous-signin-button')).toBeDisabled();
     });
 
     it('should display error message when anonymous sign in fails', async () => {
@@ -360,7 +380,11 @@ describe('LoginForm', () => {
       expect(screen.getByTestId('login-error-message')).toBeInTheDocument();
     });
 
-    it.skip('should disable submit button during loading (requires complex mock setup)', async () => {
+    it('should disable submit button during loading', async () => {
+      mockLoading = true;
+      renderLoginForm();
+
+      expect(screen.getByTestId('login-submit-button')).toBeDisabled();
     });
 
     it('should have proper autoComplete attributes', () => {

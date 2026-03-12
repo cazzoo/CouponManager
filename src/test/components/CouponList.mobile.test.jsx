@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import CouponList from '../../components/CouponList';
 import { renderWithProviders } from '../util/test-utils';
 
@@ -145,8 +145,32 @@ describe('CouponList Component (Mobile View)', () => {
     expect(maxAmountFilter.value).toBe('80');
   });
 
-  // Skip the edit mode test for now as it's difficult to find the edit button in mobile view
-  it.skip('opens edit mode when edit button is clicked', () => {
+  it('opens edit mode when edit button is clicked', () => {
+    const mockOnEditCoupon = vi.fn();
+    renderWithProviders(
+      <CouponList
+        coupons={mockCoupons}
+        onUpdateCoupon={mockOnUpdateCoupon}
+        onMarkAsUsed={mockOnMarkAsUsed}
+        setRetailerFilter={mockSetRetailerFilter}
+        onEditCoupon={mockOnEditCoupon}
+      />
+    );
+    
+    // Edit buttons have aria-label="actions.edit" (from t('actions.edit') mock)
+    const editButtons = screen.getAllByRole('button', { name: 'actions.edit' });
+    fireEvent.click(editButtons[0]);
+    
+    expect(mockOnEditCoupon).toHaveBeenCalled();
+  });
+
+  it('copies activation code to clipboard when copy button is clicked', async () => {
+    const mockWriteText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: mockWriteText },
+      writable: true
+    });
+
     renderWithProviders(
       <CouponList
         coupons={mockCoupons}
@@ -156,13 +180,12 @@ describe('CouponList Component (Mobile View)', () => {
       />
     );
     
-    // This test is skipped for now
-    expect(true).toBe(true);
-  });
-
-  // Skip the clipboard test for now as it's difficult to find the elements in mobile view
-  it.skip('copies activation code to clipboard when copy button is clicked', () => {
-    // This test is skipped for now
-    expect(true).toBe(true);
+    // Copy buttons have aria-label matching "actions.copy form.activation_code"
+    const copyButtons = screen.getAllByRole('button', { name: /actions\.copy.*form\.activation_code/i });
+    fireEvent.click(copyButtons[0]);
+    
+    await waitFor(() => {
+      expect(mockWriteText).toHaveBeenCalledWith('AMZN2024');
+    });
   });
 });

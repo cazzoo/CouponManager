@@ -1,11 +1,13 @@
 import { defineConfig } from 'cypress'
 import { devServer } from '@cypress/vite-dev-server'
 import react from '@vitejs/plugin-react'
+import codeCoverageTask from '@cypress/code-coverage/task'
 
 export default defineConfig({
   e2e: {
     setupNodeEvents(on, config) {
-      // implement node event listeners here
+      codeCoverageTask(on, config)
+      return config
     },
     baseUrl: 'http://localhost:3009',
     supportFile: 'cypress/support/e2e.ts',
