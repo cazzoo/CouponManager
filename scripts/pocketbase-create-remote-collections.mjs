@@ -42,7 +42,7 @@ async function createCollections() {
     console.error(`${colors.red}✗ Failed to authenticate:${colors.reset}`, error.message);
     console.log(`${colors.yellow}Make sure:${colors.reset}`);
     console.log(`  1. VITE_POCKETBASE_URL is set to the base URL (without /_/ )`);
-    console.log(`  2. PB_ADMIN_ADMIN_EMAIL and PB_ADMIN_PASSWORD are correct`);
+    console.log(`  2. PB_ADMIN_EMAIL and PB_ADMIN_PASSWORD are correct`);
     console.log(`  3. Admin user exists in PocketBase`);
     process.exit(1);
   }
@@ -58,7 +58,6 @@ async function createCollections() {
     process.exit(1);
   }
 
-  // Collection definitions - rules will be set AFTER schema is created
   const collections = [
     {
       name: 'user_roles',
@@ -114,15 +113,17 @@ async function createCollections() {
   ];
 
   for (const coll of collections) {
+    console.log(`\n${colors.blue}Processing collection: ${coll.name}${colors.reset}`);
+    
     try {
       // Check if collection exists
       let existingCollection;
       try {
         existingCollection = await pb.collections.getOne(coll.name);
-        console.log(`${colors.yellow}⚠ Collection '${coll.name}' exists, checking schema...${colors.reset}`);
+        console.log(`  Collection exists with ID: ${existingCollection.id}`);
       } catch {
         // Collection doesn't exist - create it FIRST without rules
-        console.log(`Creating collection '${coll.name}' (without rules first)...`);
+        console.log(`  Creating collection without rules first...`);
         existingCollection = await pb.collections.create({
           name: coll.name,
           type: 'base',
@@ -133,29 +134,33 @@ async function createCollections() {
           updateRule: null,
           deleteRule: null
         });
-        console.log(`${colors.green}✓ Created collection '${coll.name}'${colors.reset}`);
+        console.log(`  ${colors.green}✓ Created collection '${coll.name}'${colors.reset}`);
       }
 
       // Now add/update fields that are missing
       const currentFields = existingCollection.schema || [];
-      const newFields = coll.schema;
+      console.log(`  Current fields: ${currentFields.map(f => f.name).join(', ') || '(none)'}`);
+      console.log(`  New fields: ${coll.schema.map(f => f.name).join(', ')}`);
 
-      const fieldsToAdd = newFields.filter(
+      const fieldsToAdd = coll.schema.filter(
         newField => !currentFields.find(f => f.name === newField.name)
       );
 
+      console.log(`  Fields to add: ${fieldsToAdd.length > 0 ? fieldsToAdd.map(f => f.name).join(', ') : '(none)'}`);
+
       if (fieldsToAdd.length > 0) {
-        console.log(`  Adding ${fieldsToAdd.length} fields to '${coll.name}'...`);
-        
         // Update with new fields
+        const updatedSchema = [...currentFields, ...fieldsToAdd];
+        console.log(`  Adding fields...`);
+        
         await pb.collections.update(coll.name, {
-          schema: [...currentFields, ...fieldsToAdd]
+          schema: updatedSchema
         });
-        console.log(`  ${colors.green}✓ Added fields to '${coll.name}'${colors.reset}`);
+        console.log(`  ${colors.green}✓ Added ${fieldsToAdd.length} fields to '${coll.name}'${colors.reset}`);
       }
 
       // Now update the rules (they can reference the fields now)
-      console.log(`  Updating rules for '${coll.name}'...`);
+      console.log(`  Updating rules...`);
       await pb.collections.update(coll.name, {
         listRule: coll.rules.listRule,
         viewRule: coll.rules.viewRule,
@@ -166,16 +171,14 @@ async function createCollections() {
       console.log(`  ${colors.green}✓ Updated rules for '${coll.name}'${colors.reset}`);
 
     } catch (error) {
-      console.error(`${colors.red}✗ Failed to process '${coll.name}':${colors.reset}`, error.message);
+      console.error(`  ${colors.red}✗ Failed to process '${coll.name}':${colors.reset}`, error.message);
       if (error.data) {
         console.error(`${colors.gray}Error data: ${JSON.stringify(error.data)}${colors.reset}`);
       }
     }
   }
 
-  console.log();
-  console.log(`${colors.green}✓ Collections setup complete!${colors.reset}`);
-  console.log();
+  console.log(`\n${colors.green}✓ Collections setup complete!${colors.reset}\n`);
 }
 
 createCollections();
