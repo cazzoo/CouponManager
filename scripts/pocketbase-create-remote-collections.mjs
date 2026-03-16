@@ -12,7 +12,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const PB_URL = process.env.VITE_POCKETBASE_URL || 'http://127.0.0.1:8090';
 const PB_ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL || 'admin@example.com';
 const PB_ADMIN_PASSWORD = process.env.PB_ADMIN_PASSWORD || 'admin12345';
 
@@ -25,11 +24,15 @@ const colors = {
 };
 
 async function createCollections() {
+  // Clean the URL - remove trailing slashes and /_/ suffix
+  let pbUrl = process.env.VITE_POCKETBASE_URL || 'http://127.0.0.1:8090';
+  pbUrl = pbUrl.replace(/\/+$/, '').replace(/\/_+$/, '');
+  
   console.log(`${colors.blue}Creating collections on remote PocketBase...${colors.reset}`);
-  console.log(`URL: ${PB_URL}`);
+  console.log(`URL: ${pbUrl}`);
   console.log();
 
-  const pb = new PocketBase(PB_URL);
+  const pb = new PocketBase(pbUrl);
 
   try {
     // Authenticate as admin
@@ -37,6 +40,10 @@ async function createCollections() {
     console.log(`${colors.green}✓ Authenticated as admin${colors.reset}`);
   } catch (error) {
     console.error(`${colors.red}✗ Failed to authenticate:${colors.reset}`, error.message);
+    console.log(`${colors.yellow}Make sure:${colors.reset}`);
+    console.log(`  1. VITE_POCKETBASE_URL is set to the base URL (without /_/ )`);
+    console.log(`  2. PB_ADMIN_EMAIL and PB_ADMIN_PASSWORD are correct`);
+    console.log(`  3. Admin user exists in PocketBase`);
     process.exit(1);
   }
 
