@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => {
         input: {
           main: resolve(__dirname, 'index.html'),
         },
-        external: ['pocketbase']
+        external: []
       }
     },
     resolve: {
