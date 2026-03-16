@@ -69,8 +69,8 @@ async function createCollections() {
       listRule: '@request.auth.id != ""',
       viewRule: '@request.auth.id != ""',
       createRule: '@request.auth.id != ""',
-      updateRule: '@request.auth.id != ""',
-      deleteRule: '@request.auth.id != ""'
+      updateRule: '@request.auth.id != "" && (userId = @request.auth.id || @request.auth.data.role = \'manager\')',
+      deleteRule: '@request.auth.id != "" && @request.auth.data.role = \'manager\''
     },
     {
       name: 'retailers',
@@ -100,35 +100,65 @@ async function createCollections() {
         { name: 'activationCode', type: 'text', required: false },
         { name: 'pin', type: 'text', required: false }
       ],
-      listRule: '@request.auth.id != ""',
-      viewRule: '@request.auth.id != ""',
+      listRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')',
+      viewRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')',
       createRule: '@request.auth.id != ""',
-      updateRule: '@request.auth.id != ""',
-      deleteRule: '@request.auth.id != ""'
+      updateRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')',
+      deleteRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')'
     }
   ];
 
   for (const collection of collections) {
     try {
       // Check if collection exists
+      let existingCollection;
       try {
-        await pb.collections.getOne(collection.name);
-        console.log(`${colors.yellow}⚠ Collection '${collection.name}' already exists, skipping...${colors.reset}`);
+        existingCollection = await pb.collections.getOne(collection.name);
+        console.log(`${colors.yellow}⚠ Collection '${collection.name}' exists, updating schema...${colors.reset}`);
       } catch {
         // Collection doesn't exist, create it
-        await pb.collections.create(collection);
+        existingCollection = await pb.collections.create(collection);
         console.log(`${colors.green}✓ Created collection '${collection.name}'${colors.reset}`);
       }
+
+      // Now update the collection schema if needed
+      // Get current fields
+      const currentFields = existingCollection.schema || [];
+      const newFields = collection.schema;
+
+      // Check if fields need to be added
+      const fieldsToAdd = newFields.filter(
+        newField => !currentFields.find(f => f.name === newField.name)
+      );
+
+      if (fieldsToAdd.length > 0) {
+        console.log(`  Adding ${fieldsToAdd.length} fields to '${collection.name}'...`);
+        
+        // Update with new fields
+        await pb.collections.update(collection.name, {
+          schema: [...currentFields, ...fieldsToAdd],
+          listRule: collection.listRule,
+          viewRule: collection.viewRule,
+          createRule: collection.createRule,
+          updateRule: collection.updateRule,
+          deleteRule: collection.deleteRule
+        });
+        console.log(`  ${colors.green}✓ Updated schema for '${collection.name}'${colors.reset}`);
+      } else {
+        console.log(`  ${colors.green}✓ Schema already up to date for '${collection.name}'${colors.reset}`);
+      }
+
     } catch (error) {
-      console.error(`${colors.red}✗ Failed to create '${collection.name}':${colors.reset}`, error.message);
+      console.error(`${colors.red}✗ Failed to create/update '${collection.name}':${colors.reset}`, error.message);
+      if (error.data) {
+        console.error(`${colors.gray}Error data: ${JSON.stringify(error.data)}${colors.reset}`);
+      }
     }
   }
 
   console.log();
   console.log(`${colors.green}✓ Collections setup complete!${colors.reset}`);
   console.log();
-  console.log(`${colors.blue}Next step: Seed data with:${colors.reset}`);
-  console.log(`  pnpm db:seed`);
 }
 
 createCollections();
