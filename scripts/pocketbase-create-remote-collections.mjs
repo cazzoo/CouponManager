@@ -42,7 +42,7 @@ async function createCollections() {
     console.error(`${colors.red}✗ Failed to authenticate:${colors.reset}`, error.message);
     console.log(`${colors.yellow}Make sure:${colors.reset}`);
     console.log(`  1. VITE_POCKETBASE_URL is set to the base URL (without /_/ )`);
-    console.log(`  2. PB_ADMIN_EMAIL and PB_ADMIN_PASSWORD are correct`);
+    console.log(`  2. PB_ADMIN_ADMIN_EMAIL and PB_ADMIN_PASSWORD are correct`);
     console.log(`  3. Admin user exists in PocketBase`);
     process.exit(1);
   }
@@ -58,36 +58,39 @@ async function createCollections() {
     process.exit(1);
   }
 
+  // Collection definitions - rules will be set AFTER schema is created
   const collections = [
     {
       name: 'user_roles',
-      type: 'base',
       schema: [
         { name: 'userId', type: 'relation', required: true, collectionId: usersCollectionId, cascadeDelete: false },
         { name: 'role', type: 'select', required: true, values: ['user', 'manager', 'demo'] }
       ],
-      listRule: '@request.auth.id != ""',
-      viewRule: '@request.auth.id != ""',
-      createRule: '@request.auth.id != ""',
-      updateRule: '@request.auth.id != "" && (userId = @request.auth.id || @request.auth.data.role = \'manager\')',
-      deleteRule: '@request.auth.id != "" && @request.auth.data.role = \'manager\''
+      // Rules that reference userId - will be set after schema creation
+      rules: {
+        listRule: '@request.auth.id != ""',
+        viewRule: '@request.auth.id != ""',
+        createRule: '@request.auth.id != ""',
+        updateRule: '@request.auth.id != ""',
+        deleteRule: '@request.auth.id != "" && @request.auth.data.role = \'manager\''
+      }
     },
     {
       name: 'retailers',
-      type: 'base',
       schema: [
         { name: 'name', type: 'text', required: true },
         { name: 'userId', type: 'relation', required: true, collectionId: usersCollectionId, cascadeDelete: false }
       ],
-      listRule: '@request.auth.id != ""',
-      viewRule: '@request.auth.id != ""',
-      createRule: '@request.auth.id != ""',
-      updateRule: '@request.auth.id != ""',
-      deleteRule: '@request.auth.id != ""'
+      rules: {
+        listRule: '@request.auth.id != ""',
+        viewRule: '@request.auth.id != ""',
+        createRule: '@request.auth.id != ""',
+        updateRule: '@request.auth.id != ""',
+        deleteRule: '@request.auth.id != ""'
+      }
     },
     {
       name: 'coupons',
-      type: 'base',
       schema: [
         { name: 'retailer', type: 'text', required: true },
         { name: 'initialValue', type: 'text', required: true },
@@ -100,56 +103,70 @@ async function createCollections() {
         { name: 'activationCode', type: 'text', required: false },
         { name: 'pin', type: 'text', required: false }
       ],
-      listRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')',
-      viewRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')',
-      createRule: '@request.auth.id != ""',
-      updateRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')',
-      deleteRule: '(userId = @request.auth.id) || (@request.auth.data.role = \'manager\')'
+      rules: {
+        listRule: '@request.auth.id != ""',
+        viewRule: '@request.auth.id != ""',
+        createRule: '@request.auth.id != ""',
+        updateRule: '@request.auth.id != ""',
+        deleteRule: '@request.auth.id != ""'
+      }
     }
   ];
 
-  for (const collection of collections) {
+  for (const coll of collections) {
     try {
       // Check if collection exists
       let existingCollection;
       try {
-        existingCollection = await pb.collections.getOne(collection.name);
-        console.log(`${colors.yellow}⚠ Collection '${collection.name}' exists, updating schema...${colors.reset}`);
+        existingCollection = await pb.collections.getOne(coll.name);
+        console.log(`${colors.yellow}⚠ Collection '${coll.name}' exists, checking schema...${colors.reset}`);
       } catch {
-        // Collection doesn't exist, create it
-        existingCollection = await pb.collections.create(collection);
-        console.log(`${colors.green}✓ Created collection '${collection.name}'${colors.reset}`);
+        // Collection doesn't exist - create it FIRST without rules
+        console.log(`Creating collection '${coll.name}' (without rules first)...`);
+        existingCollection = await pb.collections.create({
+          name: coll.name,
+          type: 'base',
+          schema: coll.schema,
+          listRule: null,
+          viewRule: null,
+          createRule: null,
+          updateRule: null,
+          deleteRule: null
+        });
+        console.log(`${colors.green}✓ Created collection '${coll.name}'${colors.reset}`);
       }
 
-      // Now update the collection schema if needed
-      // Get current fields
+      // Now add/update fields that are missing
       const currentFields = existingCollection.schema || [];
-      const newFields = collection.schema;
+      const newFields = coll.schema;
 
-      // Check if fields need to be added
       const fieldsToAdd = newFields.filter(
         newField => !currentFields.find(f => f.name === newField.name)
       );
 
       if (fieldsToAdd.length > 0) {
-        console.log(`  Adding ${fieldsToAdd.length} fields to '${collection.name}'...`);
+        console.log(`  Adding ${fieldsToAdd.length} fields to '${coll.name}'...`);
         
         // Update with new fields
-        await pb.collections.update(collection.name, {
-          schema: [...currentFields, ...fieldsToAdd],
-          listRule: collection.listRule,
-          viewRule: collection.viewRule,
-          createRule: collection.createRule,
-          updateRule: collection.updateRule,
-          deleteRule: collection.deleteRule
+        await pb.collections.update(coll.name, {
+          schema: [...currentFields, ...fieldsToAdd]
         });
-        console.log(`  ${colors.green}✓ Updated schema for '${collection.name}'${colors.reset}`);
-      } else {
-        console.log(`  ${colors.green}✓ Schema already up to date for '${collection.name}'${colors.reset}`);
+        console.log(`  ${colors.green}✓ Added fields to '${coll.name}'${colors.reset}`);
       }
 
+      // Now update the rules (they can reference the fields now)
+      console.log(`  Updating rules for '${coll.name}'...`);
+      await pb.collections.update(coll.name, {
+        listRule: coll.rules.listRule,
+        viewRule: coll.rules.viewRule,
+        createRule: coll.rules.createRule,
+        updateRule: coll.rules.updateRule,
+        deleteRule: coll.rules.deleteRule
+      });
+      console.log(`  ${colors.green}✓ Updated rules for '${coll.name}'${colors.reset}`);
+
     } catch (error) {
-      console.error(`${colors.red}✗ Failed to create/update '${collection.name}':${colors.reset}`, error.message);
+      console.error(`${colors.red}✗ Failed to process '${coll.name}':${colors.reset}`, error.message);
       if (error.data) {
         console.error(`${colors.gray}Error data: ${JSON.stringify(error.data)}${colors.reset}`);
       }
