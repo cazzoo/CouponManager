@@ -132,3 +132,5 @@ async function createCollections() {
 }
 
 createCollections();
+
+export { createCollections };

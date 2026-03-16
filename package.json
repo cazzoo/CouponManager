@@ -29,6 +29,7 @@
     "pb:setup": "node scripts/pocketbase-setup.mjs",
     "pb:create-collections": "node scripts/pocketbase-create-collections.mjs",
     "pb:create-collections:remote": "node scripts/pocketbase-create-remote-collections.mjs",
+    "pb:deploy": "node scripts/pocketbase-deploy.mjs",
     "pb:reset": "node scripts/pocketbase-reset.mjs",
     "db:seed": "node scripts/pocketbase-seed-data.mjs",
     "setup:thirdparty": "bash scripts/setup-thirdparty.sh"
