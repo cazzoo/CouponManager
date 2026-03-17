@@ -188,23 +188,23 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
                   <span className="badge badge-sm badge-outline shrink-0">{theme}</span>
                 </div>
               </div>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <div className="absolute right-2 top-2 flex items-center gap-1">
                 <button
-                  onClick={handlePreviousTheme}
+                  onClick={(e) => { e.stopPropagation(); handlePreviousTheme(); }}
                   className="btn btn-xs btn-circle btn-ghost"
                   aria-label="Previous theme"
                 >
                   <ChevronLeft size={14} />
                 </button>
                 <button
-                  onClick={handleNextTheme}
+                  onClick={(e) => { e.stopPropagation(); handleNextTheme(); }}
                   className="btn btn-xs btn-circle btn-ghost"
                   aria-label="Next theme"
                 >
                   <ChevronRight size={14} />
                 </button>
                 <button
-                  onClick={() => setIsThemeSectionOpen(!isThemeSectionOpen)}
+                  onClick={(e) => { e.stopPropagation(); setIsThemeSectionOpen(!isThemeSectionOpen); }}
                   className="btn btn-xs btn-ghost px-2"
                   aria-label="Toggle theme options"
                   aria-expanded={isThemeSectionOpen}
@@ -217,7 +217,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
                   isThemeSectionOpen ? 'max-h-[600px]' : 'max-h-0'
                 }`}
               >
-                <div className="flex flex-col gap-2 p-2 pt-0">
+                <div className="flex flex-col gap-2 p-2 pt-2">
                   {THEME_CATEGORIES.map((category) => (
                     <div key={category.name} className="flex flex-col gap-1">
                       <span className="text-xs font-medium opacity-60 px-2">
@@ -227,7 +227,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
                         {category.themes.map((themeOption) => (
                           <button
                             key={themeOption.value}
-                            onClick={() => handleThemeSelect(themeOption.value)}
+                            onClick={(e) => { e.stopPropagation(); handleThemeSelect(themeOption.value); }}
                             className={`btn btn-xs justify-start h-8 ${
                               theme === themeOption.value
                                 ? 'btn-primary btn-outline'
@@ -259,23 +259,23 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
                   </span>
                 </div>
               </div>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <div className="absolute right-2 top-2 flex items-center gap-1">
                 <button
-                  onClick={handlePreviousLanguage}
+                  onClick={(e) => { e.stopPropagation(); handlePreviousLanguage(); }}
                   className="btn btn-xs btn-circle btn-ghost"
                   aria-label="Previous language"
                 >
                   <ChevronLeft size={14} />
                 </button>
                 <button
-                  onClick={handleNextLanguage}
+                  onClick={(e) => { e.stopPropagation(); handleNextLanguage(); }}
                   className="btn btn-xs btn-circle btn-ghost"
                   aria-label="Next language"
                 >
                   <ChevronRight size={14} />
                 </button>
                 <button
-                  onClick={() => setIsLanguageSectionOpen(!isLanguageSectionOpen)}
+                  onClick={(e) => { e.stopPropagation(); setIsLanguageSectionOpen(!isLanguageSectionOpen); }}
                   className="btn btn-xs btn-ghost px-2"
                   aria-label="Toggle language options"
                   aria-expanded={isLanguageSectionOpen}
@@ -288,11 +288,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
                   isLanguageSectionOpen ? 'max-h-[300px]' : 'max-h-0'
                 }`}
               >
-                <div className="flex flex-col gap-1 p-2 pt-0">
+                <div className="flex flex-col gap-1 p-2 pt-2">
                   {languages.map((lang) => (
                     <button
                       key={lang.code}
-                      onClick={() => handleLanguageSelect(lang.code)}
+                      onClick={(e) => { e.stopPropagation(); handleLanguageSelect(lang.code); }}
                       className={`btn btn-xs justify-start h-8 ${
                         language === lang.code
                           ? 'btn-primary btn-outline'
