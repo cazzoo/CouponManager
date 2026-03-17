@@ -3,8 +3,6 @@
 /**
  * Script to create collections on a remote PocketBase instance
  * Usage: pnpm pb:create-collections:remote
- * 
- * This works with remote PocketBase (PocketHost) - no local binary needed
  */
 
 import PocketBase from 'pocketbase';
@@ -23,8 +21,9 @@ const colors = {
   blue: '\x1b[34m'
 };
 
+let hasError = false;
+
 async function createCollections() {
-  // Clean the URL - remove trailing slashes and /_/ suffix
   let pbUrl = process.env.VITE_POCKETBASE_URL || 'http://127.0.0.1:8090';
   pbUrl = pbUrl.replace(/\/+$/, '').replace(/\/_+$/, '');
   
@@ -34,138 +33,109 @@ async function createCollections() {
 
   const pb = new PocketBase(pbUrl);
 
-  try {
-    // Authenticate as admin
-    await pb.admins.authWithPassword(PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD);
-    console.log(`${colors.green}✓ Authenticated as admin${colors.reset}`);
-  } catch (error) {
-    console.error(`${colors.red}✗ Failed to authenticate:${colors.reset}`, error.message);
-    process.exit(1);
-  }
+  // Authenticate as admin
+  console.log(`${colors.blue}Authenticating...${colors.reset}`);
+  await pb.admins.authWithPassword(PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD);
+  console.log(`${colors.green}✓ Authenticated${colors.reset}`);
 
-  // Get the users collection ID
-  let usersCollectionId;
-  try {
-    const usersCol = await pb.collections.getOne('users');
-    usersCollectionId = usersCol.id;
-    console.log(`${colors.green}✓ Found users collection: ${usersCollectionId}${colors.reset}`);
-  } catch (error) {
-    console.error(`${colors.red}✗ Users collection not found${colors.reset}`);
-    process.exit(1);
-  }
-
-  // Use raw fetch to create collections - more reliable
-  const adminToken = pb.authStore.token;
-  
-  // Helper to create collection using raw fetch
-  async function createCollectionRaw(name, schema, rules) {
-    const response = await fetch(`${pbUrl}/api/collections`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Admin ${adminToken}`
-      },
-      body: JSON.stringify({
-        name: name,
-        type: 'base',
-        schema: schema,
-        listRule: rules.listRule,
-        viewRule: rules.viewRule,
-        createRule: rules.createRule,
-        updateRule: rules.updateRule,
-        deleteRule: rules.deleteRule
-      })
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(JSON.stringify(errorData));
-    }
-    
-    return await response.json();
-  }
+  // Get users collection ID
+  const usersCol = await pb.collections.getOne('users');
+  const usersCollectionId = usersCol.id;
+  console.log(`  Users ID: ${usersCollectionId}`);
 
   const collections = [
     {
       name: 'user_roles',
-      schema: [
+      fields: [
         { name: 'userId', type: 'relation', required: true, options: { collectionId: usersCollectionId, cascadeDelete: false } },
         { name: 'role', type: 'select', required: true, options: { values: ['user', 'manager', 'demo'] } }
       ],
-      rules: {
-        listRule: '@request.auth.id != ""',
-        viewRule: '@request.auth.id != ""',
-        createRule: '@request.auth.id != ""',
-        updateRule: '@request.auth.id != ""',
-        deleteRule: '@request.auth.id != "" && @request.auth.data.role = "manager"'
-      }
+      rules: { listRule: '', viewRule: '', createRule: '', updateRule: '', deleteRule: '' }
     },
     {
       name: 'retailers',
-      schema: [
+      fields: [
         { name: 'name', type: 'text', required: true, options: { min: 1, max: 100 } },
         { name: 'userId', type: 'relation', required: true, options: { collectionId: usersCollectionId, cascadeDelete: false } }
       ],
-      rules: {
-        listRule: '@request.auth.id != ""',
-        viewRule: '@request.auth.id != ""',
-        createRule: '@request.auth.id != ""',
-        updateRule: '@request.auth.id != ""',
-        deleteRule: '@request.auth.id != ""'
-      }
+      rules: { listRule: '', viewRule: '', createRule: '', updateRule: '', deleteRule: '' }
     },
     {
       name: 'coupons',
-      schema: [
+      fields: [
         { name: 'retailer', type: 'text', required: true, options: { min: 1, max: 100 } },
         { name: 'initialValue', type: 'text', required: true, options: { min: 0, max: 50 } },
         { name: 'currentValue', type: 'text', required: true, options: { min: 0, max: 50 } },
         { name: 'userId', type: 'relation', required: true, options: { collectionId: usersCollectionId, cascadeDelete: false } },
-        { name: 'expirationDate', type: 'date', required: false, options: {} },
-        { name: 'notes', type: 'editor', required: false, options: {} },
+        { name: 'expirationDate', type: 'date', required: false },
+        { name: 'notes', type: 'editor', required: false },
         { name: 'barcode', type: 'text', required: false, options: { min: 0, max: 200 } },
         { name: 'reference', type: 'text', required: false, options: { min: 0, max: 100 } },
         { name: 'activationCode', type: 'text', required: false, options: { min: 0, max: 50 } },
         { name: 'pin', type: 'text', required: false, options: { min: 0, max: 10 } }
       ],
-      rules: {
-        listRule: '@request.auth.id != ""',
-        viewRule: '@request.auth.id != ""',
-        createRule: '@request.auth.id != ""',
-        updateRule: '@request.auth.id != ""',
-        deleteRule: '@request.auth.id != ""'
-      }
+      rules: { listRule: '', viewRule: '', createRule: '', updateRule: '', deleteRule: '' }
     }
   ];
 
   for (const coll of collections) {
-    console.log(`\n${colors.blue}Processing collection: ${coll.name}${colors.reset}`);
+    console.log(`\n${colors.blue}Processing ${coll.name}...${colors.reset}`);
     
+    // Check if collection exists with data
     try {
-      // Check if collection exists
+      const existing = await pb.collections.getOne(coll.name);
+      console.log(`  Collection exists, checking for data...`);
+      
+      // Check if there's data in the collection
       try {
-        const existing = await pb.collections.getOne(coll.name);
-        console.log(`  Collection exists with ID: ${existing.id}, deleting...`);
-        await pb.collections.delete(coll.name);
-        console.log(`  Deleted old collection`);
+        const records = await pb.collection(coll.name).getList(1, 1);
+        if (records.totalItems > 0) {
+          console.log(`  ${colors.yellow}⚠ Collection has ${records.totalItems} records - skipping${colors.reset}`);
+          continue;
+        }
       } catch {
-        // Collection doesn't exist
+        // No records
       }
+      
+      // Delete empty collection
+      await pb.collections.delete(coll.name);
+      console.log(`  Deleted existing (empty)`);
+    } catch {
+      // Collection doesn't exist
+    }
 
-      // Create using raw fetch
-      console.log(`  Creating collection with raw API...`);
-      const result = await createCollectionRaw(coll.name, coll.schema, coll.rules);
-      console.log(`  Result: ${JSON.stringify(result.schema?.map(f => f.name) || [])}`);
-      console.log(`  ${colors.green}✓ Created collection '${coll.name}'${colors.reset}`);
-
-    } catch (error) {
-      console.error(`  ${colors.red}✗ Failed:${colors.reset}`, error.message);
+    // Create new
+    try {
+      const newCol = await pb.collections.create({
+        name: coll.name,
+        type: 'base',
+        schema: coll.fields,
+        listRule: coll.rules.listRule,
+        viewRule: coll.rules.viewRule,
+        createRule: coll.rules.createRule,
+        updateRule: coll.rules.updateRule,
+        deleteRule: coll.rules.deleteRule
+      });
+      console.log(`  ${colors.green}✓ Created${colors.reset}`);
+      console.log(`  Schema: ${newCol.schema?.map(f => f.name).join(', ') || '(none)'}`);
+    } catch (e) {
+      console.log(`  ${colors.red}✗ Error: ${e.message}${colors.reset}`);
+      if (e.data) console.log(`  Data: ${JSON.stringify(e.data)}`);
+      hasError = true;
     }
   }
 
-  console.log(`\n${colors.green}✓ Collections setup complete!${colors.reset}\n`);
+  if (hasError) {
+    console.log(`\n${colors.red}✗ Collection setup failed${colors.reset}`);
+    process.exit(1);
+  }
+
+  console.log(`\n${colors.green}✓ Collections setup complete!${colors.reset}`);
 }
 
-createCollections();
+createCollections().catch(e => {
+  console.error(`${colors.red}Fatal: ${e.message}${colors.reset}`);
+  process.exit(1);
+});
 
 export { createCollections };
