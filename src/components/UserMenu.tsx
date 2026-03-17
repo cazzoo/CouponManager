@@ -114,11 +114,21 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
   };
 
   const handlePreviousTheme = () => {
+    // Guard against theme not found in THEME_OPTIONS
+    if (currentThemeIndex === -1) {
+      setTheme(THEME_OPTIONS[0].value);
+      return;
+    }
     const newIndex = currentThemeIndex === 0 ? THEME_OPTIONS.length - 1 : currentThemeIndex - 1;
     setTheme(THEME_OPTIONS[newIndex].value);
   };
 
   const handleNextTheme = () => {
+    // Guard against theme not found in THEME_OPTIONS
+    if (currentThemeIndex === -1) {
+      setTheme(THEME_OPTIONS[0].value);
+      return;
+    }
     const newIndex = (currentThemeIndex + 1) % THEME_OPTIONS.length;
     setTheme(THEME_OPTIONS[newIndex].value);
   };
