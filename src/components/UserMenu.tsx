@@ -114,7 +114,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
   };
 
   const handlePreviousTheme = () => {
-    // Guard against theme not found in THEME_OPTIONS
     if (currentThemeIndex === -1) {
       setTheme(THEME_OPTIONS[0].value);
       return;
@@ -124,7 +123,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
   };
 
   const handleNextTheme = () => {
-    // Guard against theme not found in THEME_OPTIONS
     if (currentThemeIndex === -1) {
       setTheme(THEME_OPTIONS[0].value);
       return;
@@ -155,7 +153,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
 
       {isOpen && (
         <ul
-          className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 w-[30rem] p-2 shadow-lg border border-base-200"
+          className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 w-[30rem] p-3 shadow-xl border border-base-200"
           role="menu"
         >
           <li className="menu-title px-3 py-2" role="none">
@@ -170,40 +168,42 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
           <div className="divider my-1" role="separator" />
 
           <li role="none">
-            <div className="bg-base-200 rounded-lg p-2">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2 flex-1">
-                  <Palette size={16} />
-                  <span className="text-sm font-medium">Theme</span>
-                  <span className="badge badge-sm badge-outline">{theme}</span>
-                </div>
-                <div className="flex items-center gap-1">
+            <div className="bg-base-200 rounded-lg overflow-hidden">
+              <div className="flex items-center p-2 gap-2">
+                <Palette size={16} className="shrink-0" />
+                <span className="text-sm font-medium min-w-0 flex-1">Theme</span>
+                <span className="badge badge-sm badge-outline shrink-0">{theme}</span>
+                <div className="flex items-center gap-1 shrink-0 ml-auto">
                   <button
                     onClick={handlePreviousTheme}
-                    className="btn btn-sm btn-circle btn-ghost"
+                    className="btn btn-xs btn-circle btn-ghost"
                     aria-label="Previous theme"
                   >
-                    <ChevronLeft size={16} />
+                    <ChevronLeft size={14} />
                   </button>
                   <button
                     onClick={handleNextTheme}
-                    className="btn btn-sm btn-circle btn-ghost"
+                    className="btn btn-xs btn-circle btn-ghost"
                     aria-label="Next theme"
                   >
-                    <ChevronRight size={16} />
+                    <ChevronRight size={14} />
                   </button>
                   <button
                     onClick={() => setIsThemeSectionOpen(!isThemeSectionOpen)}
-                    className="btn btn-sm btn-ghost px-2"
+                    className="btn btn-xs btn-ghost px-2"
                     aria-label="Toggle theme options"
                     aria-expanded={isThemeSectionOpen}
                   >
-                    <ChevronDown size={16} className={`transition-transform ${isThemeSectionOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${isThemeSectionOpen ? 'rotate-180' : ''}`} />
                   </button>
                 </div>
               </div>
-              {isThemeSectionOpen && (
-                <div className="flex flex-col gap-2 pt-2">
+              <div 
+                className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
+                  isThemeSectionOpen ? 'max-h-[600px]' : 'max-h-0'
+                }`}
+              >
+                <div className="flex flex-col gap-2 p-2 pt-0">
                   {THEME_CATEGORIES.map((category) => (
                     <div key={category.name} className="flex flex-col gap-1">
                       <span className="text-xs font-medium opacity-60 px-2">
@@ -230,31 +230,35 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
                     </div>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
           </li>
 
           <li role="none">
-            <div className="bg-base-200 rounded-lg p-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 flex-1">
-                  <Languages size={16} />
+            <div className="bg-base-200 rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between p-2 gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Languages size={16} className="shrink-0" />
                   <span className="text-sm font-medium">Language</span>
-                  <span className="badge badge-sm badge-outline">
+                  <span className="badge badge-sm badge-outline shrink-0">
                     {getCurrentLanguageName()}
                   </span>
                 </div>
                 <button
                   onClick={() => setIsLanguageSectionOpen(!isLanguageSectionOpen)}
-                  className="btn btn-sm btn-ghost px-2"
+                  className="btn btn-xs btn-ghost px-2 shrink-0"
                   aria-label="Toggle language options"
                   aria-expanded={isLanguageSectionOpen}
                 >
-                  <ChevronDown size={16} className={`transition-transform ${isLanguageSectionOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${isLanguageSectionOpen ? 'rotate-180' : ''}`} />
                 </button>
               </div>
-              {isLanguageSectionOpen && (
-                <div className="flex flex-col gap-1 pt-2">
+              <div 
+                className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
+                  isLanguageSectionOpen ? 'max-h-[300px]' : 'max-h-0'
+                }`}
+              >
+                <div className="flex flex-col gap-1 p-2 pt-0">
                   {languages.map((lang) => (
                     <button
                       key={lang.code}
@@ -272,7 +276,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
                     </button>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
           </li>
 
