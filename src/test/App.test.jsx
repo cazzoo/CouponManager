@@ -50,6 +50,16 @@ vi.mock('../components/ThemeSelector', () => ({
   default: () => <div data-testid="theme-selector">ThemeSelector Component</div>
 }));
 
+vi.mock('../components/UserMenu', () => ({
+  default: ({ user, onSignOut }) => (
+    <div data-testid="user-menu">
+      <div data-testid="language-selector">LanguageSelector</div>
+      <div data-testid="theme-selector">ThemeSelector</div>
+      <button data-testid="sign-out-button" onClick={onSignOut}>Sign Out</button>
+    </div>
+  ),
+}));
+
 // Mock services
 vi.mock('../services/CouponServiceFactory', () => ({
   default: {
@@ -198,7 +208,7 @@ describe('App Component', () => {
     });
 
     // Verify ThemeSelector component is present
-    expect(screen.getByTestId('theme-selector')).toBeInTheDocument();
+    expect(screen.getByTestId('user-menu')).toBeInTheDocument();
   });
 
   it('includes LanguageSelector in the app bar', async () => {
@@ -218,7 +228,7 @@ describe('App Component', () => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
     
-    expect(screen.getByText('app.sign_out')).toBeInTheDocument();
+    expect(screen.getByTestId('sign-out-button')).toBeInTheDocument();
   });
 
   it('calls signOut when sign out button is clicked', async () => {
@@ -229,7 +239,7 @@ describe('App Component', () => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     });
     
-    const signOutButton = screen.getByText('app.sign_out');
+    const signOutButton = screen.getByTestId('sign-out-button');
     await user.click(signOutButton);
     
     expect(mockAuthState.signOut).toHaveBeenCalled();

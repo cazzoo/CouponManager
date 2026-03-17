@@ -4,7 +4,7 @@ import CouponList from "./components/CouponList";
 import RetailerList from "./components/RetailerList";
 import AddCouponForm from "./components/AddCouponForm";
 import LanguageSelector from "./components/LanguageSelector";
-import ThemeSelector from "./components/ThemeSelector";
+import UserMenu from "./components/UserMenu";
 import DevUserSwitcher from "./components/DevUserSwitcher";
 import LoginForm from "./components/LoginForm";
 import UserManagement from "./components/UserManagement";
@@ -221,7 +221,6 @@ function App() {
             </div>
             <div className="flex flex-none gap-2 items-center">
               <LanguageSelector />
-              <ThemeSelector />
               {isDevelopment && <DevUserSwitcher />}
             </div>
           </div>
@@ -242,19 +241,8 @@ function App() {
             </a>
           </div>
           <div className="flex flex-none gap-2 items-center">
-            <LanguageSelector />
-            <ThemeSelector />
             {isDevelopment && <DevUserSwitcher />}
-            <div className="hidden sm:block text-sm mr-2 text-primary-content opacity-80">
-              {user.email}
-            </div>
-            <button
-              className="btn btn-ghost normal-case"
-              onClick={handleSignOut}
-              data-testid="logout-button"
-            >
-              {t('app.sign_out')}
-            </button>
+            <UserMenu user={user} onSignOut={handleSignOut} />
           </div>
         </div>
       </nav>
