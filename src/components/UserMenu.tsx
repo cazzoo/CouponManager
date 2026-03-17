@@ -5,6 +5,8 @@ import {
   Languages,
   LogOut,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Check
 } from 'lucide-react';
 import { useLanguage } from '../services/LanguageContext';
@@ -70,6 +72,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
   const [isLanguageSectionOpen, setIsLanguageSectionOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const languages = getSupportedLanguages();
+  const currentThemeIndex = THEME_OPTIONS.findIndex(t => t.value === theme);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -110,6 +113,16 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
     changeLanguage(langCode);
   };
 
+  const handlePreviousTheme = () => {
+    const newIndex = currentThemeIndex === 0 ? THEME_OPTIONS.length - 1 : currentThemeIndex - 1;
+    setTheme(THEME_OPTIONS[newIndex].value);
+  };
+
+  const handleNextTheme = () => {
+    const newIndex = (currentThemeIndex + 1) % THEME_OPTIONS.length;
+    setTheme(THEME_OPTIONS[newIndex].value);
+  };
+
   const getCurrentLanguageName = (): string => {
     const currentLang = languages.find(lang => lang.code === language);
     return currentLang ? currentLang.name : 'English';
@@ -132,7 +145,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
 
       {isOpen && (
         <ul
-          className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 w-80 p-2 shadow-lg border border-base-200"
+          className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 w-96 p-2 shadow-lg border border-base-200"
           role="menu"
         >
           <li className="menu-title px-3 py-2" role="none">
@@ -157,7 +170,23 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
               <div className="collapse-title pr-8 min-h-0 py-2 flex items-center gap-2">
                 <Palette size={16} />
                 <span className="text-sm font-medium">Theme</span>
-                <span className="badge badge-sm badge-outline ml-auto">{theme}</span>
+                <span className="badge badge-sm badge-outline">{theme}</span>
+                <div className="ml-auto flex items-center gap-1">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handlePreviousTheme(); }}
+                    className="btn btn-xs btn-ghost btn-circle"
+                    aria-label="Previous theme"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleNextTheme(); }}
+                    className="btn btn-xs btn-ghost btn-circle"
+                    aria-label="Next theme"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
               <div className="collapse-content">
                 <div className="flex flex-col gap-2 pt-2">
