@@ -4,9 +4,9 @@
  * PocketBase Deploy Script
  * 
  * This script:
- * 1. Uses createCollections from pocketbase-create-remote-collections.mjs
- * 2. Adds role field to users collection
- * 3. Creates application admin user
+ * 1. Authenticates as PocketBase admin
+ * 2. Imports collections (including user_roles)
+ * 3. Creates application admin user with manager role
  * 
  * Usage: pnpm pb:deploy
  * 
@@ -14,7 +14,8 @@
  * - VITE_POCKETBASE_URL: URL of your PocketBase instance
  * - PB_ADMIN_EMAIL: Admin email (for PocketBase admin authentication)
  * - PB_ADMIN_PASSWORD: Admin password (for PocketBase admin authentication)
- * - PB_APP_ADMIN_EMAIL: Application admin email (default: admin@example.com)
+ * - PB_APP_ADMIN_EMAIL: Application admin email (default: admin@couponmanager.app)
+ * - PB_APP_ADMIN_PASSWORD: Application admin password (default: admin123)
  */
 
 import { createCollections } from './pocketbase-create-remote-collections.mjs';
@@ -22,6 +23,8 @@ import PocketBase from 'pocketbase';
 import dotenv from 'dotenv';
 import { randomBytes } from 'crypto';
 
+// Load .env.local first, then .env (local overrides remote)
+dotenv.config({ path: '.env.local' });
 dotenv.config();
 
 // Clean the URL - remove trailing slashes and /_/ suffix
@@ -30,11 +33,11 @@ PB_URL = PB_URL.replace(/\/+$/, '').replace(/\/_+$/, '');
 
 const PB_ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL || 'admin@example.com';
 const PB_ADMIN_PASSWORD = process.env.PB_ADMIN_PASSWORD || 'admin12345';
-const PB_APP_ADMIN_EMAIL = process.env.PB_APP_ADMIN_EMAIL || 'admin@example.com';
+const PB_APP_ADMIN_EMAIL = process.env.PB_APP_ADMIN_EMAIL || 'admin@couponmanager.app';
 
 // Generate random password for app admin
-const generateRandomPassword = () => randomBytes(16).toString('hex');
-const PB_APP_ADMIN_PASSWORD = generateRandomPassword();
+const generatePassword = () => randomBytes(12).toString('hex');
+let PB_APP_ADMIN_PASSWORD = generatePassword();
 
 const colors = {
   reset: '\x1b[0m',
@@ -48,13 +51,14 @@ const colors = {
 console.log(`${colors.blue}PocketBase Deploy Script${colors.reset}`);
 console.log(`${colors.blue}${'='.repeat(50)}${colors.reset}`);
 console.log(`URL: ${PB_URL}`);
+console.log(`App Admin: ${PB_APP_ADMIN_EMAIL}`);
 console.log();
 
 const pb = new PocketBase(PB_URL);
 
 // ============ STEP 1: Authenticate ============
 async function authenticate() {
-  console.log(`${colors.blue}Authenticating as admin...${colors.reset}`);
+  console.log(`${colors.blue}Step 1: Authenticating as admin...${colors.reset}`);
 
   try {
     await pb.admins.authWithPassword(PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD);
@@ -69,45 +73,11 @@ async function authenticate() {
 
 // ============ STEP 2: Create Collections ============
 async function setupCollections() {
-  console.log(`${colors.blue}Step 1: Creating collections...${colors.reset}`);
+  console.log(`${colors.blue}Step 2: Creating collections...${colors.reset}`);
   await createCollections();
 }
 
-// ============ STEP 3: Add role field to users ============
-async function addRoleToUsers() {
-  console.log(`${colors.blue}Step 2: Adding role field to users...${colors.reset}`);
-
-  try {
-    const usersCol = await pb.collections.getOne('users');
-    const currentFields = usersCol.schema || [];
-    
-    const roleFieldExists = currentFields.find(f => f.name === 'role');
-    
-    if (!roleFieldExists) {
-      await pb.collections.update('users', {
-        schema: [
-          ...currentFields,
-          {
-            name: 'role',
-            type: 'select',
-            required: true,
-            values: ['user', 'manager', 'demo']
-          }
-        ]
-      });
-      console.log(`${colors.green}✓ Added 'role' field to users${colors.reset}`);
-    } else {
-      console.log(`${colors.yellow}⚠ 'role' field already exists in users${colors.reset}`);
-    }
-    
-    return true;
-  } catch (error) {
-    console.error(`${colors.red}✗ Failed to add role field: ${error.message}${colors.reset}`);
-    return false;
-  }
-}
-
-// ============ STEP 4: Create Application Admin User ============
+// ============ STEP 3: Create Application Admin User ============
 async function createAppAdmin() {
   console.log(`${colors.blue}Step 3: Creating application admin user...${colors.reset}`);
 
@@ -117,72 +87,78 @@ async function createAppAdmin() {
       filter: `email="${PB_APP_ADMIN_EMAIL}"` 
     });
     if (existing.totalItems > 0) {
-      console.log(`${colors.yellow}⚠ Application admin user already exists, skipping${colors.reset}`);
+      console.log(`${colors.yellow}⚠ User already exists, checking role...${colors.reset}`);
+      
+      // Check if user has a role
+      const userId = existing.items[0].id;
+      try {
+        const roles = await pb.collection('user_roles').getList(1, 1, {
+          filter: `userId="${userId}"`
+        });
+        
+        if (roles.totalItems === 0) {
+          // Create role
+          await pb.collection('user_roles').create({
+            userId: userId,
+            role: 'manager'
+          });
+          console.log(`${colors.green}✓ Assigned manager role${colors.reset}`);
+        } else {
+          console.log(`${colors.yellow}⚠ Role already exists${colors.reset}`);
+        }
+      } catch (e) {
+        console.log(`  ${colors.yellow}⚠ Could not check role: ${e.message}${colors.reset}`);
+      }
+      
       return true;
     }
   } catch {}
 
   // Create the application admin user
+  console.log(`  Creating user...`);
   try {
-    await pb.collection('users').create({
+    const user = await pb.collection('users').create({
       email: PB_APP_ADMIN_EMAIL,
       password: PB_APP_ADMIN_PASSWORD,
       passwordConfirm: PB_APP_ADMIN_PASSWORD,
       name: 'Application Admin',
-      emailVisibility: true,
+      emailVisibility: true
+    });
+    console.log(`  ✓ User created`);
+    
+    // Create user role
+    console.log(`  Creating role...`);
+    await pb.collection('user_roles').create({
+      userId: user.id,
       role: 'manager'
     });
-    console.log(`${colors.green}✓ Created application admin user${colors.reset}`);
-    console.log(`${colors.blue}Email: ${PB_APP_ADMIN_EMAIL}${colors.reset}`);
-    console.log(`${colors.blue}Password: ${PB_APP_ADMIN_PASSWORD}${colors.reset}`);
-    console.log(`${colors.yellow}⚠ Please change the password after first login!${colors.reset}`);
+    console.log(`  ✓ Manager role assigned`);
+    
+    console.log(`${colors.green}✓ Application admin user created!${colors.reset}`);
+    console.log(`${colors.blue}  Email: ${PB_APP_ADMIN_EMAIL}${colors.reset}`);
+    console.log(`${colors.blue}  Password: ${PB_APP_ADMIN_PASSWORD}${colors.reset}`);
+    
+    return true;
   } catch (error) {
     console.error(`${colors.red}✗ Failed to create application admin: ${error.message}${colors.reset}`);
+    if (error.data) {
+      console.error(`${colors.red}  Data: ${JSON.stringify(error.data)}${colors.reset}`);
+    }
     return false;
   }
-
-  // Create user role for admin
-  try {
-    const user = await pb.collection('users').getList(1, 1, { 
-      filter: `email="${PB_APP_ADMIN_EMAIL}"` 
-    });
-    
-    if (user.totalItems > 0) {
-      const userId = user.items[0].id;
-      
-      try {
-        await pb.collection('user_roles').create({
-          userId: userId,
-          role: 'manager'
-        });
-        console.log(`${colors.green}✓ Assigned manager role to admin user${colors.reset}`);
-      } catch (roleError) {
-        if (roleError.status === 400 && roleError.data?.data?.userId?.code === 'validation_not_unique') {
-          console.log(`${colors.yellow}⚠ Role already exists for admin user${colors.reset}`);
-        }
-      }
-    }
-  } catch (error) {
-    console.error(`${colors.yellow}⚠ Could not assign role: ${error.message}${colors.reset}`);
-  }
-
-  return true;
 }
 
 // ============ MAIN ============
 async function main() {
   try {
-    // Authenticate first
+    // Step 1: Authenticate
     const authOk = await authenticate();
     if (!authOk) {
       process.exit(1);
     }
 
-    // Step 1: Create collections
+    // Step 2: Create collections
     await setupCollections();
-
-    // Step 2: Add role field to users
-    await addRoleToUsers();
 
     // Step 3: Create app admin
     const adminOk = await createAppAdmin();

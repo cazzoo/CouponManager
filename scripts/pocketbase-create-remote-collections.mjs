@@ -3,11 +3,15 @@
 /**
  * Script to create collections on a remote PocketBase instance
  * Usage: pnpm pb:create-collections:remote
+ * 
+ * Uses PocketBase SDK's import() method to create collections with fields
  */
 
 import PocketBase from 'pocketbase';
 import dotenv from 'dotenv';
 
+// Load .env.local first, then .env (local overrides remote)
+dotenv.config({ path: '.env.local' });
 dotenv.config();
 
 const PB_ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL || 'admin@example.com';
@@ -29,98 +33,268 @@ async function createCollections() {
   
   console.log(`${colors.blue}Creating collections on remote PocketBase...${colors.reset}`);
   console.log(`URL: ${pbUrl}`);
+  console.log(`Admin: ${PB_ADMIN_EMAIL}`);
   console.log();
 
   const pb = new PocketBase(pbUrl);
 
   // Authenticate as admin
   console.log(`${colors.blue}Authenticating...${colors.reset}`);
-  await pb.admins.authWithPassword(PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD);
-  console.log(`${colors.green}✓ Authenticated${colors.reset}`);
+  try {
+    await pb.admins.authWithPassword(PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD);
+    console.log(`${colors.green}✓ Authenticated${colors.reset}`);
+  } catch (e) {
+    console.error(`${colors.red}✗ Auth failed: ${e.message}${colors.reset}`);
+    if (e.response) {
+      console.error(`  Response: ${JSON.stringify(e.response)}`);
+    }
+    throw e;
+  }
 
-  // Get users collection ID
+  // Get users collection ID for relation fields
   const usersCol = await pb.collections.getOne('users');
   const usersCollectionId = usersCol.id;
   console.log(`  Users ID: ${usersCollectionId}`);
 
-  const collections = [
+  // Define collections using PocketBase import format (with field IDs)
+  const collectionsData = [
     {
       name: 'user_roles',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: '',
+      updateRule: '',
+      deleteRule: '',
       fields: [
-        { name: 'userId', type: 'relation', required: true, options: { collectionId: usersCollectionId, cascadeDelete: false } },
-        { name: 'role', type: 'select', required: true, options: { values: ['user', 'manager', 'demo'] } }
+        {
+          id: 'relation_user_roles_userId',
+          name: 'userId',
+          type: 'relation',
+          required: true,
+          system: false,
+          collectionId: usersCollectionId,
+          cascadeDelete: false,
+          maxSelect: 1,
+          presentable: false
+        },
+        {
+          id: 'select_user_roles_role',
+          name: 'role',
+          type: 'select',
+          required: true,
+          system: false,
+          values: ['user', 'manager', 'demo'],
+          presentable: false
+        }
       ],
-      rules: { listRule: '', viewRule: '', createRule: '', updateRule: '', deleteRule: '' }
+      indexes: [],
+      system: false
     },
     {
       name: 'retailers',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: '',
+      updateRule: '',
+      deleteRule: '',
       fields: [
-        { name: 'name', type: 'text', required: true, options: { min: 1, max: 100 } },
-        { name: 'userId', type: 'relation', required: true, options: { collectionId: usersCollectionId, cascadeDelete: false } }
+        {
+          id: 'text_retailers_name',
+          name: 'name',
+          type: 'text',
+          required: true,
+          system: false,
+          min: 1,
+          max: 100,
+          presentable: false
+        },
+        {
+          id: 'relation_retailers_userId',
+          name: 'userId',
+          type: 'relation',
+          required: true,
+          system: false,
+          collectionId: usersCollectionId,
+          cascadeDelete: false,
+          maxSelect: 1,
+          presentable: false
+        }
       ],
-      rules: { listRule: '', viewRule: '', createRule: '', updateRule: '', deleteRule: '' }
+      indexes: [],
+      system: false
     },
     {
       name: 'coupons',
+      type: 'base',
+      listRule: '',
+      viewRule: '',
+      createRule: '',
+      updateRule: '',
+      deleteRule: '',
       fields: [
-        { name: 'retailer', type: 'text', required: true, options: { min: 1, max: 100 } },
-        { name: 'initialValue', type: 'text', required: true, options: { min: 0, max: 50 } },
-        { name: 'currentValue', type: 'text', required: true, options: { min: 0, max: 50 } },
-        { name: 'userId', type: 'relation', required: true, options: { collectionId: usersCollectionId, cascadeDelete: false } },
-        { name: 'expirationDate', type: 'date', required: false },
-        { name: 'notes', type: 'editor', required: false },
-        { name: 'barcode', type: 'text', required: false, options: { min: 0, max: 200 } },
-        { name: 'reference', type: 'text', required: false, options: { min: 0, max: 100 } },
-        { name: 'activationCode', type: 'text', required: false, options: { min: 0, max: 50 } },
-        { name: 'pin', type: 'text', required: false, options: { min: 0, max: 10 } }
+        {
+          id: 'text_coupons_retailer',
+          name: 'retailer',
+          type: 'text',
+          required: true,
+          system: false,
+          min: 1,
+          max: 100,
+          presentable: false
+        },
+        {
+          id: 'text_coupons_initialValue',
+          name: 'initialValue',
+          type: 'text',
+          required: true,
+          system: false,
+          min: 0,
+          max: 50,
+          presentable: false
+        },
+        {
+          id: 'text_coupons_currentValue',
+          name: 'currentValue',
+          type: 'text',
+          required: true,
+          system: false,
+          min: 0,
+          max: 50,
+          presentable: false
+        },
+        {
+          id: 'relation_coupons_userId',
+          name: 'userId',
+          type: 'relation',
+          required: true,
+          system: false,
+          collectionId: usersCollectionId,
+          cascadeDelete: false,
+          maxSelect: 1,
+          presentable: false
+        },
+        {
+          id: 'date_coupons_expirationDate',
+          name: 'expirationDate',
+          type: 'date',
+          required: false,
+          system: false,
+          presentable: false
+        },
+        {
+          id: 'editor_coupons_notes',
+          name: 'notes',
+          type: 'editor',
+          required: false,
+          system: false,
+          presentable: false
+        },
+        {
+          id: 'text_coupons_barcode',
+          name: 'barcode',
+          type: 'text',
+          required: false,
+          system: false,
+          min: 0,
+          max: 200,
+          presentable: false
+        },
+        {
+          id: 'text_coupons_reference',
+          name: 'reference',
+          type: 'text',
+          required: false,
+          system: false,
+          min: 0,
+          max: 100,
+          presentable: false
+        },
+        {
+          id: 'text_coupons_activationCode',
+          name: 'activationCode',
+          type: 'text',
+          required: false,
+          system: false,
+          min: 0,
+          max: 50,
+          presentable: false
+        },
+        {
+          id: 'text_coupons_pin',
+          name: 'pin',
+          type: 'text',
+          required: false,
+          system: false,
+          min: 0,
+          max: 10,
+          presentable: false
+        }
       ],
-      rules: { listRule: '', viewRule: '', createRule: '', updateRule: '', deleteRule: '' }
+      indexes: [],
+      system: false
     }
   ];
 
-  for (const coll of collections) {
-    console.log(`\n${colors.blue}Processing ${coll.name}...${colors.reset}`);
-    
-    // Check if collection exists with data
+  // Check existing collections and their data
+  console.log(`${colors.blue}Checking existing collections...${colors.reset}`);
+  for (const coll of collectionsData) {
     try {
       const existing = await pb.collections.getOne(coll.name);
-      console.log(`  Collection exists, checking for data...`);
+      console.log(`  ${coll.name}: exists with ${existing.fields?.filter(f => !f.system).length || 0} fields`);
       
-      // Check if there's data in the collection
+      // Check for data
       try {
         const records = await pb.collection(coll.name).getList(1, 1);
         if (records.totalItems > 0) {
-          console.log(`  ${colors.yellow}⚠ Collection has ${records.totalItems} records - skipping${colors.reset}`);
-          continue;
+          console.log(`    ${colors.yellow}⚠ Has ${records.totalItems} records - will preserve${colors.reset}`);
+          // Mark to skip this collection
+          coll._skip = true;
+        } else {
+          // Delete empty collection for recreation
+          await pb.collections.delete(coll.name);
+          console.log(`    Deleted (empty)`);
         }
       } catch {
         // No records
       }
-      
-      // Delete empty collection
-      await pb.collections.delete(coll.name);
-      console.log(`  Deleted existing (empty)`);
     } catch {
       // Collection doesn't exist
+      console.log(`  ${coll.name}: doesn't exist`);
     }
+  }
 
-    // Create new
+  // Import collections
+  console.log(`\n${colors.blue}Importing collections...${colors.reset}`);
+  const collectionsToImport = collectionsData.filter(c => !c._skip);
+  
+  if (collectionsToImport.length > 0) {
     try {
-      const newCol = await pb.collections.create({
-        name: coll.name,
-        type: 'base',
-        schema: coll.fields,
-        listRule: coll.rules.listRule,
-        viewRule: coll.rules.viewRule,
-        createRule: coll.rules.createRule,
-        updateRule: coll.rules.updateRule,
-        deleteRule: coll.rules.deleteRule
-      });
-      console.log(`  ${colors.green}✓ Created${colors.reset}`);
-      console.log(`  Schema: ${newCol.schema?.map(f => f.name).join(', ') || '(none)'}`);
+      await pb.collections.import(collectionsToImport);
+      console.log(`${colors.green}✓ Collections imported successfully${colors.reset}`);
     } catch (e) {
-      console.log(`  ${colors.red}✗ Error: ${e.message}${colors.reset}`);
-      if (e.data) console.log(`  Data: ${JSON.stringify(e.data)}`);
+      console.log(`${colors.red}✗ Import failed: ${e.message}${colors.reset}`);
+      hasError = true;
+    }
+  } else {
+    console.log(`${colors.yellow}⚠ All collections have data - skipping import${colors.reset}`);
+  }
+
+  // Verify created collections
+  console.log(`\n${colors.blue}Verifying collections...${colors.reset}`);
+  for (const coll of collectionsData) {
+    try {
+      const result = await pb.collections.getOne(coll.name);
+      const customFields = result.fields?.filter(f => !f.system) || [];
+      console.log(`  ${coll.name}: ${customFields.map(f => f.name).join(', ')}`);
+      
+      if (customFields.length === 0 && !coll._skip) {
+        console.log(`    ${colors.yellow}⚠ Warning: No fields!${colors.reset}`);
+        hasError = true;
+      }
+    } catch (e) {
+      console.log(`  ${coll.name}: ${colors.red}✗ Error: ${e.message}${colors.reset}`);
       hasError = true;
     }
   }
@@ -132,10 +306,5 @@ async function createCollections() {
 
   console.log(`\n${colors.green}✓ Collections setup complete!${colors.reset}`);
 }
-
-createCollections().catch(e => {
-  console.error(`${colors.red}Fatal: ${e.message}${colors.reset}`);
-  process.exit(1);
-});
 
 export { createCollections };
