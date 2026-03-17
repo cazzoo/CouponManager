@@ -62,23 +62,22 @@ async function createCollections() {
     {
       name: 'user_roles',
       schema: [
-        { name: 'userId', type: 'relation', required: true, collectionId: usersCollectionId, cascadeDelete: false },
-        { name: 'role', type: 'select', required: true, values: ['user', 'manager', 'demo'] }
+        { name: 'userId', type: 'relation', required: true, options: { collectionId: usersCollectionId, cascadeDelete: false } },
+        { name: 'role', type: 'select', required: true, options: { values: ['user', 'manager', 'demo'] } }
       ],
-      // Rules that reference userId - will be set after schema creation
       rules: {
         listRule: '@request.auth.id != ""',
         viewRule: '@request.auth.id != ""',
         createRule: '@request.auth.id != ""',
         updateRule: '@request.auth.id != ""',
-        deleteRule: '@request.auth.id != "" && @request.auth.data.role = \'manager\''
+        deleteRule: '@request.auth.id != "" && @request.auth.data.role = "manager"'
       }
     },
     {
       name: 'retailers',
       schema: [
-        { name: 'name', type: 'text', required: true },
-        { name: 'userId', type: 'relation', required: true, collectionId: usersCollectionId, cascadeDelete: false }
+        { name: 'name', type: 'text', required: true, options: { min: 1, max: 100 } },
+        { name: 'userId', type: 'relation', required: true, options: { collectionId: usersCollectionId, cascadeDelete: false } }
       ],
       rules: {
         listRule: '@request.auth.id != ""',
@@ -91,16 +90,16 @@ async function createCollections() {
     {
       name: 'coupons',
       schema: [
-        { name: 'retailer', type: 'text', required: true },
-        { name: 'initialValue', type: 'text', required: true },
-        { name: 'currentValue', type: 'text', required: true },
-        { name: 'userId', type: 'relation', required: true, collectionId: usersCollectionId, cascadeDelete: false },
+        { name: 'retailer', type: 'text', required: true, options: { min: 1, max: 100 } },
+        { name: 'initialValue', type: 'text', required: true, options: { min: 0, max: 50 } },
+        { name: 'currentValue', type: 'text', required: true, options: { min: 0, max: 50 } },
+        { name: 'userId', type: 'relation', required: true, options: { collectionId: usersCollectionId, cascadeDelete: false } },
         { name: 'expirationDate', type: 'date', required: false },
-        { name: 'notes', type: 'text', required: false },
-        { name: 'barcode', type: 'text', required: false },
-        { name: 'reference', type: 'text', required: false },
-        { name: 'activationCode', type: 'text', required: false },
-        { name: 'pin', type: 'text', required: false }
+        { name: 'notes', type: 'editor', required: false },
+        { name: 'barcode', type: 'text', required: false, options: { min: 0, max: 200 } },
+        { name: 'reference', type: 'text', required: false, options: { min: 0, max: 100 } },
+        { name: 'activationCode', type: 'text', required: false, options: { min: 0, max: 50 } },
+        { name: 'pin', type: 'text', required: false, options: { min: 0, max: 10 } }
       ],
       rules: {
         listRule: '@request.auth.id != ""',
@@ -120,55 +119,28 @@ async function createCollections() {
       let existingCollection;
       try {
         existingCollection = await pb.collections.getOne(coll.name);
-        console.log(`  Collection exists with ID: ${existingCollection.id}`);
-      } catch {
-        // Collection doesn't exist - create it FIRST without rules
-        console.log(`  Creating collection without rules first...`);
-        existingCollection = await pb.collections.create({
-          name: coll.name,
-          type: 'base',
-          schema: coll.schema,
-          listRule: null,
-          viewRule: null,
-          createRule: null,
-          updateRule: null,
-          deleteRule: null
-        });
-        console.log(`  ${colors.green}✓ Created collection '${coll.name}'${colors.reset}`);
-      }
-
-      // Now add/update fields that are missing
-      const currentFields = existingCollection.schema || [];
-      console.log(`  Current fields: ${currentFields.map(f => f.name).join(', ') || '(none)'}`);
-      console.log(`  New fields: ${coll.schema.map(f => f.name).join(', ')}`);
-
-      const fieldsToAdd = coll.schema.filter(
-        newField => !currentFields.find(f => f.name === newField.name)
-      );
-
-      console.log(`  Fields to add: ${fieldsToAdd.length > 0 ? fieldsToAdd.map(f => f.name).join(', ') : '(none)'}`);
-
-      if (fieldsToAdd.length > 0) {
-        // Update with new fields
-        const updatedSchema = [...currentFields, ...fieldsToAdd];
-        console.log(`  Adding fields...`);
+        console.log(`  Collection exists with ID: ${existingCollection.id}, deleting...`);
         
-        await pb.collections.update(coll.name, {
-          schema: updatedSchema
-        });
-        console.log(`  ${colors.green}✓ Added ${fieldsToAdd.length} fields to '${coll.name}'${colors.reset}`);
+        // Delete existing collection and recreate
+        await pb.collections.delete(coll.name);
+        console.log(`  Deleted old collection`);
+      } catch {
+        // Collection doesn't exist
       }
 
-      // Now update the rules (they can reference the fields now)
-      console.log(`  Updating rules...`);
-      await pb.collections.update(coll.name, {
+      // Create fresh collection with schema and rules together
+      console.log(`  Creating collection with schema and rules...`);
+      await pb.collections.create({
+        name: coll.name,
+        type: 'base',
+        schema: coll.schema,
         listRule: coll.rules.listRule,
         viewRule: coll.rules.viewRule,
         createRule: coll.rules.createRule,
         updateRule: coll.rules.updateRule,
         deleteRule: coll.rules.deleteRule
       });
-      console.log(`  ${colors.green}✓ Updated rules for '${coll.name}'${colors.reset}`);
+      console.log(`  ${colors.green}✓ Created collection '${coll.name}' with schema and rules${colors.reset}`);
 
     } catch (error) {
       console.error(`  ${colors.red}✗ Failed to process '${coll.name}':${colors.reset}`, error.message);
