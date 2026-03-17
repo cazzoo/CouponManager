@@ -40,10 +40,6 @@ async function createCollections() {
     console.log(`${colors.green}✓ Authenticated as admin${colors.reset}`);
   } catch (error) {
     console.error(`${colors.red}✗ Failed to authenticate:${colors.reset}`, error.message);
-    console.log(`${colors.yellow}Make sure:${colors.reset}`);
-    console.log(`  1. VITE_POCKETBASE_URL is set to the base URL (without /_/ )`);
-    console.log(`  2. PB_ADMIN_EMAIL and PB_ADMIN_PASSWORD are correct`);
-    console.log(`  3. Admin user exists in PocketBase`);
     process.exit(1);
   }
 
@@ -56,6 +52,37 @@ async function createCollections() {
   } catch (error) {
     console.error(`${colors.red}✗ Users collection not found${colors.reset}`);
     process.exit(1);
+  }
+
+  // Use raw fetch to create collections - more reliable
+  const adminToken = pb.authStore.token;
+  
+  // Helper to create collection using raw fetch
+  async function createCollectionRaw(name, schema, rules) {
+    const response = await fetch(`${pbUrl}/api/collections`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Admin ${adminToken}`
+      },
+      body: JSON.stringify({
+        name: name,
+        type: 'base',
+        schema: schema,
+        listRule: rules.listRule,
+        viewRule: rules.viewRule,
+        createRule: rules.createRule,
+        updateRule: rules.updateRule,
+        deleteRule: rules.deleteRule
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(JSON.stringify(errorData));
+    }
+    
+    return await response.json();
   }
 
   const collections = [
@@ -94,8 +121,8 @@ async function createCollections() {
         { name: 'initialValue', type: 'text', required: true, options: { min: 0, max: 50 } },
         { name: 'currentValue', type: 'text', required: true, options: { min: 0, max: 50 } },
         { name: 'userId', type: 'relation', required: true, options: { collectionId: usersCollectionId, cascadeDelete: false } },
-        { name: 'expirationDate', type: 'date', required: false },
-        { name: 'notes', type: 'editor', required: false },
+        { name: 'expirationDate', type: 'date', required: false, options: {} },
+        { name: 'notes', type: 'editor', required: false, options: {} },
         { name: 'barcode', type: 'text', required: false, options: { min: 0, max: 200 } },
         { name: 'reference', type: 'text', required: false, options: { min: 0, max: 100 } },
         { name: 'activationCode', type: 'text', required: false, options: { min: 0, max: 50 } },
@@ -116,37 +143,23 @@ async function createCollections() {
     
     try {
       // Check if collection exists
-      let existingCollection;
       try {
-        existingCollection = await pb.collections.getOne(coll.name);
-        console.log(`  Collection exists with ID: ${existingCollection.id}, deleting...`);
-        
-        // Delete existing collection and recreate
+        const existing = await pb.collections.getOne(coll.name);
+        console.log(`  Collection exists with ID: ${existing.id}, deleting...`);
         await pb.collections.delete(coll.name);
         console.log(`  Deleted old collection`);
       } catch {
         // Collection doesn't exist
       }
 
-      // Create fresh collection with schema and rules together
-      console.log(`  Creating collection with schema and rules...`);
-      await pb.collections.create({
-        name: coll.name,
-        type: 'base',
-        schema: coll.schema,
-        listRule: coll.rules.listRule,
-        viewRule: coll.rules.viewRule,
-        createRule: coll.rules.createRule,
-        updateRule: coll.rules.updateRule,
-        deleteRule: coll.rules.deleteRule
-      });
-      console.log(`  ${colors.green}✓ Created collection '${coll.name}' with schema and rules${colors.reset}`);
+      // Create using raw fetch
+      console.log(`  Creating collection with raw API...`);
+      const result = await createCollectionRaw(coll.name, coll.schema, coll.rules);
+      console.log(`  Result: ${JSON.stringify(result.schema?.map(f => f.name) || [])}`);
+      console.log(`  ${colors.green}✓ Created collection '${coll.name}'${colors.reset}`);
 
     } catch (error) {
-      console.error(`  ${colors.red}✗ Failed to process '${coll.name}':${colors.reset}`, error.message);
-      if (error.data) {
-        console.error(`${colors.gray}Error data: ${JSON.stringify(error.data)}${colors.reset}`);
-      }
+      console.error(`  ${colors.red}✗ Failed:${colors.reset}`, error.message);
     }
   }
 
