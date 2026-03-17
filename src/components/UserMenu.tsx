@@ -155,7 +155,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
 
       {isOpen && (
         <ul
-          className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 w-96 p-2 shadow-lg border border-base-200"
+          className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 w-[30rem] p-2 shadow-lg border border-base-200"
           role="menu"
         >
           <li className="menu-title px-3 py-2" role="none">
@@ -170,35 +170,39 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
           <div className="divider my-1" role="separator" />
 
           <li role="none">
-            <div className="collapse collapse-arrow bg-base-200 rounded-lg">
-              <input
-                type="checkbox"
-                checked={isThemeSectionOpen}
-                onChange={() => setIsThemeSectionOpen(!isThemeSectionOpen)}
-                aria-label="Theme settings"
-              />
-              <div className="collapse-title pr-8 min-h-0 py-2 flex items-center gap-2">
-                <Palette size={16} />
-                <span className="text-sm font-medium">Theme</span>
-                <span className="badge badge-sm badge-outline">{theme}</span>
-                <div className="ml-auto flex items-center gap-1">
+            <div className="bg-base-200 rounded-lg p-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 flex-1">
+                  <Palette size={16} />
+                  <span className="text-sm font-medium">Theme</span>
+                  <span className="badge badge-sm badge-outline">{theme}</span>
+                </div>
+                <div className="flex items-center gap-1">
                   <button
-                    onClick={(e) => { e.stopPropagation(); handlePreviousTheme(); }}
-                    className="btn btn-xs btn-ghost btn-circle"
+                    onClick={handlePreviousTheme}
+                    className="btn btn-sm btn-circle btn-ghost"
                     aria-label="Previous theme"
                   >
-                    <ChevronLeft size={14} />
+                    <ChevronLeft size={16} />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleNextTheme(); }}
-                    className="btn btn-xs btn-ghost btn-circle"
+                    onClick={handleNextTheme}
+                    className="btn btn-sm btn-circle btn-ghost"
                     aria-label="Next theme"
                   >
-                    <ChevronRight size={14} />
+                    <ChevronRight size={16} />
+                  </button>
+                  <button
+                    onClick={() => setIsThemeSectionOpen(!isThemeSectionOpen)}
+                    className="btn btn-sm btn-ghost px-2"
+                    aria-label="Toggle theme options"
+                    aria-expanded={isThemeSectionOpen}
+                  >
+                    <ChevronDown size={16} className={`transition-transform ${isThemeSectionOpen ? 'rotate-180' : ''}`} />
                   </button>
                 </div>
               </div>
-              <div className="collapse-content">
+              {isThemeSectionOpen && (
                 <div className="flex flex-col gap-2 pt-2">
                   {THEME_CATEGORIES.map((category) => (
                     <div key={category.name} className="flex flex-col gap-1">
@@ -226,26 +230,30 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
           </li>
 
           <li role="none">
-            <div className="collapse collapse-arrow bg-base-200 rounded-lg">
-              <input
-                type="checkbox"
-                checked={isLanguageSectionOpen}
-                onChange={() => setIsLanguageSectionOpen(!isLanguageSectionOpen)}
-                aria-label="Language settings"
-              />
-              <div className="collapse-title pr-8 min-h-0 py-2 flex items-center gap-2">
-                <Languages size={16} />
-                <span className="text-sm font-medium">Language</span>
-                <span className="badge badge-sm badge-outline ml-auto">
-                  {getCurrentLanguageName()}
-                </span>
+            <div className="bg-base-200 rounded-lg p-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 flex-1">
+                  <Languages size={16} />
+                  <span className="text-sm font-medium">Language</span>
+                  <span className="badge badge-sm badge-outline">
+                    {getCurrentLanguageName()}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsLanguageSectionOpen(!isLanguageSectionOpen)}
+                  className="btn btn-sm btn-ghost px-2"
+                  aria-label="Toggle language options"
+                  aria-expanded={isLanguageSectionOpen}
+                >
+                  <ChevronDown size={16} className={`transition-transform ${isLanguageSectionOpen ? 'rotate-180' : ''}`} />
+                </button>
               </div>
-              <div className="collapse-content">
+              {isLanguageSectionOpen && (
                 <div className="flex flex-col gap-1 pt-2">
                   {languages.map((lang) => (
                     <button
@@ -264,7 +272,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
                     </button>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
           </li>
 
