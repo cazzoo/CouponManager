@@ -131,6 +131,18 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
     setTheme(THEME_OPTIONS[newIndex].value);
   };
 
+  const handlePreviousLanguage = () => {
+    const currentIndex = languages.findIndex(lang => lang.code === language);
+    const newIndex = currentIndex === 0 ? languages.length - 1 : currentIndex - 1;
+    changeLanguage(languages[newIndex].code);
+  };
+
+  const handleNextLanguage = () => {
+    const currentIndex = languages.findIndex(lang => lang.code === language);
+    const newIndex = (currentIndex + 1) % languages.length;
+    changeLanguage(languages[newIndex].code);
+  };
+
   const getCurrentLanguageName = (): string => {
     const currentLang = languages.find(lang => lang.code === language);
     return currentLang ? currentLang.name : 'English';
@@ -169,11 +181,13 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
 
           <li role="none">
             <div className="bg-base-200 rounded-lg overflow-hidden">
-              <div className="flex items-center p-2 gap-2">
-                <Palette size={16} className="shrink-0" />
-                <span className="text-sm font-medium min-w-0 flex-1">Theme</span>
-                <span className="badge badge-sm badge-outline shrink-0">{theme}</span>
-                <div className="flex items-center gap-1 shrink-0 ml-auto">
+              <div className="flex items-center justify-between p-2 gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Palette size={16} className="shrink-0" />
+                  <span className="text-sm font-medium">Theme</span>
+                  <span className="badge badge-sm badge-outline shrink-0">{theme}</span>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={handlePreviousTheme}
                     className="btn btn-xs btn-circle btn-ghost"
@@ -244,14 +258,30 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
                     {getCurrentLanguageName()}
                   </span>
                 </div>
-                <button
-                  onClick={() => setIsLanguageSectionOpen(!isLanguageSectionOpen)}
-                  className="btn btn-xs btn-ghost px-2 shrink-0"
-                  aria-label="Toggle language options"
-                  aria-expanded={isLanguageSectionOpen}
-                >
-                  <ChevronDown size={14} className={`transition-transform duration-200 ${isLanguageSectionOpen ? 'rotate-180' : ''}`} />
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={handlePreviousLanguage}
+                    className="btn btn-xs btn-circle btn-ghost"
+                    aria-label="Previous language"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <button
+                    onClick={handleNextLanguage}
+                    className="btn btn-xs btn-circle btn-ghost"
+                    aria-label="Next language"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                  <button
+                    onClick={() => setIsLanguageSectionOpen(!isLanguageSectionOpen)}
+                    className="btn btn-xs btn-ghost px-2"
+                    aria-label="Toggle language options"
+                    aria-expanded={isLanguageSectionOpen}
+                  >
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${isLanguageSectionOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
               </div>
               <div 
                 className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
