@@ -10,7 +10,7 @@ interface PocketBaseConfig {
 class PocketBaseClient {
   private static instance: PocketBase | null = null;
   private static config: PocketBaseConfig = {
-    url: '',
+    url: import.meta.env.VITE_POCKETBASE_URL || '',
     authMethod: 'password'
   };
 
@@ -23,7 +23,9 @@ class PocketBaseClient {
 
     PocketBaseClient.config = {
       ...PocketBaseClient.config,
-      ...config
+      ...config,
+      // Use env URL if config doesn't specify one
+      url: config?.url || PocketBaseClient.config.url
     };
 
     PocketBaseClient.instance = new PocketBase(PocketBaseClient.config.url);

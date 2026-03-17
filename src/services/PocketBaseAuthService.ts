@@ -83,12 +83,16 @@ class PocketBaseAuthService {
 
   async signIn(email: string, password: string): Promise<AuthResponse> {
     try {
+      console.log('PocketBaseAuthService: Attempting sign in for:', email);
+      console.log('PocketBaseAuthService: PocketBase URL:', this.pb.baseUrl);
+      
       const authData = await this.pb.collection('users').authWithPassword(
         email,
         password
       );
 
       const { token, record } = authData;
+      console.log('PocketBaseAuthService: Auth successful for:', record.email);
       const user = {
         id: record.id,
         email: record.email,
@@ -109,8 +113,17 @@ class PocketBaseAuthService {
         data: { user, session },
         error: null
       };
-    } catch (error) {
-      console.error('Error in signIn:', error);
+    } catch (error: any) {
+      console.error('PocketBaseAuthService: Sign in error:', error);
+      console.error('PocketBaseAuthService: Error response:', error.response);
+      console.error('PocketBaseAuthService: Error data:', error.data);
+      
+      // Log detailed error info for debugging
+      if (error.response) {
+        console.error('PocketBaseAuthService: Status:', error.response.status);
+        console.error('PocketBaseAuthService: Status text:', error.response.statusText);
+      }
+      
       const dbError = handlePocketBaseError(error);
 
       return {

@@ -56,6 +56,34 @@ async function createCollections() {
   const usersCollectionId = usersCol.id;
   console.log(`  Users ID: ${usersCollectionId}`);
 
+  // Ensure users collection has the role field
+  console.log(`${colors.blue}Checking users collection for role field...${colors.reset}`);
+  const hasRoleField = usersCol.fields.some(f => f.name === 'role');
+  if (!hasRoleField) {
+    console.log(`  ${colors.yellow}⚠ Role field missing from users collection - adding it${colors.reset}`);
+    try {
+      await pb.collections.update('users', {
+        ...usersCol,
+        fields: [
+          ...usersCol.fields,
+          {
+            id: 'text_users_role',
+            name: 'role',
+            type: 'text',
+            required: false,
+            system: false,
+            presentable: false
+          }
+        ]
+      });
+      console.log(`  ${colors.green}✓ Role field added to users collection${colors.reset}`);
+    } catch (e) {
+      console.log(`  ${colors.red}✗ Failed to add role field: ${e.message}${colors.reset}`);
+    }
+  } else {
+    console.log(`  ${colors.green}✓ Role field exists on users collection${colors.reset}`);
+  }
+
   // Define collections using PocketBase import format (with field IDs)
   const collectionsData = [
     {

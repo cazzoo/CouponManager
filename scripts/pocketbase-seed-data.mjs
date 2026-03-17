@@ -60,6 +60,21 @@ async function fixPermissions(pb) {
 async function createTestUsers(pb) {
   console.log(`${colors.blue}Creating test users...${colors.reset}`);
 
+  // Check if users collection has the role field
+  try {
+    const usersCol = await pb.collections.getOne('users');
+    const hasRoleField = usersCol.fields.some(f => f.name === 'role');
+    if (!hasRoleField) {
+      console.log(`${colors.yellow}⚠ Warning: users collection missing 'role' field${colors.reset}`);
+      console.log(`${colors.yellow}  Run 'pnpm pb:create-collections' to add the field${colors.reset}`);
+      console.log(`${colors.yellow}  Users will be created without role (will use user_roles collection)${colors.reset}`);
+    } else {
+      console.log(`${colors.green}✓ users collection has 'role' field${colors.reset}`);
+    }
+  } catch (error) {
+    console.log(`${colors.yellow}⚠ Could not check users collection: ${error.message}${colors.reset}`);
+  }
+
   const testUsers = [
     {
       email: 'user@example.com',
@@ -107,6 +122,13 @@ async function createTestUsers(pb) {
 
   for (const userData of testUsers) {
     try {
+      // DEBUG: Log authentication state and user creation data
+      console.log(`${colors.gray}  DEBUG: Creating user with data:${colors.reset}`);
+      console.log(`${colors.gray}  DEBUG: email=${userData.email}${colors.reset}`);
+      console.log(`${colors.gray}  DEBUG: password length=${userData.password.length}${colors.reset}`);
+      console.log(`${colors.gray}  DEBUG: pb.authStore.token exists=${!!pb.authStore.token}${colors.reset}`);
+      console.log(`${colors.gray}  DEBUG: Is admin authenticated=${pb.authStore.model && pb.authStore.model.collectionName === 'admins'}${colors.reset}`);
+
       const user = await pb.collection('users').create({
         email: userData.email,
         password: userData.password,
@@ -115,6 +137,12 @@ async function createTestUsers(pb) {
         emailVisibility: userData.emailVisibility,
         role: userData.role
       });
+
+      // DEBUG: Log created user structure
+      console.log(`${colors.gray}  DEBUG: User created with id=${user.id}${colors.reset}`);
+      console.log(`${colors.gray}  DEBUG: User has passwordHash field=${Object.prototype.hasOwnProperty.call(user, 'passwordHash')}${colors.reset}`);
+      console.log(`${colors.gray}  DEBUG: User has emailVisibility=${user.emailVisibility}${colors.reset}`);
+      console.log(`${colors.gray}  DEBUG: User fields=${Object.keys(user).filter(k => !k.startsWith('@')).join(', ')}${colors.reset}`);
 
       userIds.push({ email: userData.email, id: user.id });
       console.log(`${colors.green}✓ Created user: ${userData.email}${colors.reset}`);
