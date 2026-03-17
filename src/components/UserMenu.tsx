@@ -180,37 +180,37 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
           <div className="divider my-1" role="separator" />
 
           <li role="none">
-            <div className="bg-base-200 rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between p-2 gap-2">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="relative bg-base-200 rounded-lg overflow-hidden">
+              <div className="flex items-center p-2 pr-24 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <Palette size={16} className="shrink-0" />
                   <span className="text-sm font-medium">Theme</span>
                   <span className="badge badge-sm badge-outline shrink-0">{theme}</span>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={handlePreviousTheme}
-                    className="btn btn-xs btn-circle btn-ghost"
-                    aria-label="Previous theme"
-                  >
-                    <ChevronLeft size={14} />
-                  </button>
-                  <button
-                    onClick={handleNextTheme}
-                    className="btn btn-xs btn-circle btn-ghost"
-                    aria-label="Next theme"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
-                  <button
-                    onClick={() => setIsThemeSectionOpen(!isThemeSectionOpen)}
-                    className="btn btn-xs btn-ghost px-2"
-                    aria-label="Toggle theme options"
-                    aria-expanded={isThemeSectionOpen}
-                  >
-                    <ChevronDown size={14} className={`transition-transform duration-200 ${isThemeSectionOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                </div>
+              </div>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <button
+                  onClick={handlePreviousTheme}
+                  className="btn btn-xs btn-circle btn-ghost"
+                  aria-label="Previous theme"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  onClick={handleNextTheme}
+                  className="btn btn-xs btn-circle btn-ghost"
+                  aria-label="Next theme"
+                >
+                  <ChevronRight size={14} />
+                </button>
+                <button
+                  onClick={() => setIsThemeSectionOpen(!isThemeSectionOpen)}
+                  className="btn btn-xs btn-ghost px-2"
+                  aria-label="Toggle theme options"
+                  aria-expanded={isThemeSectionOpen}
+                >
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${isThemeSectionOpen ? 'rotate-180' : ''}`} />
+                </button>
               </div>
               <div 
                 className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
@@ -249,39 +249,39 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onSignOut }) => {
           </li>
 
           <li role="none">
-            <div className="bg-base-200 rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between p-2 gap-2">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="relative bg-base-200 rounded-lg overflow-hidden">
+              <div className="flex items-center p-2 pr-24 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <Languages size={16} className="shrink-0" />
                   <span className="text-sm font-medium">Language</span>
                   <span className="badge badge-sm badge-outline shrink-0">
                     {getCurrentLanguageName()}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={handlePreviousLanguage}
-                    className="btn btn-xs btn-circle btn-ghost"
-                    aria-label="Previous language"
-                  >
-                    <ChevronLeft size={14} />
-                  </button>
-                  <button
-                    onClick={handleNextLanguage}
-                    className="btn btn-xs btn-circle btn-ghost"
-                    aria-label="Next language"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
-                  <button
-                    onClick={() => setIsLanguageSectionOpen(!isLanguageSectionOpen)}
-                    className="btn btn-xs btn-ghost px-2"
-                    aria-label="Toggle language options"
-                    aria-expanded={isLanguageSectionOpen}
-                  >
-                    <ChevronDown size={14} className={`transition-transform duration-200 ${isLanguageSectionOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                </div>
+              </div>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <button
+                  onClick={handlePreviousLanguage}
+                  className="btn btn-xs btn-circle btn-ghost"
+                  aria-label="Previous language"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  onClick={handleNextLanguage}
+                  className="btn btn-xs btn-circle btn-ghost"
+                  aria-label="Next language"
+                >
+                  <ChevronRight size={14} />
+                </button>
+                <button
+                  onClick={() => setIsLanguageSectionOpen(!isLanguageSectionOpen)}
+                  className="btn btn-xs btn-ghost px-2"
+                  aria-label="Toggle language options"
+                  aria-expanded={isLanguageSectionOpen}
+                >
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${isLanguageSectionOpen ? 'rotate-180' : ''}`} />
+                </button>
               </div>
               <div 
                 className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
